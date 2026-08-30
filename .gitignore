@@ -1,0 +1,44 @@
+# .NET
+**/bin/
+**/obj/
+*.user
+*.suo
+*.rsuser
+
+# IDE
+.idea/
+.vs/
+.vscode/
+
+# macOS
+.DS_Store
+
+# Logs
+*.log
+logs/
+
+# Environment
+.env
+.env.*
+!.env.example
+
+# Test / Coverage
+TestResults/
+coverage/
+coverage.*
+
+# NuGet
+*.nupkg
+*.snupkg
+packages/
+
+# Docker local data
+docker-data/
+mysql-data/
+rabbitmq-data/
+
+# Temporary files
+*.tmp
+*.temp
+*.bak
+*.swp

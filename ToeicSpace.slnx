@@ -1,0 +1,35 @@
+<Solution>
+  <Folder Name="/src/" />
+  <Folder Name="/src/ApiGateways/">
+    <Project Path="src/ApiGateways/ToeicSpace.ApiGateway/ToeicSpace.ApiGateway.csproj" />
+  </Folder>
+  <Folder Name="/src/BuildingBlocks/">
+    <Project Path="src/BuildingBlocks/ToeicSpace.BuildingBlocks.Messaging/ToeicSpace.BuildingBlocks.Messaging.csproj" />
+    <Project Path="src/BuildingBlocks/ToeicSpace.BuildingBlocks/ToeicSpace.BuildingBlocks.csproj" />
+  </Folder>
+  <Folder Name="/src/Services/" />
+  <Folder Name="/src/Services/Assessment/">
+    <Project Path="src/Services/Assessment/ToeicSpace.Assessment.API/ToeicSpace.Assessment.API.csproj" />
+    <Project Path="src/Services/Assessment/ToeicSpace.Assessment.Application/ToeicSpace.Assessment.Application.csproj" />
+    <Project Path="src/Services/Assessment/ToeicSpace.Assessment.Domain/ToeicSpace.Assessment.Domain.csproj" />
+    <Project Path="src/Services/Assessment/ToeicSpace.Assessment.Infrastructure/ToeicSpace.Assessment.Infrastructure.csproj" />
+  </Folder>
+  <Folder Name="/src/Services/Classroom/">
+    <Project Path="src/Services/Classroom/ToeicSpace.Classroom.API/ToeicSpace.Classroom.API.csproj" />
+  </Folder>
+  <Folder Name="/src/Services/Content/">
+    <Project Path="src/Services/Content/ToeicSpace.Content.API/ToeicSpace.Content.API.csproj" />
+  </Folder>
+  <Folder Name="/src/Services/Identity/">
+    <Project Path="src/Services/Identity/ToeicSpace.Identity.API/ToeicSpace.Identity.API.csproj" />
+    <Project Path="src/Services/Identity/ToeicSpace.Identity.Application/ToeicSpace.Identity.Application.csproj" />
+    <Project Path="src/Services/Identity/ToeicSpace.Identity.Domain/ToeicSpace.Identity.Domain.csproj" />
+    <Project Path="src/Services/Identity/ToeicSpace.Identity.Infrastructure/ToeicSpace.Identity.Infrastructure.csproj" />
+  </Folder>
+  <Folder Name="/src/Services/Payment/">
+    <Project Path="src/Services/Payment/ToeicSpace.Payment.API/ToeicSpace.Payment.API.csproj" />
+  </Folder>
+  <Folder Name="/src/WebApps/">
+    <Project Path="src/WebApps/ToeicSpace.Web/ToeicSpace.Web.csproj" />
+  </Folder>
+</Solution>

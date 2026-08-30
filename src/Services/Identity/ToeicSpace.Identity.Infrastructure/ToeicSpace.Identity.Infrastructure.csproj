@@ -1,0 +1,26 @@
+﻿<Project Sdk="Microsoft.NET.Sdk">
+
+  <ItemGroup>
+    <ProjectReference Include="..\ToeicSpace.Identity.Application\ToeicSpace.Identity.Application.csproj" />
+    <ProjectReference Include="..\ToeicSpace.Identity.Domain\ToeicSpace.Identity.Domain.csproj" />
+    <ProjectReference Include="..\..\..\BuildingBlocks\ToeicSpace.BuildingBlocks\ToeicSpace.BuildingBlocks.csproj" />
+    <ProjectReference Include="..\..\..\BuildingBlocks\ToeicSpace.BuildingBlocks.Messaging\ToeicSpace.BuildingBlocks.Messaging.csproj" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <PackageReference Include="Microsoft.EntityFrameworkCore" Version="9.0.11" />
+    <PackageReference Include="Microsoft.EntityFrameworkCore.Design" Version="9.0.11">
+      <IncludeAssets>runtime; build; native; contentfiles; analyzers; buildtransitive</IncludeAssets>
+      <PrivateAssets>all</PrivateAssets>
+    </PackageReference>
+    <PackageReference Include="Pomelo.EntityFrameworkCore.MySql" Version="9.0.0" />
+    <PackageReference Include="System.IdentityModel.Tokens.Jwt" Version="8.22.0" />
+  </ItemGroup>
+
+  <PropertyGroup>
+    <TargetFramework>net10.0</TargetFramework>
+    <ImplicitUsings>enable</ImplicitUsings>
+    <Nullable>enable</Nullable>
+  </PropertyGroup>
+
+</Project>
