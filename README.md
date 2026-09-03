@@ -51,39 +51,156 @@ The current scope focuses on TOEIC Listening and Reading. TOEIC Speaking and Wri
    cp .env.example .env
    ```
 
-3. Restore dependencies:
+3. Update the required values in `.env`.
+
+4. Restore dependencies:
 
    ```bash
    dotnet restore ToeicSpace.slnx
    ```
 
-4. Build the solution:
+5. Build the solution:
 
    ```bash
    dotnet build ToeicSpace.slnx
    ```
 
-5. Start the local environment:
+6. Start the service profile you want to work with.
+
+   Example — Identity Service:
 
    ```bash
-   docker compose up -d --build
+   docker compose --profile identity up -d --build
    ```
 
-6. Verify the running containers:
+7. Verify the running containers:
 
    ```bash
    docker compose ps
    ```
 
-## 🚀 Usage
+## 🚀 Docker Compose Usage
 
-Start all configured services:
+The local environment uses Docker Compose profiles so that each microservice can be started independently together with the infrastructure it requires.
+
+### Run a specific service
+
+Use:
 
 ```bash
-docker compose up -d
+docker compose --profile <service-profile> up -d --build
 ```
 
-Run a specific API directly with hot reload:
+Examples:
+
+```bash
+docker compose --profile identity up -d --build
+docker compose --profile learning up -d --build
+docker compose --profile assessment up -d --build
+docker compose --profile payment up -d --build
+docker compose --profile notification up -d --build
+```
+
+Each profile starts the selected application service together with its required database and shared infrastructure such as RabbitMQ, Redis, and the API Gateway when configured for that profile.
+
+### Run all services
+
+To start the complete local microservices environment:
+
+```bash
+docker compose --profile full up -d --build
+```
+
+### Rebuild a profile
+
+If Docker images need to be rebuilt:
+
+```bash
+docker compose --profile <service-profile> up -d --build
+```
+
+Example:
+
+```bash
+docker compose --profile identity up -d --build
+```
+
+### Start without rebuilding
+
+```bash
+docker compose --profile <service-profile> up -d
+```
+
+Example:
+
+```bash
+docker compose --profile identity up -d
+```
+
+### View running containers
+
+```bash
+docker compose ps
+```
+
+### View logs
+
+All containers:
+
+```bash
+docker compose logs -f
+```
+
+A specific service:
+
+```bash
+docker compose logs -f identity-api
+```
+
+### Stop containers
+
+Stop and remove the currently running Compose environment:
+
+```bash
+docker compose --profile full down
+```
+
+If a profile-specific command is preferred:
+
+```bash
+docker compose --profile identity down
+```
+
+### Validate Docker Compose configuration
+
+Before starting the environment, the Compose configuration can be validated with:
+
+```bash
+docker compose --profile identity config
+```
+
+For the full environment:
+
+```bash
+docker compose --profile full config
+```
+
+### Available profiles
+
+```text
+identity
+learning
+assessment
+payment
+notification
+full
+```
+
+`full` is the profile used to run all configured services.
+
+## 💻 Run an API directly
+
+A service can also be run directly with .NET hot reload:
 
 ```bash
 dotnet watch --project <api-project-path> run
@@ -105,18 +222,6 @@ Run tests:
 
 ```bash
 dotnet test ToeicSpace.slnx
-```
-
-View logs:
-
-```bash
-docker compose logs -f
-```
-
-Stop the local environment:
-
-```bash
-docker compose down
 ```
 
 ### Local endpoints
