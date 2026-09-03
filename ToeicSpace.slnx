@@ -5,6 +5,7 @@
   </Folder>
   <Folder Name="/src/BuildingBlocks/">
     <Project Path="src/BuildingBlocks/ToeicSpace.BuildingBlocks.Messaging/ToeicSpace.BuildingBlocks.Messaging.csproj" />
+    <Project Path="src/BuildingBlocks/ToeicSpace.BuildingBlocks.Storage/ToeicSpace.BuildingBlocks.Storage.csproj" />
     <Project Path="src/BuildingBlocks/ToeicSpace.BuildingBlocks/ToeicSpace.BuildingBlocks.csproj" />
   </Folder>
   <Folder Name="/src/Services/" />

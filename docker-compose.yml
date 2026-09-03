@@ -33,7 +33,12 @@ services:
     environment:
       ASPNETCORE_ENVIRONMENT: ${ASPNETCORE_ENVIRONMENT}
       ASPNETCORE_HTTP_PORTS: 8080
-
+      
+      CloudflareR2__Endpoint: ${R2_ENDPOINT}
+      CloudflareR2__AccessKey: ${R2_ACCESS_KEY}
+      CloudflareR2__SecretKey: ${R2_SECRET_KEY}
+      CloudflareR2__BucketName: ${R2_BUCKET_NAME}
+      
       ConnectionStrings__IdentityDatabase: >-
         Server=${IDENTITY_DB_HOST};
         Port=3306;
