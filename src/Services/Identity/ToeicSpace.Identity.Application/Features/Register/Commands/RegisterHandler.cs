@@ -101,15 +101,13 @@ public sealed class RegisterHandler : IRequestHandler<RegisterCommand, RegisterR
         }
 
         var otp = _otpGenerator.Generate();
-        var challengeId = Guid.NewGuid().ToString("N");
         var challenge = new OtpChallenge(
             user.Id,
             _otpHasher.Hash(otp),
             OtpChallenge.VerifyEmailPurpose,
             0);
 
-        await _otpChallengeStore.StoreAsync(
-            challengeId,
+        var challengeId = await _otpChallengeStore.ReplaceChallengeAsync(
             challenge,
             cancellationToken);
 

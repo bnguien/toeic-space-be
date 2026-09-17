@@ -1,5 +1,6 @@
 using ToeicSpace.Identity.Application.Interfaces.Persistence;
 using ToeicSpace.Identity.Domain.Entities;
+using ToeicSpace.Identity.Domain.Enums;
 using ToeicSpace.Identity.Domain.Exceptions;
 
 namespace ToeicSpace.Identity.Infrastructure.Persistence.Repositories;
@@ -47,6 +48,24 @@ public sealed class UserRepository : IUserRepository
         User user,
         CancellationToken cancellationToken)
         => await _dbContext.Users.AddAsync(user, cancellationToken);
+
+    public async Task<IReadOnlyList<User>> GetInactiveOlderThanAsync(
+        DateTime cutoffUtc,
+        CancellationToken cancellationToken)
+        => await _dbContext.Users
+            .Where(user =>
+                user.Status == UserStatus.Inactive &&
+                user.CreatedAt < cutoffUtc)
+            .ToListAsync(cancellationToken);
+
+    public Task DeleteRangeAsync(
+        IReadOnlyCollection<User> users,
+        CancellationToken cancellationToken)
+    {
+        cancellationToken.ThrowIfCancellationRequested();
+        _dbContext.Users.RemoveRange(users);
+        return Task.CompletedTask;
+    }
 
     public async Task SaveChangesAsync(CancellationToken cancellationToken)
     {

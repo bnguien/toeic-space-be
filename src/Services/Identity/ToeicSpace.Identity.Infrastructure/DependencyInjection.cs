@@ -1,10 +1,14 @@
+using Hangfire;
+using Hangfire.MySql;
 using MassTransit;
 using StackExchange.Redis;
 using ToeicSpace.Identity.Application.Interfaces.Caching;
 using ToeicSpace.Identity.Application.Interfaces.Messaging;
 using ToeicSpace.Identity.Application.Interfaces.Persistence;
 using ToeicSpace.Identity.Application.Interfaces.Security;
+using ToeicSpace.Identity.Application.Options;
 using ToeicSpace.Identity.Infrastructure.Consumers;
+using ToeicSpace.Identity.Infrastructure.Jobs;
 using ToeicSpace.Identity.Infrastructure.Persistence;
 using ToeicSpace.Identity.Infrastructure.Persistence.Repositories;
 using ToeicSpace.Identity.Infrastructure.Services.Caching;
@@ -30,6 +34,19 @@ public static class DependencyInjection
                 connectionString,
                 new MySqlServerVersion(new Version(8, 4, 0))));
 
+        services.AddHangfire(hangfire => hangfire
+            .SetDataCompatibilityLevel(CompatibilityLevel.Version_180)
+            .UseSimpleAssemblyNameTypeSerializer()
+            .UseRecommendedSerializerSettings()
+            .UseStorage(new MySqlStorage(
+                connectionString,
+                new MySqlStorageOptions
+                {
+                    PrepareSchemaIfNecessary = true,
+                    TablesPrefix = "Hangfire"
+                })));
+        services.AddHangfireServer();
+
         var redisConnectionString =
             configuration.GetConnectionString("Redis")
             ?? throw new InvalidOperationException(
@@ -43,8 +60,30 @@ public static class DependencyInjection
                 otpSection["ChallengeTtlMinutes"],
                 out var challengeTtlMinutes)
                 ? challengeTtlMinutes
-                : 5
+                : 5,
+            ResendCooldownSeconds = int.TryParse(
+                otpSection["ResendCooldownSeconds"],
+                out var resendCooldownSeconds)
+                ? resendCooldownSeconds
+                : 60
         };
+
+        var identitySection = configuration.GetSection(
+            InactiveAccountCleanupOptions.SectionName);
+        var cleanupOptions = new InactiveAccountCleanupOptions
+        {
+            InactiveAccountRetentionDays = int.TryParse(
+                identitySection["InactiveAccountRetentionDays"],
+                out var inactiveAccountRetentionDays)
+                ? inactiveAccountRetentionDays
+                : 3
+        };
+
+        if (cleanupOptions.InactiveAccountRetentionDays <= 0)
+        {
+            throw new InvalidOperationException(
+                "Identity:InactiveAccountRetentionDays must be greater than zero.");
+        }
 
         var rabbitMqSection = configuration.GetSection(RabbitMqOptions.SectionName);
         var rabbitMqOptions = new RabbitMqOptions
@@ -70,7 +109,9 @@ public static class DependencyInjection
         };
 
         services.AddSingleton(otpOptions);
+        services.AddSingleton(cleanupOptions);
         services.AddSingleton(smtpOptions);
+        services.AddSingleton(TimeProvider.System);
         services.AddSingleton<IConnectionMultiplexer>(_ =>
             ConnectionMultiplexer.Connect(redisConnectionString));
 
@@ -81,7 +122,9 @@ public static class DependencyInjection
         services.AddSingleton<IOtpChallengeStore, RedisOtpChallengeStore>();
         services.AddScoped<IIntegrationEventPublisher, MassTransitIntegrationEventPublisher>();
         services.AddScoped<IEmailSender, SmtpEmailSender>();
+        services.AddScoped<InactiveAccountCleanupJob>();
         services.AddSingleton<EmailTemplateRenderer>();
+        services.AddHostedService<HangfireRecurringJobRegistrar>();
 
         services.AddMassTransit(configurator =>
         {

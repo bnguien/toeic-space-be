@@ -33,4 +33,7 @@
   <Folder Name="/src/WebApps/">
     <Project Path="src/WebApps/ToeicSpace.Web/ToeicSpace.Web.csproj" />
   </Folder>
+  <Folder Name="/tests/Services/Identity/">
+    <Project Path="tests/Services/Identity/ToeicSpace.Identity.Application.Tests/ToeicSpace.Identity.Application.Tests.csproj" />
+  </Folder>
 </Solution>

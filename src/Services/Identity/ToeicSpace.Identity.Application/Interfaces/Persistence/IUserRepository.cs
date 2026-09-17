@@ -24,5 +24,13 @@ public interface IUserRepository
         User user,
         CancellationToken cancellationToken);
 
+    Task<IReadOnlyList<User>> GetInactiveOlderThanAsync(
+        DateTime cutoffUtc,
+        CancellationToken cancellationToken);
+
+    Task DeleteRangeAsync(
+        IReadOnlyCollection<User> users,
+        CancellationToken cancellationToken);
+
     Task SaveChangesAsync(CancellationToken cancellationToken);
 }

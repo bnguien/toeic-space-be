@@ -50,16 +50,30 @@ public sealed class ResendVerificationHandler
             return CreateOpaqueResult();
         }
 
+        var cooldownRemaining =
+            await _otpChallengeStore.TryAcquireResendCooldownAsync(
+                user.Id,
+                cancellationToken);
+
+        if (cooldownRemaining is not null)
+        {
+            var retryAfterSeconds = Math.Max(
+                1,
+                (int)Math.Ceiling(cooldownRemaining.Value.TotalSeconds));
+
+            throw AppException.TooManyRequests(
+                $"Please wait {retryAfterSeconds} seconds before requesting another OTP.",
+                ErrorCodes.OtpRateLimitExceeded);
+        }
+
         var otp = _otpGenerator.Generate();
-        var challengeId = Guid.NewGuid().ToString("N");
         var challenge = new OtpChallenge(
             user.Id,
             _otpHasher.Hash(otp),
             OtpChallenge.VerifyEmailPurpose,
             0);
 
-        await _otpChallengeStore.StoreAsync(
-            challengeId,
+        var challengeId = await _otpChallengeStore.ReplaceChallengeAsync(
             challenge,
             cancellationToken);
 

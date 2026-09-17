@@ -39,5 +39,11 @@ public sealed class UserConfiguration : IEntityTypeConfiguration<User>
             .HasConversion<string>()
             .HasMaxLength(32)
             .IsRequired();
+
+        builder.HasIndex(user => new
+        {
+            user.Status,
+            user.CreatedAt
+        });
     }
 }
