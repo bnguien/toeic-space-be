@@ -5,6 +5,7 @@
     <ProjectReference Include="..\ToeicSpace.Identity.Domain\ToeicSpace.Identity.Domain.csproj" />
     <ProjectReference Include="..\..\..\BuildingBlocks\ToeicSpace.BuildingBlocks\ToeicSpace.BuildingBlocks.csproj" />
     <ProjectReference Include="..\..\..\BuildingBlocks\ToeicSpace.BuildingBlocks.Messaging\ToeicSpace.BuildingBlocks.Messaging.csproj" />
+    <ProjectReference Include="..\..\..\BuildingBlocks\ToeicSpace.BuildingBlocks.Security\ToeicSpace.BuildingBlocks.Security.csproj" />
   </ItemGroup>
 
   <ItemGroup>
