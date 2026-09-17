@@ -3,7 +3,7 @@
 TOEIC Space - Studychill TOEIC data pipeline
 ============================================
 
-Replaces heal_and_standardize_toeic_data.py / process_toeic_data.py / seed_assessment_database.py.
+Unified pipeline for snapshot export, data cleansing, de-duplication, and database seeding.
 
 Commands
 --------
