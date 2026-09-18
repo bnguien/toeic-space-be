@@ -5,6 +5,7 @@
   </Folder>
   <Folder Name="/src/BuildingBlocks/">
     <Project Path="src/BuildingBlocks/ToeicSpace.BuildingBlocks.Messaging/ToeicSpace.BuildingBlocks.Messaging.csproj" />
+    <Project Path="src/BuildingBlocks/ToeicSpace.BuildingBlocks.Security/ToeicSpace.BuildingBlocks.Security.csproj" />
     <Project Path="src/BuildingBlocks/ToeicSpace.BuildingBlocks.Storage/ToeicSpace.BuildingBlocks.Storage.csproj" />
     <Project Path="src/BuildingBlocks/ToeicSpace.BuildingBlocks/ToeicSpace.BuildingBlocks.csproj" />
   </Folder>
@@ -33,7 +34,14 @@
   <Folder Name="/src/WebApps/">
     <Project Path="src/WebApps/ToeicSpace.Web/ToeicSpace.Web.csproj" />
   </Folder>
+  <Folder Name="/tests/" />
   <Folder Name="/tests/Services/Identity/">
     <Project Path="tests/Services/Identity/ToeicSpace.Identity.Application.Tests/ToeicSpace.Identity.Application.Tests.csproj" />
+  </Folder>
+  <Folder Name="/tests/UnitTests/">
+    <Project Path="tests/UnitTests/ToeicSpace.Assessment.Application.UnitTests/ToeicSpace.Assessment.Application.UnitTests.csproj" />
+    <Project Path="tests/UnitTests/ToeicSpace.Assessment.Domain.UnitTests/ToeicSpace.Assessment.Domain.UnitTests.csproj" />
+    <Project Path="tests/UnitTests/ToeicSpace.Identity.Application.UnitTests/ToeicSpace.Identity.Application.UnitTests.csproj" />
+    <Project Path="tests/UnitTests/ToeicSpace.Identity.Domain.UnitTests/ToeicSpace.Identity.Domain.UnitTests.csproj" />
   </Folder>
 </Solution>
