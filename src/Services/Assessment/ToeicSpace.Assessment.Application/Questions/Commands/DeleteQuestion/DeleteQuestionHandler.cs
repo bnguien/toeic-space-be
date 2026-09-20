@@ -42,6 +42,12 @@ public sealed class DeleteQuestionHandler : IRequestHandler<DeleteQuestionComman
             "delete a question of this test",
             cancellationToken);
 
+        await PublishedPracticeSetGuard.EnsureQuestionIsNotUsedByPublishedSetsAsync(
+            _context,
+            question.Id,
+            "delete this question",
+            cancellationToken);
+
         var practiceSetItems = await _context.ToeicPracticeSetItems
             .Where(item => item.QuestionId == question.Id)
             .ToListAsync(cancellationToken);

@@ -46,6 +46,12 @@ public sealed class UpdateQuestionStatusHandler : IRequestHandler<UpdateQuestion
                 question.TestId,
                 "unpublish a question of this test",
                 cancellationToken);
+
+            await PublishedPracticeSetGuard.EnsureQuestionIsNotUsedByPublishedSetsAsync(
+                _context,
+                question.Id,
+                $"set this question to {request.Status}",
+                cancellationToken);
         }
 
         question.Status = request.Status;

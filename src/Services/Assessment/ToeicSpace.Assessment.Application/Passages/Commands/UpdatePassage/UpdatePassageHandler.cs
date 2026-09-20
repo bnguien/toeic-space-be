@@ -3,6 +3,7 @@ using ToeicSpace.Assessment.Application.Data;
 using ToeicSpace.Assessment.Application.Dtos;
 using ToeicSpace.Assessment.Application.Extensions;
 using ToeicSpace.Assessment.Application.Passages.Common;
+using ToeicSpace.Assessment.Application.Questions.Common;
 
 namespace ToeicSpace.Assessment.Application.Passages.Commands.UpdatePassage;
 
@@ -45,6 +46,16 @@ public sealed class UpdatePassageHandler : IRequestHandler<UpdatePassageCommand,
             throw AppException.NotFound(nameof(ToeicTest), testId);
         }
 
+        if (HasChanges(passage, request))
+        {
+            // The passage is what its questions are asked about, so it follows the same locks.
+            await PublishedTestGuard.EnsureTestIsNotPublishedAsync(
+                _context, passage.TestId, "edit a passage of this test", cancellationToken);
+            await PublishedTestGuard.EnsureTestIsNotPublishedAsync(
+                _context, request.TestId, "move a passage into this test", cancellationToken);
+            await EnsureNotUsedInAttemptsAsync(questionIds, cancellationToken);
+        }
+
         PassageContentValidator.ApplyContent(passage, request);
         await _context.SaveChangesAsync(cancellationToken);
 
@@ -55,5 +66,45 @@ public sealed class UpdatePassageHandler : IRequestHandler<UpdatePassageCommand,
             .Where(item => item.Id == passage.Id)
             .Select(PassageMappingExtensions.DtoProjection)
             .FirstAsync(cancellationToken);
+    }
+
+    /// <summary>A request that repeats the stored values changes nothing, so it stays allowed.</summary>
+    private static bool HasChanges(
+        ToeicPassage passage,
+        IPassageContent content)
+    {
+        return passage.TestId != content.TestId
+            || passage.Part != content.Part
+            || passage.OrderIndex != content.OrderIndex
+            || !Same(passage.PassageType, content.PassageType)
+            || !Same(passage.Title, content.Title)
+            || !Same(passage.Content, content.Content)
+            || !Same(passage.AudioUrl, content.AudioUrl)
+            || !Same(passage.ImageUrl, content.ImageUrl)
+            || !Same(passage.Transcript, content.Transcript);
+    }
+
+    private static bool Same(string? stored, string? requested)
+        => string.Equals(stored ?? string.Empty, requested?.Trim() ?? string.Empty, StringComparison.Ordinal);
+
+    private async Task EnsureNotUsedInAttemptsAsync(
+        IReadOnlyCollection<Guid> questionIds,
+        CancellationToken cancellationToken)
+    {
+        if (questionIds.Count == 0)
+        {
+            return;
+        }
+
+        var answered = await _context.ToeicAttemptAnswers
+            .AnyAsync(answer => questionIds.Contains(answer.QuestionId), cancellationToken);
+
+        if (answered)
+        {
+            throw AppException.Conflict(
+                "Questions of this passage already have learner answers, so its content is locked. "
+                + "Archive them and create a new passage instead.",
+                ErrorCodes.QuestionLocked);
+        }
     }
 }

@@ -35,6 +35,35 @@ public class PracticeSetHandlerTests
     }
 
     [Fact]
+    public async Task ReplaceItems_PublishedSetTakingADraftQuestion_ShouldReject()
+    {
+        using var database = new TestDatabase();
+        var practiceSet = database.AddPracticeSet(ToeicPart.Part5, ContentStatus.Active);
+        var active = database.AddQuestion(null, ToeicPart.Part5, null);
+        var draft = database.AddQuestion(null, ToeicPart.Part5, null, status: ContentStatus.Draft);
+        var handler = new ReplacePracticeSetItemsHandler(database.Context, database.CacheInvalidator);
+
+        var act = () => handler.Handle(new ReplacePracticeSetItemsCommand(practiceSet.Id, [active.Id, draft.Id]), CancellationToken.None);
+
+        (await act.Should().ThrowAsync<AppException>())
+            .Which.Code.Should().Be(ErrorCodes.PracticeSetNotPublishable);
+        database.Context.ToeicPracticeSetItems.Should().BeEmpty();
+    }
+
+    [Fact]
+    public async Task ReplaceItems_DraftSetTakingADraftQuestion_ShouldBeAllowed()
+    {
+        using var database = new TestDatabase();
+        var practiceSet = database.AddPracticeSet(ToeicPart.Part5, ContentStatus.Draft);
+        var draft = database.AddQuestion(null, ToeicPart.Part5, null, status: ContentStatus.Draft);
+        var handler = new ReplacePracticeSetItemsHandler(database.Context, database.CacheInvalidator);
+
+        var result = await handler.Handle(new ReplacePracticeSetItemsCommand(practiceSet.Id, [draft.Id]), CancellationToken.None);
+
+        result.Items.Should().ContainSingle().Which.QuestionId.Should().Be(draft.Id);
+    }
+
+    [Fact]
     public async Task Content_ForLearner_ShouldIncludeAnswersAndSkipInactiveQuestions()
     {
         using var database = new TestDatabase();

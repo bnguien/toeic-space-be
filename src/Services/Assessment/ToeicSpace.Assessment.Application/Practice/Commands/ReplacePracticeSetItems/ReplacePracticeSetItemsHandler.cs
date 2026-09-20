@@ -37,7 +37,7 @@ public sealed class ReplacePracticeSetItemsHandler : IRequestHandler<ReplacePrac
         var questions = await _context.ToeicQuestions
             .AsNoTracking()
             .Where(question => request.QuestionIds.Contains(question.Id))
-            .Select(question => new { question.Id, question.Part })
+            .Select(question => new { question.Id, question.Part, question.Status })
             .ToListAsync(cancellationToken);
 
         var missingIds = request.QuestionIds
@@ -56,6 +56,16 @@ public sealed class ReplacePracticeSetItemsHandler : IRequestHandler<ReplacePrac
             throw AppException.Validation(
                 $"Every question of this practice set must be a Part {(int)practiceSet.Part} question.",
                 ErrorCodes.InvalidReference);
+        }
+
+        // Learners only see Active questions, so a published set may not take anything else.
+        if (practiceSet.Status == ContentStatus.Active
+            && questions.Any(question => question.Status != ContentStatus.Active))
+        {
+            throw AppException.Conflict(
+                "A published practice set can only contain Active questions. "
+                + "Publish those questions or move the set back to Draft first.",
+                ErrorCodes.PracticeSetNotPublishable);
         }
 
         var existingItems = await _context.ToeicPracticeSetItems

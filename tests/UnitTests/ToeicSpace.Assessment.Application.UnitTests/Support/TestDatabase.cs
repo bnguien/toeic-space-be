@@ -139,6 +139,31 @@ public sealed class TestDatabase : IDisposable
         return practiceSet;
     }
 
+    /// <summary>A submitted answer, which locks the content a learner was graded on.</summary>
+    public ToeicAttempt AddAttemptAnswer(Guid testId, ToeicQuestion question)
+    {
+        var attempt = new ToeicAttempt
+        {
+            Id = Guid.NewGuid(),
+            UserId = Guid.NewGuid(),
+            TestId = testId,
+            StartTime = FixedTimeProvider.DefaultNow.UtcDateTime
+        };
+
+        attempt.Answers.Add(new ToeicAttemptAnswer
+        {
+            Id = Guid.NewGuid(),
+            QuestionId = question.Id,
+            UserAnswer = AnswerOption.A,
+            CorrectAnswer = question.CorrectAnswer
+        });
+
+        Context.ToeicAttempts.Add(attempt);
+        Context.SaveChanges();
+
+        return attempt;
+    }
+
     public void AddPracticeSetItems(Guid practiceSetId, params Guid[] questionIds)
     {
         Context.ToeicPracticeSetItems.AddRange(questionIds.Select((questionId, index) =>

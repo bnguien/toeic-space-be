@@ -1,5 +1,7 @@
 using ToeicSpace.Assessment.Application.Questions.Commands.CreateQuestion;
+using ToeicSpace.Assessment.Application.Questions.Commands.DeleteQuestion;
 using ToeicSpace.Assessment.Application.Questions.Commands.UpdateQuestion;
+using ToeicSpace.Assessment.Application.Questions.Commands.UpdateQuestionStatus;
 using ToeicSpace.BuildingBlocks.Messaging.Events;
 
 namespace ToeicSpace.Assessment.Application.UnitTests.Questions;
@@ -89,7 +91,7 @@ public class QuestionHandlerTests
         using var database = new TestDatabase();
         var test = database.AddTest();
         var question = database.AddQuestion(test.Id, ToeicPart.Part5, 101);
-        AddAttemptAnswer(database, test, question);
+        database.AddAttemptAnswer(test.Id, question);
         var handler = UpdateHandler(database);
 
         var command = UpdateFrom(question, question.Version) with { CorrectAnswer = AnswerOption.C };
@@ -105,7 +107,7 @@ public class QuestionHandlerTests
         using var database = new TestDatabase();
         var test = database.AddTest();
         var question = database.AddQuestion(test.Id, ToeicPart.Part5, 101);
-        AddAttemptAnswer(database, test, question);
+        database.AddAttemptAnswer(test.Id, question);
         var handler = UpdateHandler(database);
 
         var command = UpdateFrom(question, question.Version) with { Explanation = "Better explanation." };
@@ -116,6 +118,84 @@ public class QuestionHandlerTests
         database.Events.Events.Should().ContainSingle()
             .Which.Should().BeOfType<QuestionUpdatedIntegrationEvent>();
     }
+
+    [Fact]
+    public async Task Delete_QuestionOfPublishedPracticeSet_ShouldBeBlocked()
+    {
+        using var database = new TestDatabase();
+        var practiceSet = database.AddPracticeSet(ToeicPart.Part5, ContentStatus.Active, code: "p5-lv1");
+        var question = database.AddQuestion(null, ToeicPart.Part5, null);
+        database.AddPracticeSetItems(practiceSet.Id, question.Id);
+        var handler = DeleteHandler(database);
+
+        var act = () => handler.Handle(new DeleteQuestionCommand(question.Id), CancellationToken.None);
+
+        (await act.Should().ThrowAsync<AppException>())
+            .Which.Code.Should().Be(ErrorCodes.QuestionLocked);
+        (await act.Should().ThrowAsync<AppException>())
+            .Which.Message.Should().Contain("p5-lv1");
+        database.Context.ToeicPracticeSetItems.Should().ContainSingle();
+    }
+
+    [Fact]
+    public async Task Delete_QuestionOfDraftPracticeSet_ShouldRemoveTheItem()
+    {
+        using var database = new TestDatabase();
+        var practiceSet = database.AddPracticeSet(ToeicPart.Part5, ContentStatus.Draft);
+        var question = database.AddQuestion(null, ToeicPart.Part5, null);
+        database.AddPracticeSetItems(practiceSet.Id, question.Id);
+        var handler = DeleteHandler(database);
+
+        await handler.Handle(new DeleteQuestionCommand(question.Id), CancellationToken.None);
+
+        database.Context.ToeicPracticeSetItems.Should().BeEmpty();
+        database.Context.ToeicQuestions.IgnoreQueryFilters().Single().DeletedAt.Should().NotBeNull();
+    }
+
+    [Fact]
+    public async Task Archive_QuestionOfPublishedPracticeSet_ShouldBeBlocked()
+    {
+        using var database = new TestDatabase();
+        var practiceSet = database.AddPracticeSet(ToeicPart.Part5, ContentStatus.Active, code: "p5-lv2");
+        var question = database.AddQuestion(null, ToeicPart.Part5, null);
+        database.AddPracticeSetItems(practiceSet.Id, question.Id);
+        var handler = StatusHandler(database);
+
+        var act = () => handler.Handle(new UpdateQuestionStatusCommand(question.Id, ContentStatus.Archived), CancellationToken.None);
+
+        (await act.Should().ThrowAsync<AppException>())
+            .Which.Code.Should().Be(ErrorCodes.QuestionLocked);
+        database.Context.ToeicQuestions.Single().Status.Should().Be(ContentStatus.Active);
+    }
+
+    [Fact]
+    public async Task Publish_QuestionOfPublishedPracticeSet_ShouldBeAllowed()
+    {
+        using var database = new TestDatabase();
+        var practiceSet = database.AddPracticeSet(ToeicPart.Part5, ContentStatus.Active);
+        var question = database.AddQuestion(null, ToeicPart.Part5, null, status: ContentStatus.Draft);
+        database.AddPracticeSetItems(practiceSet.Id, question.Id);
+        var handler = StatusHandler(database);
+
+        var result = await handler.Handle(new UpdateQuestionStatusCommand(question.Id, ContentStatus.Active), CancellationToken.None);
+
+        result.Status.Should().Be(ContentStatus.Active);
+    }
+
+    private static DeleteQuestionHandler DeleteHandler(TestDatabase database)
+        => new(
+            database.Context,
+            database.Events,
+            database.CacheInvalidator,
+            database.Time,
+            TestDatabase.Logger<DeleteQuestionHandler>());
+
+    private static UpdateQuestionStatusHandler StatusHandler(TestDatabase database)
+        => new(
+            database.Context,
+            database.Events,
+            database.CacheInvalidator,
+            database.Time);
 
     private static CreateQuestionHandler CreateHandler(TestDatabase database)
         => new(
@@ -175,26 +255,4 @@ public class QuestionHandlerTests
             question.Topic,
             question.OrderIndex,
             question.PreferAiExplanation);
-
-    private static void AddAttemptAnswer(TestDatabase database, ToeicTest test, ToeicQuestion question)
-    {
-        var attempt = new ToeicAttempt
-        {
-            Id = Guid.NewGuid(),
-            UserId = Guid.NewGuid(),
-            TestId = test.Id,
-            StartTime = FixedTimeProvider.DefaultNow.UtcDateTime
-        };
-
-        attempt.Answers.Add(new ToeicAttemptAnswer
-        {
-            Id = Guid.NewGuid(),
-            QuestionId = question.Id,
-            UserAnswer = AnswerOption.A,
-            CorrectAnswer = question.CorrectAnswer
-        });
-
-        database.Context.ToeicAttempts.Add(attempt);
-        database.Context.SaveChanges();
-    }
 }
