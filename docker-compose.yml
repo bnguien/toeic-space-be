@@ -66,6 +66,10 @@ services:
       MYSQL_USER: ${IDENTITY_DB_USER}
       MYSQL_PASSWORD: ${IDENTITY_DB_PASSWORD}
       MYSQL_ROOT_PASSWORD: ${IDENTITY_DB_ROOT_PASSWORD}
+
+    ports:
+      - "3306:3306"
+
     restart: always
     volumes:
       - identity_db_data:/var/lib/mysql
@@ -105,6 +109,13 @@ services:
       CloudflareR2__SecretKey: ${R2_SECRET_KEY}
       CloudflareR2__BucketName: ${R2_BUCKET_NAME}
 
+      Smtp__Server: ${SMTP_SERVER}
+      Smtp__Port: ${SMTP_PORT}
+      Smtp__SenderName: ${SMTP_SENDER_NAME}
+      Smtp__SenderEmail: ${SMTP_SENDER_EMAIL}
+      Smtp__Password: ${SMTP_PASSWORD}
+      Smtp__SupportEmail: ${SMTP_SUPPORT_EMAIL}
+
       ConnectionStrings__IdentityDatabase: >-
         Server=identity-db;
         Port=3306;
@@ -113,6 +124,15 @@ services:
         Password=${IDENTITY_DB_PASSWORD};
 
       ConnectionStrings__Redis: redis:6379
+
+      Otp__HmacSecret: ${IDENTITY_OTP_HMAC_SECRET}
+      Otp__ChallengeTtlMinutes: 5
+      Otp__ResendCooldownSeconds: 60
+
+      Auth__AccessTokenExpirationMinutes: ${AUTH_ACCESS_TOKEN_EXPIRATION_MINUTES}
+      Auth__RefreshTokenExpirationDays: ${AUTH_REFRESH_TOKEN_EXPIRATION_DAYS}
+      Auth__ResetTokenExpirationMinutes: ${AUTH_RESET_TOKEN_EXPIRATION_MINUTES}
+      Identity__InactiveAccountRetentionDays: ${IDENTITY_INACTIVE_ACCOUNT_RETENTION_DAYS:-3}
 
       RabbitMQ__Host: messagebroker
       RabbitMQ__Username: ${RABBITMQ_USER}
