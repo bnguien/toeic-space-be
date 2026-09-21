@@ -12,6 +12,7 @@ COPY ["src/Services/Identity/ToeicSpace.Identity.Domain/ToeicSpace.Identity.Doma
 COPY ["src/Services/Identity/ToeicSpace.Identity.Infrastructure/ToeicSpace.Identity.Infrastructure.csproj", "src/Services/Identity/ToeicSpace.Identity.Infrastructure/"]
 COPY ["src/BuildingBlocks/ToeicSpace.BuildingBlocks/ToeicSpace.BuildingBlocks.csproj", "src/BuildingBlocks/ToeicSpace.BuildingBlocks/"]
 COPY ["src/BuildingBlocks/ToeicSpace.BuildingBlocks.Messaging/ToeicSpace.BuildingBlocks.Messaging.csproj", "src/BuildingBlocks/ToeicSpace.BuildingBlocks.Messaging/"]
+COPY ["src/BuildingBlocks/ToeicSpace.BuildingBlocks.Security/ToeicSpace.BuildingBlocks.Security.csproj", "src/BuildingBlocks/ToeicSpace.BuildingBlocks.Security/"]
 
 RUN dotnet restore "src/Services/Identity/ToeicSpace.Identity.API/ToeicSpace.Identity.API.csproj"
 

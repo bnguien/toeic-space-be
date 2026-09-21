@@ -5,6 +5,7 @@ public static class ErrorCodes
     // Auth
     public const string InvalidCredentials = "AUTH_INVALID_CREDENTIALS";
     public const string AccountLocked = "AUTH_ACCOUNT_LOCKED";
+    public const string LoginTemporarilyLocked = "AUTH_LOGIN_TEMPORARILY_LOCKED";
     public const string EmailNotVerified = "AUTH_EMAIL_NOT_VERIFIED";
     public const string EmailAlreadyVerified = "AUTH_EMAIL_ALREADY_VERIFIED";
     public const string PasswordSameAsOld = "AUTH_PASSWORD_SAME_AS_OLD";

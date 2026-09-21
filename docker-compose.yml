@@ -66,10 +66,8 @@ services:
       MYSQL_USER: ${IDENTITY_DB_USER}
       MYSQL_PASSWORD: ${IDENTITY_DB_PASSWORD}
       MYSQL_ROOT_PASSWORD: ${IDENTITY_DB_ROOT_PASSWORD}
-
     ports:
-      - "3306:3306"
-
+      - "${IDENTITY_DB_PORT}:3306"
     restart: always
     volumes:
       - identity_db_data:/var/lib/mysql
@@ -137,6 +135,13 @@ services:
       RabbitMQ__Host: messagebroker
       RabbitMQ__Username: ${RABBITMQ_USER}
       RabbitMQ__Password: ${RABBITMQ_PASSWORD}
+
+      Jwt__Issuer: ${JWT_ISSUER}
+      Jwt__Audience: ${JWT_AUDIENCE}
+      Jwt__PrivateKey: ${JWT_PRIVATE_KEY}
+      ForwardedHeaders__KnownNetworks__0: ${TRUSTED_PROXY_NETWORK}
+      BootstrapAdmin__Email: ${BOOTSTRAP_ADMIN_EMAIL}
+      BootstrapAdmin__Password: ${BOOTSTRAP_ADMIN_PASSWORD}
     depends_on:
       identity-db:
         condition: service_healthy
@@ -237,78 +242,85 @@ services:
   # ASSESSMENT SERVICE
   # ==================================================
 
-#  assessment-db:
-#    image: mysql:8.4
-#    profiles: ["assessment", "full"]
-#    environment:
-#      MYSQL_DATABASE: ${ASSESSMENT_DB_NAME}
-#      MYSQL_USER: ${ASSESSMENT_DB_USER}
-#      MYSQL_PASSWORD: ${ASSESSMENT_DB_PASSWORD}
-#      MYSQL_ROOT_PASSWORD: ${ASSESSMENT_DB_ROOT_PASSWORD}
-#    restart: always
-#    volumes:
-#      - assessment_db_data:/var/lib/mysql
-#    healthcheck:
-#      test:
-#        [
-#          "CMD-SHELL",
-#          "mysqladmin ping -h localhost -uroot -p${ASSESSMENT_DB_ROOT_PASSWORD}"
-#        ]
-#      interval: 5s
-#      timeout: 5s
-#      retries: 10
-#      start_period: 15s
-#    deploy:
-#      resources:
-#        limits:
-#          cpus: "0.6"
-#          memory: 512M
-#        reservations:
-#          memory: 256M
-#    networks:
-#      - backend-network
-#
-#  assessment-api:
-#    image: toeicspace/assessment-api
-#    profiles: ["assessment", "full"]
-#    build:
-#      context: .
-#      dockerfile: src/Services/Assessment/ToeicSpace.Assessment.API/Dockerfile
-#    environment:
-#      ASPNETCORE_ENVIRONMENT: ${ASPNETCORE_ENVIRONMENT}
-#      ASPNETCORE_HTTP_PORTS: 8080
-#      DOTNET_gcServer: "0"
-#
-#      ConnectionStrings__AssessmentDatabase: >-
-#        Server=assessment-db;
-#        Port=3306;
-#        Database=${ASSESSMENT_DB_NAME};
-#        User=${ASSESSMENT_DB_USER};
-#        Password=${ASSESSMENT_DB_PASSWORD};
-#
-#      ConnectionStrings__Redis: redis:6379
-#
-#      RabbitMQ__Host: messagebroker
-#      RabbitMQ__Username: ${RABBITMQ_USER}
-#      RabbitMQ__Password: ${RABBITMQ_PASSWORD}
-#    depends_on:
-#      assessment-db:
-#        condition: service_healthy
-#      redis:
-#        condition: service_healthy
-#      messagebroker:
-#        condition: service_healthy
-#    ports:
-#      - "${ASSESSMENT_API_PORT}:8080"
-#    deploy:
-#      resources:
-#        limits:
-#          cpus: "0.5"
-#          memory: 256M
-#        reservations:
-#          memory: 128M
-#    networks:
-#      - backend-network
+  assessment-db:
+    image: mysql:8.4
+    profiles: ["assessment", "full"]
+    environment:
+      MYSQL_DATABASE: ${ASSESSMENT_DB_NAME}
+      MYSQL_USER: ${ASSESSMENT_DB_USER}
+      MYSQL_PASSWORD: ${ASSESSMENT_DB_PASSWORD}
+      MYSQL_ROOT_PASSWORD: ${ASSESSMENT_DB_ROOT_PASSWORD}
+    ports:
+      - "${ASSESSMENT_DB_PORT}:3306"
+    restart: always
+    volumes:
+      - assessment_db_data:/var/lib/mysql
+    healthcheck:
+      test:
+        [
+          "CMD-SHELL",
+          "mysqladmin ping -h localhost -uroot -p${ASSESSMENT_DB_ROOT_PASSWORD}"
+        ]
+      interval: 5s
+      timeout: 5s
+      retries: 10
+      start_period: 15s
+    deploy:
+      resources:
+        limits:
+          cpus: "0.6"
+          memory: 512M
+        reservations:
+          memory: 256M
+    networks:
+      - backend-network
+
+  assessment-api:
+    image: toeicspace/assessment-api
+    profiles: ["assessment", "full"]
+    build:
+      context: .
+      dockerfile: src/Services/Assessment/ToeicSpace.Assessment.API/Dockerfile
+    environment:
+      ASPNETCORE_ENVIRONMENT: ${ASPNETCORE_ENVIRONMENT}
+      ASPNETCORE_HTTP_PORTS: 8080
+      DOTNET_gcServer: "0"
+
+      ConnectionStrings__AssessmentDatabase: >-
+        Server=assessment-db;
+        Port=3306;
+        Database=${ASSESSMENT_DB_NAME};
+        User=${ASSESSMENT_DB_USER};
+        Password=${ASSESSMENT_DB_PASSWORD};
+
+      ConnectionStrings__Redis: redis:6379
+
+      RabbitMQ__Host: messagebroker
+      RabbitMQ__Username: ${RABBITMQ_USER}
+      RabbitMQ__Password: ${RABBITMQ_PASSWORD}
+
+      Jwt__Issuer: ${JWT_ISSUER}
+      Jwt__Audience: ${JWT_AUDIENCE}
+      Jwt__PublicKey: ${JWT_PUBLIC_KEY}
+      ForwardedHeaders__KnownNetworks__0: ${TRUSTED_PROXY_NETWORK}
+    depends_on:
+      assessment-db:
+        condition: service_healthy
+      redis:
+        condition: service_healthy
+      messagebroker:
+        condition: service_healthy
+    ports:
+      - "${ASSESSMENT_API_PORT}:8080"
+    deploy:
+      resources:
+        limits:
+          cpus: "0.5"
+          memory: 256M
+        reservations:
+          memory: 128M
+    networks:
+      - backend-network
 
   
   # ==================================================
@@ -317,7 +329,7 @@ services:
 
   api-gateway:
     image: toeicspace/api-gateway
-    profiles: ["identity", "full"]
+    profiles: ["identity", "assessment", "full"]
     build:
       context: .
       dockerfile: src/ApiGateways/ToeicSpace.ApiGateway/Dockerfile
@@ -327,6 +339,8 @@ services:
       DOTNET_gcServer: "0"
 
       ReverseProxy__Clusters__identity-cluster__Destinations__identity-api__Address: http://identity-api:8080/
+      ReverseProxy__Clusters__assessment-cluster__Destinations__assessment-api__Address: http://assessment-api:8080/
+      ForwardedHeaders__KnownNetworks__0: ${TRUSTED_PROXY_NETWORK}
 
     ports:
       - "${API_GATEWAY_PORT}:8080"
@@ -353,7 +367,7 @@ networks:
 volumes:
   identity_db_data:
 #  learning_db_data:
-#  assessment_db_data:
+  assessment_db_data:
 #  payment_db_data:
   rabbitmq_data:
   redis_data:

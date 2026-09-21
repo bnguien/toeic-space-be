@@ -42,3 +42,9 @@ rabbitmq-data/
 *.temp
 *.bak
 *.swp
+
+# Data and seeds
+/data/crawled/
+/data/seeds/
+/data/source/
+scripts/__pycache__/

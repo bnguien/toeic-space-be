@@ -76,6 +76,9 @@ internal sealed class FakeUserRepository : IUserRepository
 internal sealed class FakePasswordHasher : IPasswordHasher
 {
     public string Hash(string password) => $"hashed:{password}";
+
+    public bool Verify(string password, string? passwordHash)
+        => passwordHash == Hash(password);
 }
 
 internal sealed class FixedTimeProvider(DateTimeOffset utcNow) : TimeProvider
