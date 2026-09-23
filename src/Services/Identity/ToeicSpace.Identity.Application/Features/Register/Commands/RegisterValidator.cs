@@ -20,7 +20,15 @@ public sealed class RegisterValidator : AbstractValidator<RegisterCommand>
         RuleFor(command => command.Password)
             .NotEmpty()
             .MinimumLength(8)
-            .MaximumLength(128);
+            .MaximumLength(128)
+            .Must(password => password.Any(char.IsUpper))
+            .WithMessage("Password must contain at least one uppercase letter.")
+            .Must(password => password.Any(char.IsDigit))
+            .WithMessage("Password must contain at least one digit.")
+            .Must(password => password.Any(character =>
+                !char.IsLetterOrDigit(character) &&
+                !char.IsWhiteSpace(character)))
+            .WithMessage("Password must contain at least one special character.");
 
         RuleFor(command => command.ConfirmPassword)
             .NotEmpty()

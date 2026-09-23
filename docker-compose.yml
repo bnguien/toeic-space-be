@@ -337,9 +337,10 @@ services:
       ASPNETCORE_ENVIRONMENT: ${ASPNETCORE_ENVIRONMENT}
       ASPNETCORE_HTTP_PORTS: 8080
       DOTNET_gcServer: "0"
-
-      ReverseProxy__Clusters__identity-cluster__Destinations__identity-api__Address: http://identity-api:8080/
-      ReverseProxy__Clusters__assessment-cluster__Destinations__assessment-api__Address: http://assessment-api:8080/
+  
+      Logging__LogLevel__Yarp.ReverseProxy: Debug
+      ReverseProxy__Clusters__identity-cluster__Destinations__destination1__Address: http://identity-api:8080/
+      ReverseProxy__Clusters__assessment-cluster__Destinations__destination1__Address: http://assessment-api:8080/
       ForwardedHeaders__KnownNetworks__0: ${TRUSTED_PROXY_NETWORK}
 
     ports:
