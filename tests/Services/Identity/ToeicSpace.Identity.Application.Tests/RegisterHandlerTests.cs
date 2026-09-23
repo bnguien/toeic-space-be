@@ -30,7 +30,7 @@ public sealed class RegisterHandlerTests
         Assert.Equal(response.UserId, user.Id);
         Assert.Equal("Ada Lovelace", user.FullName);
         Assert.Equal("ada@example.com", user.Email);
-        Assert.Equal("+84901234567", user.Phone);
+        Assert.Equal("0901234567", user.Phone);
         Assert.Equal("hashed:correct-horse", user.PasswordHash);
         Assert.Null(user.EmailVerifiedAt);
         Assert.Equal(UserRole.User, user.Role);
@@ -72,7 +72,7 @@ public sealed class RegisterHandlerTests
     }
 
     [Fact]
-    public async Task HandleAsync_WithVietnameseLocalPhone_NormalizesToInternationalFormat()
+    public async Task HandleAsync_WithVietnameseLocalPhone_KeepsLocalFormat()
     {
         var repository = new FakeUserRepository();
         var handler = CreateHandler(
@@ -84,13 +84,64 @@ public sealed class RegisterHandlerTests
             new RegisterCommand(
                 "Ada Lovelace",
                 "ada@example.com",
-                "03092663097",
+                "0392663097",
                 "correct-horse",
                 "correct-horse"),
             CancellationToken.None);
 
         var user = Assert.Single(repository.Users);
-        Assert.Equal("+843092663097", user.Phone);
+        Assert.Equal("0392663097", user.Phone);
+    }
+
+    [Theory]
+    [InlineData("+84912345678")]
+    [InlineData("0084912345678")]
+    public async Task HandleAsync_WithVietnameseCountryCode_NormalizesToLocalFormat(
+        string phone)
+    {
+        var repository = new FakeUserRepository();
+        var handler = CreateHandler(
+            repository,
+            new FakeOtpChallengeStore(),
+            new FakeIntegrationEventPublisher());
+
+        await handler.Handle(
+            new RegisterCommand(
+                "Ada Lovelace",
+                "ada@example.com",
+                phone,
+                "correct-horse",
+                "correct-horse"),
+            CancellationToken.None);
+
+        var user = Assert.Single(repository.Users);
+        Assert.Equal("0912345678", user.Phone);
+    }
+
+    [Theory]
+    [InlineData("0392663097999")]
+    [InlineData("0212345678")]
+    [InlineData("84912345678")]
+    public async Task HandleAsync_WithInvalidVietnamesePhone_ReturnsValidationError(
+        string phone)
+    {
+        var repository = new FakeUserRepository();
+        var handler = CreateHandler(
+            repository,
+            new FakeOtpChallengeStore(),
+            new FakeIntegrationEventPublisher());
+
+        var exception = await Assert.ThrowsAsync<AppException>(() => handler.Handle(
+            new RegisterCommand(
+                "Ada Lovelace",
+                "ada@example.com",
+                phone,
+                "correct-horse",
+                "correct-horse"),
+            CancellationToken.None));
+
+        Assert.Equal(ErrorCodes.ValidationError, exception.Code);
+        Assert.Empty(repository.Users);
     }
 
     [Fact]
@@ -127,7 +178,7 @@ public sealed class RegisterHandlerTests
         repository.Users.Add(new User
         {
             Email = "existing@example.com",
-            Phone = "+84901234567"
+            Phone = "0901234567"
         });
         var handler = CreateHandler(
             repository,

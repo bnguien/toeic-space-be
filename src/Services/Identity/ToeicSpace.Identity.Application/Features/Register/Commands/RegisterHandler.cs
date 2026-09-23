@@ -61,7 +61,7 @@ public sealed class RegisterHandler : IRequestHandler<RegisterCommand, RegisterR
         if (!IdentityNormalizer.IsValidPhone(phone))
         {
             throw AppException.Validation(
-                "Phone must be a valid international phone number.",
+                "Phone must be a valid Vietnamese mobile phone number.",
                 ErrorCodes.ValidationError);
         }
 
@@ -145,10 +145,10 @@ internal static partial class IdentityNormalizer
 
         var normalized = PhoneSeparatorRegex().Replace(phone.Trim(), string.Empty);
 
-        return normalized.StartsWith("00", StringComparison.Ordinal)
-            ? $"+{normalized[2..]}"
-            : normalized.StartsWith("0", StringComparison.Ordinal)
-                ? $"+84{normalized[1..]}"
+        return normalized.StartsWith("+84", StringComparison.Ordinal)
+            ? $"0{normalized[3..]}"
+            : normalized.StartsWith("0084", StringComparison.Ordinal)
+                ? $"0{normalized[4..]}"
                 : normalized;
     }
 
@@ -162,6 +162,6 @@ internal static partial class IdentityNormalizer
     [GeneratedRegex(@"[\s().-]+")]
     private static partial Regex PhoneSeparatorRegex();
 
-    [GeneratedRegex(@"^\+?[1-9]\d{7,14}$")]
+    [GeneratedRegex(@"^0[35789]\d{8}$")]
     private static partial Regex NormalizedPhoneRegex();
 }
