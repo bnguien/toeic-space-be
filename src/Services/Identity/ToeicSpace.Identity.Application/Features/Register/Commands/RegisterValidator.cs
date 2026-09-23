@@ -15,7 +15,7 @@ public sealed class RegisterValidator : AbstractValidator<RegisterCommand>
 
         RuleFor(command => command.Phone)
             .Must(IdentityNormalizer.IsValidPhone)
-            .WithMessage("Phone must be a valid Vietnamese or international phone number.");
+            .WithMessage("Phone must be a valid Vietnamese mobile phone number.");
 
         RuleFor(command => command.Password)
             .NotEmpty()
