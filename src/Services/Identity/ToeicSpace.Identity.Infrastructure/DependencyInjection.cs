@@ -1,6 +1,7 @@
 using Hangfire;
 using Hangfire.MySql;
 using MassTransit;
+using Microsoft.Extensions.DependencyInjection.Extensions;
 using StackExchange.Redis;
 using ToeicSpace.Identity.Application.Interfaces.Caching;
 using ToeicSpace.Identity.Application.Interfaces.Messaging;
@@ -10,7 +11,9 @@ using ToeicSpace.Identity.Application.Options;
 using ToeicSpace.Identity.Infrastructure.Consumers;
 using ToeicSpace.Identity.Infrastructure.Jobs;
 using ToeicSpace.Identity.Infrastructure.Persistence;
+using ToeicSpace.Identity.Application.Common.Sessions;
 using ToeicSpace.Identity.Infrastructure.Persistence.Repositories;
+using ToeicSpace.Identity.Infrastructure.Services.Bootstrap;
 using ToeicSpace.Identity.Infrastructure.Services.Caching;
 using ToeicSpace.Identity.Infrastructure.Services.Email;
 using ToeicSpace.Identity.Infrastructure.Services.Messaging;
@@ -108,15 +111,41 @@ public static class DependencyInjection
                 ?? "support@toeicspace.com"
         };
 
+        var jwtOptions = configuration.GetSection(JwtOptions.SectionName).Get<JwtOptions>()
+            ?? new JwtOptions();
+        var sessionOptions = configuration.GetSection(SessionOptions.SectionName).Get<SessionOptions>()
+            ?? new SessionOptions();
+        var loginLockoutOptions = configuration.GetSection(LoginLockoutOptions.SectionName).Get<LoginLockoutOptions>()
+            ?? new LoginLockoutOptions();
+        var bootstrapAdminOptions = configuration.GetSection(BootstrapAdminOptions.SectionName).Get<BootstrapAdminOptions>()
+            ?? new BootstrapAdminOptions();
+
+        if (sessionOptions.RefreshTokenLifetime <= TimeSpan.Zero
+            || sessionOptions.IdleTimeout <= TimeSpan.Zero
+            || sessionOptions.MaxActiveSessions <= 0)
+        {
+            throw new InvalidOperationException(
+                "Session:RefreshTokenLifetime, Session:IdleTimeout and Session:MaxActiveSessions must be greater than zero.");
+        }
+
         services.AddSingleton(otpOptions);
         services.AddSingleton(cleanupOptions);
         services.AddSingleton(smtpOptions);
-        services.AddSingleton(TimeProvider.System);
+        services.AddSingleton(jwtOptions);
+        services.AddSingleton(sessionOptions);
+        services.AddSingleton(loginLockoutOptions);
+        services.AddSingleton(bootstrapAdminOptions);
+        services.TryAddSingleton(TimeProvider.System);
         services.AddSingleton<IConnectionMultiplexer>(_ =>
             ConnectionMultiplexer.Connect(redisConnectionString));
 
         services.AddScoped<IUserRepository, UserRepository>();
+        services.AddScoped<IRefreshTokenRepository, RefreshTokenRepository>();
         services.AddSingleton<IPasswordHasher, Pbkdf2PasswordHasher>();
+        services.AddSingleton<IAccessTokenIssuer, JwtAccessTokenIssuer>();
+        services.AddSingleton<IRefreshTokenGenerator, RefreshTokenGenerator>();
+        services.AddSingleton<ILoginAttemptLimiter, RedisLoginAttemptLimiter>();
+        services.AddHostedService<AdminAccountBootstrapper>();
         services.AddSingleton<IOtpGenerator, CryptographicOtpGenerator>();
         services.AddSingleton<IOtpHasher, HmacOtpHasher>();
         services.AddSingleton<IOtpChallengeStore, RedisOtpChallengeStore>();

@@ -7,6 +7,7 @@ ARG BUILD_CONFIGURATION=Release
 WORKDIR /src
 
 COPY ["src/ApiGateways/ToeicSpace.ApiGateway/ToeicSpace.ApiGateway.csproj", "src/ApiGateways/ToeicSpace.ApiGateway/"]
+COPY ["src/BuildingBlocks/ToeicSpace.BuildingBlocks.Security/ToeicSpace.BuildingBlocks.Security.csproj", "src/BuildingBlocks/ToeicSpace.BuildingBlocks.Security/"]
 
 RUN dotnet restore "src/ApiGateways/ToeicSpace.ApiGateway/ToeicSpace.ApiGateway.csproj"
 

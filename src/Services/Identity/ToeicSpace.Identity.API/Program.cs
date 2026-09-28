@@ -9,6 +9,9 @@ builder.Services
 
 var app = builder.Build();
 
+// Must run first so HTTPS redirection, rate limits and logs see the real client.
+app.UseForwardedHeaders();
+
 app.UseHttpsRedirection();
 
 app.UseApiServices();

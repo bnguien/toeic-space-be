@@ -21,6 +21,10 @@ public sealed class UserTokenConfiguration : IEntityTypeConfiguration<UserToken>
 
         builder.HasIndex(token => token.UserId);
 
+        // Refresh tokens are looked up by hash on every refresh.
+        builder.HasIndex(token => token.TokenHash)
+            .IsUnique();
+
         builder.HasOne(token => token.User)
             .WithMany(user => user.Tokens)
             .HasForeignKey(token => token.UserId)

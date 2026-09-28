@@ -8,7 +8,7 @@ on:
 
 jobs:
   build-and-test:
-    name: Build & Test (.NET 10)
+    name: Build, Test & Migration Validation (.NET 10)
     runs-on: ubuntu-latest
 
     steps:
@@ -26,8 +26,29 @@ jobs:
       - name: Build solution
         run: dotnet build ToeicSpace.slnx --configuration Release --no-restore
 
-      - name: Run automated tests
-        run: dotnet test ToeicSpace.slnx --configuration Release --no-build --verbosity normal
+      - name: Run automated unit tests
+        run: >
+          dotnet test ToeicSpace.slnx
+          --configuration Release
+          --no-build
+          --verbosity normal
+          --collect:"XPlat Code Coverage"
+          --logger "trx;LogFileName=test_results.trx"
+
+      - name: Install dotnet-ef tool
+        run: dotnet tool install --global dotnet-ef
+
+      - name: Validate Assessment EF Core Migration Script Generation
+        run: |
+          mkdir -p ./artifacts
+          dotnet ef migrations script \
+            --idempotent \
+            --context AssessmentDbContext \
+            --project src/Services/Assessment/ToeicSpace.Assessment.Infrastructure \
+            --startup-project src/Services/Assessment/ToeicSpace.Assessment.API \
+            --output ./artifacts/assessment_migration_validation.sql
+        env:
+          ConnectionStrings__AssessmentDatabase: "Server=127.0.0.1;Port=3307;Database=toeic_space_assessment;User=root;Password=ci_test_password;"
 
   docker-lint-and-build:
     name: Validate Docker Images
@@ -48,6 +69,14 @@ jobs:
           file: src/Services/Identity/ToeicSpace.Identity.API/Dockerfile
           push: false
           tags: toeicspace/identity-api:ci-test
+
+      - name: Build Assessment API Docker image
+        uses: docker/build-push-action@v5
+        with:
+          context: .
+          file: src/Services/Assessment/ToeicSpace.Assessment.API/Dockerfile
+          push: false
+          tags: toeicspace/assessment-api:ci-test
 
       - name: Build API Gateway Docker image
         uses: docker/build-push-action@v5
