@@ -8,7 +8,11 @@ string[] credentialEndpoints =
     "/identity/api/auth/login",
     "/identity/api/auth/register",
     "/identity/api/auth/verify-email",
-    "/identity/api/auth/resend-verification"
+    "/identity/api/auth/resend-verification",
+    "/identity/api/v1/auth/password-reset/otp",
+    "/identity/api/v1/auth/password-reset/verify",
+    "/identity/api/v1/auth/password-reset/confirm",
+    "/identity/api/v1/auth/change-password"
 ];
 
 var builder = WebApplication.CreateBuilder(args);

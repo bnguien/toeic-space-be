@@ -128,6 +128,19 @@ public static class DependencyInjection
                 "Session:RefreshTokenLifetime, Session:IdleTimeout and Session:MaxActiveSessions must be greater than zero.");
         }
 
+        var passwordResetOptions = configuration.GetSection(PasswordResetOptions.SectionName)
+            .Get<PasswordResetOptions>() ?? new PasswordResetOptions();
+        if (passwordResetOptions.OtpLifetimeMinutes is < 1 or > 60
+            || passwordResetOptions.ResetLifetimeMinutes is < 1 or > 60
+            || passwordResetOptions.ResendCooldownSeconds is < 1 or > 3600
+            || passwordResetOptions.MaximumFailedAttempts is < 1 or > 10)
+        {
+            throw new InvalidOperationException("PasswordReset options are outside the allowed ranges.");
+        }
+
+        services.AddSingleton(passwordResetOptions);
+        services.AddSingleton<IPasswordResetStore, RedisPasswordResetStore>();
+        services.AddScoped<IPasswordRepository, PasswordRepository>();
         services.AddSingleton(otpOptions);
         services.AddSingleton(cleanupOptions);
         services.AddSingleton(smtpOptions);
@@ -158,6 +171,7 @@ public static class DependencyInjection
         services.AddMassTransit(configurator =>
         {
             configurator.AddConsumer<UserRegistrationOtpRequestedConsumer>();
+            configurator.AddConsumer<PasswordResetRequestedConsumer>();
 
             configurator.UsingRabbitMq((context, rabbitMq) =>
             {
