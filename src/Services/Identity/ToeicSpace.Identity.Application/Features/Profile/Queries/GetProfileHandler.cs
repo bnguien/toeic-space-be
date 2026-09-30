@@ -12,7 +12,7 @@ public sealed class GetProfileHandler : IRequestHandler<GetProfileQuery, UserPro
     public GetProfileHandler(IUserRepository userRepository)
     {
         _userRepository = userRepository;
-    }
+    } 
     public async Task<UserProfileResult> Handle(GetProfileQuery request, CancellationToken cancellationToken)
     {
         var user = await _userRepository.GetByIdAsync(request.UserId, cancellationToken);

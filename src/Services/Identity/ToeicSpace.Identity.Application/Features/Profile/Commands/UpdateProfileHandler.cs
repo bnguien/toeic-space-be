@@ -3,10 +3,10 @@ using ToeicSpace.Identity.Application.Features.Profile.Results;
 using ToeicSpace.Identity.Application.Interfaces.Persistence;
 using ToeicSpace.Identity.Domain.Exceptions;
 
-namespace ToeicSpace.Identity.Application.Features.Profile.Command;
+namespace ToeicSpace.Identity.Application.Features.Profile.Commands;
 
-public sealed class UpdateProfileHandler
-: IRequestHandler<UpdateProfileCommand, UserProfileResult>
+public sealed class UpdateProfileHandler : 
+    IRequestHandler<UpdateProfileCommand, UserProfileResult>
 {
     private readonly IUserRepository _userRepository;
 

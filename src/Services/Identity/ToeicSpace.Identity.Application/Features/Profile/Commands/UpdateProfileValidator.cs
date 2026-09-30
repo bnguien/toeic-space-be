@@ -1,6 +1,6 @@
 using ToeicSpace.Identity.Application.Features.Register.Commands;
 
-namespace ToeicSpace.Identity.Application.Features.Profile.Command;
+namespace ToeicSpace.Identity.Application.Features.Profile.Commands;
 
 public sealed class UpdateProfileValidator :
     AbstractValidator<UpdateProfileCommand>

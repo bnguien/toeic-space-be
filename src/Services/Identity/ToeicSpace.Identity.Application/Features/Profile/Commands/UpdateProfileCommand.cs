@@ -2,7 +2,7 @@ using System.Text.Json.Serialization;
 using ToeicSpace.Identity.Application.Features.Profile.Results;
 using ToeicSpace.Identity.Domain.Enums;
 
-namespace ToeicSpace.Identity.Application.Features.Profile.Command;
+namespace ToeicSpace.Identity.Application.Features.Profile.Commands;
 
 public sealed record UpdateProfileCommand(
     string FullName,

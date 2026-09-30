@@ -3,7 +3,7 @@ using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using Swashbuckle.AspNetCore.Annotations;
 using ToeicSpace.BuildingBlocks.Security.Jwt;
-using ToeicSpace.Identity.Application.Features.Profile.Command;
+using ToeicSpace.Identity.Application.Features.Profile.Commands;
 using ToeicSpace.Identity.Application.Features.Profile.Queries;
 using ToeicSpace.Identity.Application.Features.Profile.Results;
 
@@ -61,5 +61,21 @@ public sealed class UserController : ControllerBase
         command.UserId = userId;
         var result = await _mediator.Send(command, cancellationToken);
         return Ok(result);
+    }
+    
+    [HttpPost("me/avatar")]
+    public async Task<IActionResult> GetAvatarUploadUrl([FromBody] UploadAvatarCommand command)
+    {
+        var subjectClaim = User.FindFirst(AccessTokenDefaults.SubjectClaim)?.Value;
+        if (!Guid.TryParse(subjectClaim, out var userId)) return Unauthorized();
+
+        command.UserId = userId;
+    
+        var uploadUrl = await _mediator.Send(command);
+
+        return Ok(new { 
+            message = "Upload URL generated successfully.",
+            uploadUrl = uploadUrl 
+        });
     }
 }
