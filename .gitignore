@@ -48,3 +48,6 @@ rabbitmq-data/
 /data/seeds/
 /data/source/
 scripts/__pycache__/
+
+# Ignore Docker tools configuration
+/docker-compose.tools.yml

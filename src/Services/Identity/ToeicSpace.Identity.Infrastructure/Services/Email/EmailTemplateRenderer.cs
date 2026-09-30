@@ -8,16 +8,33 @@ public sealed class EmailTemplateRenderer
     private const string VerificationTemplatePath =
         "Services/Email/Templates/EmailVerification.html";
 
-    public async Task<string> RenderVerificationEmailAsync(
+    public Task<string> RenderVerificationEmailAsync(
         string fullName,
         string otp,
         int expirationMinutes,
         string supportEmail,
         CancellationToken cancellationToken = default)
+        => RenderAsync(VerificationTemplatePath, fullName, otp, expirationMinutes, supportEmail, cancellationToken);
+
+    public Task<string> RenderPasswordResetEmailAsync(
+        string fullName, string otp, int expirationMinutes, string supportEmail,
+        CancellationToken cancellationToken = default)
+        => RenderAsync("Services/Email/Templates/PasswordReset.html", fullName, otp,
+            expirationMinutes, supportEmail, cancellationToken);
+
+    public Task<string> RenderPasswordChangeEmailAsync(
+        string fullName, string otp, int expirationMinutes, string supportEmail,
+        CancellationToken cancellationToken = default)
+        => RenderAsync("Services/Email/Templates/PasswordChange.html", fullName, otp,
+            expirationMinutes, supportEmail, cancellationToken);
+
+    private static async Task<string> RenderAsync(
+        string relativePath, string fullName, string otp, int expirationMinutes, string supportEmail,
+        CancellationToken cancellationToken)
     {
         var templatePath = Path.Combine(
             AppContext.BaseDirectory,
-            VerificationTemplatePath);
+            relativePath);
 
         var template = await File.ReadAllTextAsync(
             templatePath,
