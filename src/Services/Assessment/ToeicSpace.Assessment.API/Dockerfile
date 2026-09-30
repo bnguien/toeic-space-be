@@ -12,6 +12,7 @@ COPY ["src/Services/Assessment/ToeicSpace.Assessment.Domain/ToeicSpace.Assessmen
 COPY ["src/Services/Assessment/ToeicSpace.Assessment.Infrastructure/ToeicSpace.Assessment.Infrastructure.csproj", "src/Services/Assessment/ToeicSpace.Assessment.Infrastructure/"]
 COPY ["src/BuildingBlocks/ToeicSpace.BuildingBlocks/ToeicSpace.BuildingBlocks.csproj", "src/BuildingBlocks/ToeicSpace.BuildingBlocks/"]
 COPY ["src/BuildingBlocks/ToeicSpace.BuildingBlocks.Security/ToeicSpace.BuildingBlocks.Security.csproj", "src/BuildingBlocks/ToeicSpace.BuildingBlocks.Security/"]
+COPY ["src/BuildingBlocks/ToeicSpace.BuildingBlocks.Messaging/ToeicSpace.BuildingBlocks.Messaging.csproj", "src/BuildingBlocks/ToeicSpace.BuildingBlocks.Messaging/"]
 
 RUN dotnet restore "src/Services/Assessment/ToeicSpace.Assessment.API/ToeicSpace.Assessment.API.csproj"
 

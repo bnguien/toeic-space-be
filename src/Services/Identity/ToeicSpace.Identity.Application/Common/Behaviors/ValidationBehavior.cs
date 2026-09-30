@@ -28,9 +28,19 @@ public sealed class ValidationBehavior<TRequest, TResponse>
             _validators.Select(validator =>
                 validator.ValidateAsync(context, cancellationToken)));
 
-        var errors = validationResults
+        var failures = validationResults
             .SelectMany(result => result.Errors)
             .Where(failure => failure is not null)
+            .ToArray();
+
+        // Keep reset-token failures distinct from password field validation errors.
+        var tokenFailure = failures.FirstOrDefault(failure => failure.ErrorCode == ErrorCodes.TokenInvalid);
+        if (tokenFailure is not null)
+        {
+            throw AppException.Validation(tokenFailure.ErrorMessage, tokenFailure.ErrorCode);
+        }
+
+        var errors = failures
             .GroupBy(failure => failure.PropertyName)
             .ToDictionary(
                 group => group.Key,
