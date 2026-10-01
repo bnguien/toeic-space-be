@@ -1,3 +1,5 @@
+using ToeicSpace.BuildingBlocks.Storage.Extensions;
+
 using ToeicSpace.Identity.API;
 
 var builder = WebApplication.CreateBuilder(args);
@@ -5,7 +7,8 @@ var builder = WebApplication.CreateBuilder(args);
 builder.Services
     .AddApplicationServices()
     .AddInfrastructureServices(builder.Configuration)
-    .AddApiServices(builder.Configuration);
+    .AddApiServices(builder.Configuration)
+    .AddCloudflareR2Storage(builder.Configuration);
 
 var app = builder.Build();
 

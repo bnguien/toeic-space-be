@@ -21,6 +21,7 @@
   <ItemGroup>
     <ProjectReference Include="..\ToeicSpace.Identity.Application\ToeicSpace.Identity.Application.csproj" />
     <ProjectReference Include="..\ToeicSpace.Identity.Infrastructure\ToeicSpace.Identity.Infrastructure.csproj" />
+    <ProjectReference Include="..\..\..\BuildingBlocks\ToeicSpace.BuildingBlocks.Storage\ToeicSpace.BuildingBlocks.Storage.csproj" />
   </ItemGroup>
 
 </Project>
