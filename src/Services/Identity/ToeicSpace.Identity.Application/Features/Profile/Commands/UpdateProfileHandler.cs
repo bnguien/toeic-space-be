@@ -22,15 +22,17 @@ public sealed class UpdateProfileHandler :
         {
             throw AppException.NotFound("User profile not found");
         }
-
-        user.FullName = request.FullName;
-        user.Phone = request.Phone;
-        user.AvatarUrl = request.AvatarUrl;
-        user.DateOfBirth = request.DateOfBirth;
-        user.Gender = request.Gender;
-        user.Biography = request.Biography;
-        user.TargetScore = request.TargetScore;
-        user.CurrentLevel = request.CurrentLevel;
+        
+        if (!string.IsNullOrWhiteSpace(request.FullName)) user.FullName = request.FullName;
+        
+        if (request.Phone != null) user.Phone = request.Phone;
+        if (request.AvatarUrl != null) user.AvatarUrl = request.AvatarUrl;
+        if (request.Biography != null) user.Biography = request.Biography;
+        
+        if (request.DateOfBirth.HasValue) user.DateOfBirth = request.DateOfBirth;
+        if (request.Gender.HasValue) user.Gender = request.Gender;
+        if (request.TargetScore.HasValue) user.TargetScore = request.TargetScore;
+        if (request.CurrentLevel.HasValue) user.CurrentLevel = request.CurrentLevel;
 
         await _userRepository.SaveChangesAsync(cancellationToken);
         return user.ToUserProfileResults();
