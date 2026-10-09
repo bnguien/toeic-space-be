@@ -26,6 +26,20 @@ public sealed class UserConfiguration : IEntityTypeConfiguration<User>
 
         builder.HasIndex(user => user.Phone)
             .IsUnique();
+        
+        builder.Property(user => user.AvatarUrl)
+            .HasMaxLength(2048);
+        
+        builder.Property(user => user.Biography)
+            .HasMaxLength(1000);
+        
+        builder.Property(user => user.Gender)
+            .HasConversion<string>()
+            .HasMaxLength(32);
+        
+        builder.Property(user => user.CurrentLevel)
+            .HasConversion<string>()
+            .HasMaxLength(32);
 
         builder.Property(user => user.PasswordHash)
             .HasMaxLength(512);

@@ -1,3 +1,4 @@
+using ToeicSpace.Identity.Application.Features.Profile.Results;
 using ToeicSpace.Identity.Application.Models;
 using ToeicSpace.Identity.Domain.Entities;
 using ToeicSpace.Identity.Domain.Enums;
@@ -20,4 +21,18 @@ public static class UserMappingExtensions
         => user.DeletedAt is null
             && user.EmailVerifiedAt is not null
             && user.Status == UserStatus.Active;
+
+    public static UserProfileResult ToUserProfileResults(this User user)
+        => new(
+            user.Id,
+            user.FullName,
+            user.Email,
+            user.Phone,
+            user.AvatarUrl,
+            user.DateOfBirth,
+            user.Gender,
+            user.Biography,
+            user.TargetScore,
+            user.CurrentLevel
+        );
 }

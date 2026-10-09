@@ -3,6 +3,7 @@
   <ItemGroup>
     <ProjectReference Include="..\ToeicSpace.Identity.Domain\ToeicSpace.Identity.Domain.csproj" />
     <ProjectReference Include="..\..\..\BuildingBlocks\ToeicSpace.BuildingBlocks\ToeicSpace.BuildingBlocks.csproj" />
+    <ProjectReference Include="..\..\..\BuildingBlocks\ToeicSpace.BuildingBlocks.Storage\ToeicSpace.BuildingBlocks.Storage.csproj" />
   </ItemGroup>
 
   <ItemGroup>

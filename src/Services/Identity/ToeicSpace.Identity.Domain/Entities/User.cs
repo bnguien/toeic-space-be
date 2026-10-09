@@ -8,6 +8,18 @@ public class User : BaseAuditableEntity
     public string FullName { get; set; } = string.Empty;
 
     public string? Phone { get; set; }
+    
+    public string? AvatarUrl { get; set; }
+    
+    public DateOnly? DateOfBirth { get; set; }
+    
+    public UserGender? Gender { get; set; }
+    
+    public string? Biography { get; set; }
+    
+    public int? TargetScore { get; set; }
+    
+    public EnglishLevel? CurrentLevel { get; set; }
 
     public string Email { get; set; } = string.Empty;
 
