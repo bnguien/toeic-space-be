@@ -1,0 +1,52 @@
+# Run with docker-compose.yml; relative paths resolve from the backend folder.
+# These one-shot tools do not start unless explicitly selected.
+services:
+  identity-migrations:
+    image: mcr.microsoft.com/dotnet/sdk:10.0
+    profiles: ["tools"]
+    working_dir: /src/src/Services/Identity/ToeicSpace.Identity.Infrastructure
+    volumes:
+      - .:/src
+      - migration_nuget:/root/.nuget/packages
+    environment:
+      ASPNETCORE_ENVIRONMENT: Development
+      DOTNET_CLI_TELEMETRY_OPTOUT: "1"
+      ConnectionStrings__IdentityDatabase: "Server=identity-db;Port=3306;Database=${IDENTITY_DB_NAME};User=${IDENTITY_DB_USER};Password=${IDENTITY_DB_PASSWORD};"
+    command:
+      - sh
+      - -ec
+      - |
+        dotnet tool install --tool-path /tmp/ef --allow-roll-forward dotnet-ef --version 9.0.11
+        /tmp/ef/dotnet-ef database update --project . --startup-project ../ToeicSpace.Identity.API
+    depends_on:
+      identity-db:
+        condition: service_healthy
+    networks:
+      - backend-network
+
+  assessment-migrations:
+    image: mcr.microsoft.com/dotnet/sdk:10.0
+    profiles: ["tools"]
+    # The Assessment design-time factory expects the API as a sibling of CWD.
+    working_dir: /src/src/Services/Assessment/ToeicSpace.Assessment.Infrastructure
+    volumes:
+      - .:/src
+      - migration_nuget:/root/.nuget/packages
+    environment:
+      ASPNETCORE_ENVIRONMENT: Development
+      DOTNET_CLI_TELEMETRY_OPTOUT: "1"
+      ConnectionStrings__AssessmentDatabase: "Server=assessment-db;Port=3306;Database=${ASSESSMENT_DB_NAME};User=${ASSESSMENT_DB_USER};Password=${ASSESSMENT_DB_PASSWORD};"
+    command:
+      - sh
+      - -ec
+      - |
+        dotnet tool install --tool-path /tmp/ef --allow-roll-forward dotnet-ef --version 9.0.11
+        /tmp/ef/dotnet-ef database update --project . --startup-project ../ToeicSpace.Assessment.API
+    depends_on:
+      assessment-db:
+        condition: service_healthy
+    networks:
+      - backend-network
+
+volumes:
+  migration_nuget:
