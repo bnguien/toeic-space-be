@@ -114,7 +114,7 @@ public static class DependencyInjection
                 {
                     policy.WithOrigins(allowedOrigins)
                         .WithHeaders("Content-Type", "Authorization", RequireCsrfHeaderAttribute.HeaderName)
-                        .WithMethods("GET", "POST")
+                        .WithMethods("GET", "POST", "PUT")
                         .AllowCredentials();
                 }
             }));

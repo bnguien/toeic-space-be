@@ -6,15 +6,18 @@ using Swashbuckle.AspNetCore.Annotations;
 using ToeicSpace.BuildingBlocks.Security.Jwt;
 using ToeicSpace.Identity.API.Contracts;
 using ToeicSpace.Identity.API.Security;
+using ToeicSpace.Identity.Application.Features.ChangePassword.Commands;
 using ToeicSpace.Identity.Application.Features.CurrentUser.Queries;
 using ToeicSpace.Identity.Application.Features.Login.Commands;
 using ToeicSpace.Identity.Application.Features.Logout.Commands;
+using ToeicSpace.Identity.Application.Features.PasswordReset.Commands;
 using ToeicSpace.Identity.Application.Features.RefreshSession.Commands;
 using ToeicSpace.Identity.Application.Features.ResendVerification.Commands;
 using ToeicSpace.Identity.Application.Features.Register.Commands;
 using ToeicSpace.Identity.Application.Features.VerifyEmail.Commands;
 using ToeicSpace.Identity.Application.Interfaces.Security;
 using ToeicSpace.Identity.Application.Models;
+using ToeicSpace.Identity.Application.Options;
 using ToeicSpace.Identity.Domain.Exceptions;
 
 namespace ToeicSpace.Identity.API.Controllers;
@@ -26,22 +29,27 @@ namespace ToeicSpace.Identity.API.Controllers;
 public sealed class AuthController : ControllerBase
 {
     private const string BearerTokenType = "Bearer";
+    private const string ResetCookie = "__Secure-ts_pr";
+    private const string ResetCookiePath = "/identity/api/v1/auth/password-reset";
 
     private readonly IMediator _mediator;
     private readonly ICookieService _cookieService;
     private readonly RefreshCookieOptions _refreshCookie;
     private readonly TimeProvider _timeProvider;
+    private readonly PasswordResetOptions _passwordResetOptions;
 
     public AuthController(
         IMediator mediator,
         ICookieService cookieService,
         RefreshCookieOptions refreshCookie,
-        TimeProvider timeProvider)
+        TimeProvider timeProvider,
+        PasswordResetOptions passwordResetOptions)
     {
         _mediator = mediator;
         _cookieService = cookieService;
         _refreshCookie = refreshCookie;
         _timeProvider = timeProvider;
+        _passwordResetOptions = passwordResetOptions;
     }
 
     [HttpPost("register")]
@@ -179,6 +187,82 @@ public sealed class AuthController : ControllerBase
         var user = await _mediator.Send(new GetCurrentUserQuery(userId), cancellationToken);
 
         return Ok(user);
+    }
+
+    // Preserve the password routes used by the frontend and the reset cookie path.
+    [HttpPost("~/api/v1/auth/password-reset/otp")]
+    [AllowAnonymous]
+    [RequireCsrfHeader]
+    public async Task<IActionResult> RequestOtp(
+        [FromBody] RequestPasswordResetCommand command, CancellationToken cancellationToken)
+    {
+        await _mediator.Send(command, cancellationToken);
+        _cookieService.Delete(ResetCookie, ResetCookiePath);
+        return Ok(new
+        {
+            Message = "If the account is eligible, a password reset OTP will be sent to its email.",
+            CooldownSeconds = _passwordResetOptions.ResendCooldownSeconds
+        });
+    }
+
+    [HttpPost("~/api/v1/auth/password-reset/verify")]
+    [AllowAnonymous]
+    [RequireCsrfHeader]
+    public async Task<IActionResult> Verify(
+        [FromBody] VerifyPasswordResetCommand command, CancellationToken cancellationToken)
+    {
+        var result = await _mediator.Send(command, cancellationToken);
+        _cookieService.Set(ResetCookie, result.Token, result.ExpiresAt, ResetCookiePath);
+        return Ok(new { result.ExpiresAt });
+    }
+
+    [HttpPost("~/api/v1/auth/password-reset/confirm")]
+    [AllowAnonymous]
+    [RequireCsrfHeader]
+    public async Task<IActionResult> Confirm(
+        [FromBody] ConfirmPasswordResetRequest request, CancellationToken cancellationToken)
+    {
+        await _mediator.Send(new ConfirmPasswordResetCommand(_cookieService.Get(ResetCookie) ?? string.Empty,
+            request.NewPassword, request.ConfirmPassword), cancellationToken);
+        ClearCookies();
+        return NoContent();
+    }
+
+    [HttpPost("~/api/v1/auth/change-password/otp")]
+    [Authorize]
+    public async Task<IActionResult> RequestChangeOtp(
+        [FromBody] RequestChangePasswordOtpRequest request, CancellationToken cancellationToken)
+    {
+        if (!Guid.TryParse(User.FindFirst(AccessTokenDefaults.SubjectClaim)?.Value, out var userId))
+        {
+            throw AppException.Unauthenticated(code: ErrorCodes.TokenInvalid);
+        }
+
+        await _mediator.Send(new RequestChangePasswordOtpCommand(userId, request.CurrentPassword),
+            cancellationToken);
+        return Ok(new { CooldownSeconds = _passwordResetOptions.ResendCooldownSeconds });
+    }
+
+    [HttpPut("~/api/v1/auth/change-password")]
+    [Authorize]
+    public async Task<IActionResult> Change(
+        [FromBody] ChangePasswordRequest request, CancellationToken cancellationToken)
+    {
+        if (!Guid.TryParse(User.FindFirst(AccessTokenDefaults.SubjectClaim)?.Value, out var userId))
+        {
+            throw AppException.Unauthenticated(code: ErrorCodes.TokenInvalid);
+        }
+
+        await _mediator.Send(new ChangePasswordCommand(userId, request.CurrentPassword,
+            request.NewPassword, request.ConfirmPassword, request.Otp), cancellationToken);
+        ClearCookies();
+        return NoContent();
+    }
+
+    private void ClearCookies()
+    {
+        _cookieService.Delete(ResetCookie, ResetCookiePath);
+        _cookieService.Delete(_refreshCookie.Name, _refreshCookie.Path);
     }
 
     private AuthResponse StartSession(AuthSession session)
