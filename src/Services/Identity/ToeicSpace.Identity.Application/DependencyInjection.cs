@@ -1,4 +1,6 @@
 using System.Reflection;
+using ToeicSpace.Identity.Application.Common.Behaviors;
+using ToeicSpace.Identity.Application.Common.Sessions;
 
 namespace ToeicSpace.Identity.Application;
 
@@ -13,6 +15,11 @@ public static class DependencyInjection
             config.RegisterServicesFromAssembly(assembly));
 
         services.AddValidatorsFromAssembly(assembly);
+        services.AddTransient(
+            typeof(IPipelineBehavior<,>),
+            typeof(ValidationBehavior<,>));
+
+        services.AddScoped<SessionIssuer>();
 
         return services;
     }

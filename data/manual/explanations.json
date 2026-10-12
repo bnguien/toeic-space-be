@@ -1,0 +1,50 @@
+[
+  {
+    "_note": "Lời giải do TOEIC Space biên soạn cho các câu không có lời giải ở bất kỳ nguồn Studychill nào (đề đã được viết lại thành bản khác nhưng lời giải cũ không cập nhật theo). Pipeline khớp theo nội dung câu hỏi + đáp án, nên nếu câu bị sửa lại thì mục này sẽ không được dùng và build sẽ báo trong phần Issues.",
+    "source": "toeic-space",
+    "written_at": "2026-09-18",
+    "test_code": "CRACK-TOEIC-VOL1-TEST-04",
+    "part": 7,
+    "question_number": 147,
+    "question_text": "Who most likely is Mr. Krug?",
+    "option_a": "A baker",
+    "option_b": "A cheese seller",
+    "option_c": "A picture framer",
+    "option_d": "A florist",
+    "correct_answer": "B",
+    "explanation_vi": "Dẫn chứng: \"I stopped in on Saturday for a piece of the smoked Alpine and noticed that the little cards propped against each wheel have been written by several different hands, so the prices and the ages are hard to read from the queue.\"\n(Hôm thứ Bảy tôi có ghé mua một miếng phô mai Alpine hun khói và nhận thấy những tấm thẻ nhỏ dựng cạnh mỗi bánh phô mai được viết bởi nhiều nét chữ khác nhau, nên giá và tuổi phô mai rất khó đọc khi đứng xếp hàng.)\n\nSuy luận: thư không nói thẳng ông Krug làm nghề gì, nhưng mọi chi tiết về cửa hàng đều chỉ tới phô mai: \"a piece of the smoked Alpine\" (một miếng phô mai Alpine hun khói), \"each wheel\" (mỗi bánh phô mai tròn) và \"the ages\" (tuổi ủ của phô mai). Vậy ông Krug nhiều khả năng là người bán phô mai → chọn (B).\n\n(A) A baker: cả thư không nhắc tới bánh mì hay lò nướng.\n(C) A picture framer: người làm nghề kẻ chữ là bà Oyelaran chứ không phải ông Krug, và thư không nói gì tới đóng khung tranh.\n(D) A florist: không có chi tiết nào về hoa.",
+    "tu_vung": "wheel (N): bánh phô mai tròn\n\npropped against (V): dựng tựa vào\n\nqueue (N): hàng người đứng chờ\n\nage (N): tuổi ủ (của phô mai)"
+  },
+  {
+    "source": "toeic-space",
+    "written_at": "2026-09-18",
+    "test_code": "CRACK-TOEIC-VOL1-TEST-04",
+    "part": 7,
+    "question_number": 148,
+    "question_text": "What does Ms. Oyelaran offer to do?",
+    "option_a": "Design a shop's logo",
+    "option_b": "Photograph some products",
+    "option_c": "Write out some price cards",
+    "option_d": "Build a display counter",
+    "correct_answer": "C",
+    "explanation_vi": "Dẫn chứng: \"I would be glad to letter a full set of cards in one style, along with the board above the counter.\"\n(Tôi rất sẵn lòng viết trọn bộ thẻ theo cùng một kiểu chữ, cùng với tấm bảng phía trên quầy.)\n\nParaphrase: \"letter a full set of cards\" (kẻ chữ trọn bộ thẻ) ↔ \"write out some price cards\" (viết các thẻ ghi giá). Chính những tấm thẻ này mang \"the prices and the ages\" nói ở câu trước → chọn (C).\n\n(A) Design a shop's logo: thư chỉ nói làm mới biển bảng và thẻ giá, không nhắc tới logo.\n(B) Photograph some products: bà chỉ đính kèm ảnh chụp các công trình trước đây của mình (\"photographs of earlier work\"), không đề nghị chụp ảnh sản phẩm.\n(D) Build a display counter: bà kẻ chữ cho tấm bảng phía trên quầy, không phải đóng quầy trưng bày.",
+    "tu_vung": "letter (V): kẻ chữ, viết chữ lên biển bảng\n\nrates (N): bảng giá dịch vụ\n\ncounter (N): quầy hàng\n\nrefresh (V): làm mới"
+  },
+  {
+    "source": "toeic-space",
+    "written_at": "2026-09-18",
+    "test_code": "CRACK-TOEIC-VOL1-TEST-06",
+    "part": 5,
+    "question_number": 105,
+    "question_text": "Priya Raghavan is scheduled to begin on Tuesday, ------- Payroll has not yet issued her employee number.",
+    "option_a": "once",
+    "option_b": "plus",
+    "option_c": "still",
+    "option_d": "yet",
+    "correct_answer": "D",
+    "explanation_vi": "Sau chỗ trống là một mệnh đề đủ chủ ngữ + động từ (\"Payroll has not yet issued her employee number\"), và hai vế mang ý trái ngược nhau: đã có lịch đi làm nhưng bộ phận Lương vẫn chưa cấp mã nhân viên. Chỗ trống vì vậy cần một liên từ chỉ sự tương phản, chọn \"yet\" (thế mà, nhưng) → (D).\n\n(A) once: liên từ chỉ thời gian, nghĩa \"một khi\", không diễn tả được quan hệ tương phản.\n(B) plus: mang nghĩa bổ sung \"thêm vào đó\", ngược với sắc thái tương phản của câu.\n(C) still: là trạng từ, không nối được hai mệnh đề độc lập.",
+    "dich_nghia": "Priya Raghavan có lịch bắt đầu làm việc vào thứ Ba, thế mà bộ phận Lương vẫn chưa cấp mã nhân viên cho cô.",
+    "tu_vung": "be scheduled to (V): được lên lịch làm gì\n\nPayroll (N): bộ phận tính lương\n\nissue (V): cấp, phát hành\n\nemployee number (N): mã số nhân viên",
+    "dich_nghia_dap_an": "once (Conj): một khi\n\nplus (Conj): thêm vào đó\n\nstill (Adv): vẫn còn\n\nyet (Conj): thế mà, nhưng"
+  }
+]
