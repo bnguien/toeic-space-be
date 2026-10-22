@@ -54,6 +54,9 @@ public sealed class UserConfiguration : IEntityTypeConfiguration<User>
             .HasMaxLength(32)
             .IsRequired();
 
+        builder.Property(user => user.Version)
+            .IsConcurrencyToken();
+
         builder.HasIndex(user => new
         {
             user.Status,

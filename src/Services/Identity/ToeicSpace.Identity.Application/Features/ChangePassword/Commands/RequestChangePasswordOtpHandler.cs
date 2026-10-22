@@ -1,6 +1,6 @@
 using ToeicSpace.Identity.Application.Extensions;
 using ToeicSpace.Identity.Application.Interfaces.Caching;
-using ToeicSpace.Identity.Application.Interfaces.Messaging;
+using ToeicSpace.BuildingBlocks.Messaging;
 using ToeicSpace.Identity.Application.Interfaces.Persistence;
 using ToeicSpace.Identity.Application.Interfaces.Security;
 using ToeicSpace.Identity.Application.Messaging.Events;

@@ -44,6 +44,32 @@ public sealed class UserRepository : IUserRepository
                 user => user.Email == email,
                 cancellationToken);
 
+    public async Task<(IReadOnlyList<User> Items, int TotalCount)> SearchActiveTeachersAsync(
+        string? search,
+        int page,
+        int pageSize,
+        CancellationToken cancellationToken)
+    {
+        var query = _dbContext.Users.AsNoTracking().Where(user =>
+            user.Role == UserRole.Teacher &&
+            user.Status == UserStatus.Active &&
+            user.DeletedAt == null);
+
+        if (!string.IsNullOrWhiteSpace(search))
+        {
+            var term = search.Trim();
+            query = query.Where(user => user.FullName.Contains(term) || user.Email.Contains(term));
+        }
+
+        var totalCount = await query.CountAsync(cancellationToken);
+        var items = await query.OrderBy(user => user.FullName).ThenBy(user => user.Id)
+            .Skip((page - 1) * pageSize)
+            .Take(pageSize)
+            .ToListAsync(cancellationToken);
+
+        return (items, totalCount);
+    }
+
     public async Task AddAsync(
         User user,
         CancellationToken cancellationToken)

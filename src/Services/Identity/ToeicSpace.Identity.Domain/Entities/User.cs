@@ -33,6 +33,9 @@ public class User : BaseAuditableEntity
 
     public DateTime? DeletedAt { get; set; }
 
+    /// <summary>Monotonic version for downstream projections of teacher-relevant fields.</summary>
+    public long Version { get; set; }
+
     public ICollection<UserToken> Tokens { get; set; } = new List<UserToken>();
 
     public ICollection<UserOAuth> OAuthAccounts { get; set; } = new List<UserOAuth>();

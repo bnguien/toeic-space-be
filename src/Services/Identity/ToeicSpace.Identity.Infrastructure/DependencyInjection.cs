@@ -1,10 +1,8 @@
 using Hangfire;
 using Hangfire.MySql;
-using MassTransit;
 using Microsoft.Extensions.DependencyInjection.Extensions;
 using StackExchange.Redis;
 using ToeicSpace.Identity.Application.Interfaces.Caching;
-using ToeicSpace.Identity.Application.Interfaces.Messaging;
 using ToeicSpace.Identity.Application.Interfaces.Persistence;
 using ToeicSpace.Identity.Application.Interfaces.Security;
 using ToeicSpace.Identity.Application.Options;
@@ -16,8 +14,9 @@ using ToeicSpace.Identity.Infrastructure.Persistence.Repositories;
 using ToeicSpace.Identity.Infrastructure.Services.Bootstrap;
 using ToeicSpace.Identity.Infrastructure.Services.Caching;
 using ToeicSpace.Identity.Infrastructure.Services.Email;
-using ToeicSpace.Identity.Infrastructure.Services.Messaging;
 using ToeicSpace.Identity.Infrastructure.Services.Security;
+using ToeicSpace.BuildingBlocks.Messaging.MassTransit;
+using ToeicSpace.Identity.Infrastructure.Messaging.Outbox;
 
 namespace ToeicSpace.Identity.Infrastructure;
 
@@ -88,15 +87,6 @@ public static class DependencyInjection
                 "Identity:InactiveAccountRetentionDays must be greater than zero.");
         }
 
-        var rabbitMqSection = configuration.GetSection(RabbitMqOptions.SectionName);
-        var rabbitMqOptions = new RabbitMqOptions
-        {
-            Host = rabbitMqSection["Host"] ?? "localhost",
-            VirtualHost = rabbitMqSection["VirtualHost"] ?? "/",
-            Username = rabbitMqSection["Username"] ?? "guest",
-            Password = rabbitMqSection["Password"] ?? "guest"
-        };
-
         var smtpSection = configuration.GetSection(SmtpOptions.SectionName);
         var smtpOptions = new SmtpOptions
         {
@@ -162,32 +152,27 @@ public static class DependencyInjection
         services.AddSingleton<IOtpGenerator, CryptographicOtpGenerator>();
         services.AddSingleton<IOtpHasher, HmacOtpHasher>();
         services.AddSingleton<IOtpChallengeStore, RedisOtpChallengeStore>();
-        services.AddScoped<IIntegrationEventPublisher, MassTransitIntegrationEventPublisher>();
         services.AddScoped<IEmailSender, SmtpEmailSender>();
         services.AddScoped<InactiveAccountCleanupJob>();
         services.AddSingleton<EmailTemplateRenderer>();
         services.AddHostedService<HangfireRecurringJobRegistrar>();
 
-        services.AddMassTransit(configurator =>
+        services.AddMessagingBus(configuration, configurator =>
         {
             configurator.AddConsumer<UserRegistrationOtpRequestedConsumer>();
             configurator.AddConsumer<PasswordResetRequestedConsumer>();
             configurator.AddConsumer<PasswordChangeRequestedConsumer>();
-
-            configurator.UsingRabbitMq((context, rabbitMq) =>
-            {
-                rabbitMq.Host(
-                    rabbitMqOptions.Host,
-                    rabbitMqOptions.VirtualHost,
-                    host =>
-                    {
-                        host.Username(rabbitMqOptions.Username);
-                        host.Password(rabbitMqOptions.Password);
-                    });
-
-                rabbitMq.ConfigureEndpoints(context);
-            });
+            configurator.AddConsumer<TeacherSynchronizationRequestedConsumer>();
         });
+
+        var outbox = configuration.GetSection(OutboxOptions.SectionName);
+        services.AddSingleton(new OutboxOptions
+        {
+            PollingIntervalSeconds = int.TryParse(outbox["PollingIntervalSeconds"], out var interval) ? interval : 5,
+            BatchSize = int.TryParse(outbox["BatchSize"], out var batchSize) ? batchSize : 50,
+            MaxAttempts = int.TryParse(outbox["MaxAttempts"], out var maxAttempts) ? maxAttempts : 10
+        });
+        services.AddHostedService<OutboxDispatcher>();
 
         return services;
     }
