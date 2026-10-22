@@ -1,6 +1,7 @@
 using System.Reflection;
 using ToeicSpace.Identity.Application.Common.Behaviors;
 using ToeicSpace.Identity.Application.Common.Sessions;
+using ToeicSpace.Identity.Application.Features.UserManagement.Common;
 
 namespace ToeicSpace.Identity.Application;
 
@@ -20,6 +21,7 @@ public static class DependencyInjection
             typeof(ValidationBehavior<,>));
 
         services.AddScoped<SessionIssuer>();
+        services.AddScoped<ManagedUserReader>();
 
         return services;
     }
