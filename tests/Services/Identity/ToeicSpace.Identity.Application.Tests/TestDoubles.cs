@@ -1,5 +1,5 @@
 using ToeicSpace.Identity.Application.Interfaces.Caching;
-using ToeicSpace.Identity.Application.Interfaces.Messaging;
+using ToeicSpace.BuildingBlocks.Messaging;
 using ToeicSpace.Identity.Application.Interfaces.Persistence;
 using ToeicSpace.Identity.Application.Interfaces.Security;
 using ToeicSpace.Identity.Application.Models;
@@ -33,6 +33,22 @@ internal sealed class FakeUserRepository : IUserRepository
         string email,
         CancellationToken cancellationToken)
         => Task.FromResult(Users.FirstOrDefault(user => user.Email == email));
+
+    public Task<(IReadOnlyList<User> Items, int TotalCount)> SearchActiveTeachersAsync(
+        string? search,
+        int page,
+        int pageSize,
+        CancellationToken cancellationToken)
+    {
+        var query = Users.Where(user => user.Role == UserRole.Teacher && user.Status == UserStatus.Active && user.DeletedAt == null);
+        if (!string.IsNullOrWhiteSpace(search))
+        {
+            var term = search.Trim();
+            query = query.Where(user => user.FullName.Contains(term) || user.Email.Contains(term));
+        }
+        var matches = query.OrderBy(user => user.FullName).ThenBy(user => user.Id).ToArray();
+        return Task.FromResult<(IReadOnlyList<User>, int)>((matches.Skip((page - 1) * pageSize).Take(pageSize).ToArray(), matches.Length));
+    }
 
     public Task AddAsync(
         User user,

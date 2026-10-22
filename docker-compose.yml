@@ -6,7 +6,7 @@ services:
 
   messagebroker:
     image: rabbitmq:4-management
-    profiles: ["identity", "full"]
+    profiles: ["identity", "classroom", "full"]
     environment:
       RABBITMQ_DEFAULT_USER: ${RABBITMQ_USER}
       RABBITMQ_DEFAULT_PASS: ${RABBITMQ_PASSWORD}
@@ -34,7 +34,7 @@ services:
 
   redis:
     image: redis:7-alpine
-    profiles: ["identity", "full"]
+    profiles: ["identity", "classroom", "full"]
     restart: always
     ports:
       - "${REDIS_PORT}:6379"
@@ -61,7 +61,7 @@ services:
 
   identity-db:
     image: mysql:8.4
-    profiles: ["identity", "full"]
+    profiles: ["identity", "classroom", "full"]
     environment:
       MYSQL_DATABASE: ${IDENTITY_DB_NAME}
       MYSQL_USER: ${IDENTITY_DB_USER}
@@ -94,7 +94,7 @@ services:
 
   identity-api:
     image: toeicspace/identity-api
-    profiles: ["identity", "full"]
+    profiles: ["identity", "classroom", "full"]
     build:
       context: .
       dockerfile: src/Services/Identity/ToeicSpace.Identity.API/Dockerfile
@@ -331,9 +331,56 @@ services:
   # API GATEWAY
   # ==================================================
 
+  classroom-db:
+    image: mysql:8.4
+    profiles: ["classroom", "full"]
+    environment:
+      MYSQL_DATABASE: ${CLASSROOM_DB_NAME}
+      MYSQL_USER: ${CLASSROOM_DB_USER}
+      MYSQL_PASSWORD: ${CLASSROOM_DB_PASSWORD}
+      MYSQL_ROOT_PASSWORD: ${CLASSROOM_DB_ROOT_PASSWORD}
+    ports:
+      - "${CLASSROOM_DB_PORT}:3306"
+    volumes:
+      - classroom_db_data:/var/lib/mysql
+    healthcheck:
+      test: ["CMD-SHELL", "mysqladmin ping -h localhost -uroot -p${CLASSROOM_DB_ROOT_PASSWORD}"]
+      interval: 5s
+      timeout: 5s
+      retries: 10
+    networks:
+      - backend-network
+
+  classroom-api:
+    image: toeicspace/classroom-api
+    profiles: ["classroom", "full"]
+    build:
+      context: .
+      dockerfile: src/Services/Classroom/ToeicSpace.Classroom.API/Dockerfile
+    environment:
+      ASPNETCORE_ENVIRONMENT: ${ASPNETCORE_ENVIRONMENT}
+      ASPNETCORE_HTTP_PORTS: 8080
+      ConnectionStrings__ClassroomDatabase: Server=classroom-db;Port=3306;Database=${CLASSROOM_DB_NAME};User=${CLASSROOM_DB_USER};Password=${CLASSROOM_DB_PASSWORD};
+      RabbitMQ__Host: messagebroker
+      RabbitMQ__Username: ${RABBITMQ_USER}
+      RabbitMQ__Password: ${RABBITMQ_PASSWORD}
+      Jwt__Issuer: ${JWT_ISSUER}
+      Jwt__Audience: ${JWT_AUDIENCE}
+      Jwt__PublicKey: ${JWT_PUBLIC_KEY}
+    depends_on:
+      classroom-db:
+        condition: service_healthy
+      identity-api:
+        condition: service_started
+    ports:
+      - "${CLASSROOM_API_PORT}:8080"
+    networks:
+      - backend-network
+
+
   api-gateway:
     image: toeicspace/api-gateway
-    profiles: ["identity", "assessment", "full"]
+    profiles: ["identity", "assessment", "classroom", "full"]
     build:
       context: .
       dockerfile: src/ApiGateways/ToeicSpace.ApiGateway/Dockerfile
@@ -345,6 +392,7 @@ services:
       Logging__LogLevel__Yarp.ReverseProxy: Debug
       ReverseProxy__Clusters__identity-cluster__Destinations__destination1__Address: http://identity-api:8080/
       ReverseProxy__Clusters__assessment-cluster__Destinations__destination1__Address: http://assessment-api:8080/
+      ReverseProxy__Clusters__classroom-cluster__Destinations__destination1__Address: http://classroom-api:8080/
       ForwardedHeaders__KnownNetworks__0: ${TRUSTED_PROXY_NETWORK}
 
     ports:
@@ -373,6 +421,7 @@ volumes:
   identity_db_data:
 #  learning_db_data:
   assessment_db_data:
+  classroom_db_data:
 #  payment_db_data:
   rabbitmq_data:
   redis_data:

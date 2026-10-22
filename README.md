@@ -97,11 +97,14 @@ Examples:
 docker compose --profile identity up -d --build
 docker compose --profile learning up -d --build
 docker compose --profile assessment up -d --build
+docker compose --profile classroom up -d --build
 docker compose --profile payment up -d --build
 docker compose --profile notification up -d --build
 ```
 
 Each profile starts the selected application service together with its required database and shared infrastructure such as RabbitMQ, Redis, and the API Gateway when configured for that profile.
+
+Classroom class management, API contracts and migration setup are documented in [Manage Classes](docs/manage-classes.md).
 
 ### Run all services
 

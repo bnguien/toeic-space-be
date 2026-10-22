@@ -1,7 +1,7 @@
 using Microsoft.Extensions.Logging;
 using ToeicSpace.Identity.Application.Features.ResendVerification.Results;
 using ToeicSpace.Identity.Application.Interfaces.Caching;
-using ToeicSpace.Identity.Application.Interfaces.Messaging;
+using ToeicSpace.BuildingBlocks.Messaging;
 using ToeicSpace.Identity.Application.Interfaces.Persistence;
 using ToeicSpace.Identity.Application.Interfaces.Security;
 using ToeicSpace.Identity.Application.Messaging.Events;

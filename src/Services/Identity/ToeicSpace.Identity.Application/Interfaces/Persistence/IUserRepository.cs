@@ -20,6 +20,12 @@ public interface IUserRepository
         string email,
         CancellationToken cancellationToken);
 
+    Task<(IReadOnlyList<User> Items, int TotalCount)> SearchActiveTeachersAsync(
+        string? search,
+        int page,
+        int pageSize,
+        CancellationToken cancellationToken);
+
     Task AddAsync(
         User user,
         CancellationToken cancellationToken);

@@ -18,6 +18,9 @@
   </Folder>
   <Folder Name="/src/Services/Classroom/">
     <Project Path="src/Services/Classroom/ToeicSpace.Classroom.API/ToeicSpace.Classroom.API.csproj" />
+    <Project Path="src/Services/Classroom/ToeicSpace.Classroom.Application/ToeicSpace.Classroom.Application.csproj" />
+    <Project Path="src/Services/Classroom/ToeicSpace.Classroom.Domain/ToeicSpace.Classroom.Domain.csproj" />
+    <Project Path="src/Services/Classroom/ToeicSpace.Classroom.Infrastructure/ToeicSpace.Classroom.Infrastructure.csproj" />
   </Folder>
   <Folder Name="/src/Services/Content/">
     <Project Path="src/Services/Content/ToeicSpace.Content.API/ToeicSpace.Content.API.csproj" />
@@ -35,6 +38,7 @@
     <Project Path="src/WebApps/ToeicSpace.Web/ToeicSpace.Web.csproj" />
   </Folder>
   <Folder Name="/tests/" />
+  <Folder Name="/tests/Services/" />
   <Folder Name="/tests/Services/Identity/">
     <Project Path="tests/Services/Identity/ToeicSpace.Identity.Application.Tests/ToeicSpace.Identity.Application.Tests.csproj" />
   </Folder>

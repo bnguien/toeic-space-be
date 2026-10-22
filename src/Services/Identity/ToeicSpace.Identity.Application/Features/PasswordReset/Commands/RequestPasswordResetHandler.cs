@@ -1,6 +1,6 @@
 using ToeicSpace.Identity.Application.Features.Register.Commands;
 using ToeicSpace.Identity.Application.Interfaces.Caching;
-using ToeicSpace.Identity.Application.Interfaces.Messaging;
+using ToeicSpace.BuildingBlocks.Messaging;
 using ToeicSpace.Identity.Application.Messaging.Events;
 
 namespace ToeicSpace.Identity.Application.Features.PasswordReset.Commands;
