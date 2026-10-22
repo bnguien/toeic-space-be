@@ -64,6 +64,31 @@ public sealed class RefreshTokenRepository : IRefreshTokenRepository
                 setters => setters.SetProperty(token => token.IsRevoked, true),
                 cancellationToken);
 
+    public Task<int> CountActiveSessionsAsync(
+        Guid userId,
+        DateTime now,
+        CancellationToken cancellationToken)
+        => _dbContext.UserTokens
+            .AsNoTracking()
+            .CountAsync(
+                token => token.UserId == userId
+                    && token.Type == TokenType.RefreshToken
+                    && !token.IsRevoked
+                    && token.UsedAt == null
+                    && token.ExpiresAt > now,
+                cancellationToken);
+
+    // Every sign-in and refresh creates a token, so the newest one marks the last activity.
+    public Task<DateTime?> GetLastActivityAsync(
+        Guid userId,
+        CancellationToken cancellationToken)
+        => _dbContext.UserTokens
+            .AsNoTracking()
+            .Where(token => token.UserId == userId && token.Type == TokenType.RefreshToken)
+            .OrderByDescending(token => token.CreatedAt)
+            .Select(token => (DateTime?)token.CreatedAt)
+            .FirstOrDefaultAsync(cancellationToken);
+
     public async Task EnforceSessionLimitAsync(
         Guid userId,
         int maxActiveSessions,
