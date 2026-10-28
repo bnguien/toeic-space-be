@@ -13,6 +13,7 @@ public static class DependencyInjection
         services.AddValidatorsFromAssembly(assembly);
         services.AddTransient(typeof(IPipelineBehavior<,>), typeof(ValidationBehavior<,>));
         services.AddScoped<TeacherEligibilityService>();
+        services.AddScoped<StudentEligibilityService>();
         services.AddScoped<ClassActivationService>();
         services.AddScoped<ClassRestorationService>();
         return services;

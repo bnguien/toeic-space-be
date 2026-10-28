@@ -8,6 +8,8 @@ public sealed class ClassroomDbContext(DbContextOptions<ClassroomDbContext> opti
     public DbSet<Class> Classes => Set<Class>();
     public DbSet<ClassInstructor> ClassInstructors => Set<ClassInstructor>();
     public DbSet<TeacherReadModel> Teachers => Set<TeacherReadModel>();
+    public DbSet<StudentReadModel> Students => Set<StudentReadModel>();
+    public DbSet<ClassEnrollment> ClassEnrollments => Set<ClassEnrollment>();
     protected override void OnModelCreating(ModelBuilder modelBuilder)
     {
         modelBuilder.ApplyConfigurationsFromAssembly(typeof(ClassroomDbContext).Assembly);

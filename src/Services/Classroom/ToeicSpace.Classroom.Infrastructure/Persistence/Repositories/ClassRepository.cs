@@ -48,6 +48,12 @@ public sealed class ClassRepository(ClassroomDbContext db) : IClassRepository
         PersistenceExceptionTranslator.ExecuteAsync(() => PageAsync(db.Classes.AsNoTracking().Where(x => x.Status != ClassStatus.Deleted &&
             x.Instructors.Any(i => i.TeacherId == teacherId && i.UnassignedAt == null)), page, pageSize, ct));
 
+    public async Task<IReadOnlyList<Guid>> GetDraftIdsReadyToStartAsync(DateOnly today, CancellationToken ct) =>
+        await PersistenceExceptionTranslator.ExecuteAsync(() => db.Classes.AsNoTracking()
+            .Where(x => x.Status == ClassStatus.Draft && x.StartDate != null && x.StartDate <= today
+                && x.EndDate != null && x.EndDate >= today)
+            .OrderBy(x => x.StartDate).ThenBy(x => x.Id).Select(x => x.Id).ToListAsync(ct));
+
     private static async Task<PagedResult<Class>> PageAsync(IQueryable<Class> query, int page, int pageSize, CancellationToken ct)
     {
         var total = await query.CountAsync(ct);

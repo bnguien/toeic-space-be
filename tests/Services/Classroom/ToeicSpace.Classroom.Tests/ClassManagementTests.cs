@@ -429,7 +429,7 @@ public sealed class ClassManagementTests
                 .Handle(new RestoreDeletedClassCommand(id, adminId), ct);
 
         public Task HardDeleteAsync(Guid id, CancellationToken ct) =>
-            new HardDeleteClassHandler(db, db, NullLogger<HardDeleteClassHandler>.Instance)
+            new HardDeleteClassHandler(db, db, db, NullLogger<HardDeleteClassHandler>.Instance)
                 .Handle(new HardDeleteClassCommand(id), ct);
     }
 
@@ -454,10 +454,14 @@ public sealed class ClassManagementTests
         }
     }
 
-    private sealed class TestDb(DbContextOptions<TestDb> options) : DbContext(options), IClassRepository, IUnitOfWork
+    private sealed class TestDb(DbContextOptions<TestDb> options) : DbContext(options), IClassRepository, IEnrollmentRepository, IUnitOfWork
     {
         public Func<Task>? BeforeSave { get; set; }
         public IQueryable<Class> Classes => Set<Class>();
+        public async Task<IReadOnlyList<Guid>> GetDraftIdsReadyToStartAsync(DateOnly today, CancellationToken ct) =>
+            await Set<Class>().AsNoTracking().Where(x => x.Status == ClassStatus.Draft
+                && x.StartDate != null && x.StartDate <= today && x.EndDate != null && x.EndDate >= today)
+                .OrderBy(x => x.StartDate).ThenBy(x => x.Id).Select(x => x.Id).ToListAsync(ct);
         public Task<bool> CodeExistsAsync(string code, CancellationToken ct) =>
             Set<Class>().AnyAsync(x => x.Code == code, ct);
         public Task<Class?> GetByIdAsync(Guid id, bool includeDeleted, CancellationToken ct) =>
@@ -501,6 +505,26 @@ public sealed class ClassManagementTests
             return new PagedResult<Class>(items, page, pageSize, total);
         }
         public DbSet<ClassInstructor> ClassInstructors => Set<ClassInstructor>();
+        public Task<bool> HasActiveAsync(Guid classId, Guid studentId, CancellationToken ct) =>
+            Set<ClassEnrollment>().AnyAsync(x => x.ClassId == classId && x.StudentId == studentId &&
+                x.Status == EnrollmentStatus.Active && x.WithdrawnAt == null, ct);
+        public Task<bool> HasHistoryAsync(Guid classId, CancellationToken ct) =>
+            Set<ClassEnrollment>().AnyAsync(x => x.ClassId == classId, ct);
+        public Task<ClassEnrollment?> GetByIdAsync(Guid classId, Guid enrollmentId, CancellationToken ct) =>
+            Set<ClassEnrollment>().FirstOrDefaultAsync(x => x.ClassId == classId && x.Id == enrollmentId, ct);
+        public async Task<PagedResult<EnrollmentWithStudent>> ListAsync(Guid classId, EnrollmentStatus? status,
+            Guid? studentId, int page, int pageSize, CancellationToken ct)
+        {
+            var query = Set<ClassEnrollment>().AsNoTracking().Where(x => x.ClassId == classId);
+            if (status is { } selected) query = query.Where(x => x.Status == selected);
+            if (studentId is { } selectedStudent) query = query.Where(x => x.StudentId == selectedStudent);
+            var count = await query.CountAsync(ct);
+            var items = await query.OrderByDescending(x => x.EnrolledAt).ThenBy(x => x.Id)
+                .Skip((page - 1) * pageSize).Take(pageSize).ToListAsync(ct);
+            return new PagedResult<EnrollmentWithStudent>(items.Select(x => new EnrollmentWithStudent(x, null, null)).ToArray(),
+                page, pageSize, count);
+        }
+        public void Add(ClassEnrollment enrollment) => Set<ClassEnrollment>().Add(enrollment);
         public void Add(Class entity) => Set<Class>().Add(entity);
         public void Add(ClassInstructor entity) => Set<ClassInstructor>().Add(entity);
         public void Remove(Class entity) => Set<Class>().Remove(entity);
