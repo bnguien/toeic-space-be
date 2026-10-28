@@ -487,6 +487,28 @@ public sealed class ClassManagementTests
         public Task<PagedResult<Class>> GetTeacherClassesAsync(Guid teacherId, int page, int pageSize, CancellationToken ct) =>
             PageAsync(Set<Class>().AsNoTracking().Where(x => x.Status != ClassStatus.Deleted &&
                 x.Instructors.Any(i => i.TeacherId == teacherId && i.UnassignedAt == null)), page, pageSize, ct);
+        public async Task<PagedResult<StudentClassView>> GetStudentClassesAsync(Guid studentId, string? search, ClassStatus? status,
+            int page, int pageSize, CancellationToken ct)
+        {
+            var query = Set<Class>().AsNoTracking().Where(x => x.Status != ClassStatus.Deleted &&
+                x.Enrollments.Any(e => e.StudentId == studentId && e.Status == EnrollmentStatus.Active && e.WithdrawnAt == null));
+            if (!string.IsNullOrWhiteSpace(search))
+            {
+                var term = search.Trim();
+                query = query.Where(x => x.Code.Contains(term) || x.Name.Contains(term));
+            }
+            if (status is { } selected) query = query.Where(x => x.Status == selected);
+            var result = await PageAsync(query, page, pageSize, ct);
+            return new PagedResult<StudentClassView>(result.Items.Select(x => new StudentClassView(x, null)).ToArray(),
+                result.Page, result.PageSize, result.TotalCount);
+        }
+        public async Task<StudentClassView?> GetStudentDetailAsync(Guid studentId, Guid classId, CancellationToken ct)
+        {
+            var entity = await Set<Class>().AsNoTracking().Include(x => x.Instructors)
+                .FirstOrDefaultAsync(x => x.Id == classId && x.Status != ClassStatus.Deleted &&
+                    x.Enrollments.Any(e => e.StudentId == studentId && e.Status == EnrollmentStatus.Active && e.WithdrawnAt == null), ct);
+            return entity is null ? null : new StudentClassView(entity, null);
+        }
         public Task<PagedResult<Class>> GetDeletedAsync(string? search, int page, int pageSize, CancellationToken ct)
         {
             var query = Set<Class>().AsNoTracking().Where(x => x.Status == ClassStatus.Deleted).AsQueryable();
