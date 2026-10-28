@@ -12,6 +12,7 @@ public interface IClassRepository
     Task<PagedResult<Class>> SearchAsync(ClassSearchCriteria criteria, CancellationToken cancellationToken);
     Task<PagedResult<Class>> GetDeletedAsync(string? search, int page, int pageSize, CancellationToken cancellationToken);
     Task<PagedResult<Class>> GetTeacherClassesAsync(Guid teacherId, int page, int pageSize, CancellationToken cancellationToken);
+    Task<IReadOnlyList<Guid>> GetDraftIdsReadyToStartAsync(DateOnly today, CancellationToken cancellationToken);
     void Add(Class entity);
     void Add(ClassInstructor entity);
     void Remove(Class entity);
