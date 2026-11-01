@@ -1,5 +1,5 @@
 using System.Text.RegularExpressions;
-using ToeicSpace.Assessment.Application.Data;
+using ToeicSpace.Assessment.Application.Interfaces.Persistence;
 using ToeicSpace.Assessment.Domain.Entities;
 
 namespace ToeicSpace.Assessment.Infrastructure.Persistence.Search;

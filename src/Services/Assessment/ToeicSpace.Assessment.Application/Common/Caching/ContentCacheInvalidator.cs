@@ -1,5 +1,5 @@
-using ToeicSpace.Assessment.Application.Data;
 using ToeicSpace.Assessment.Application.Interfaces.Caching;
+using ToeicSpace.Assessment.Application.Interfaces.Persistence;
 
 namespace ToeicSpace.Assessment.Application.Common.Caching;
 

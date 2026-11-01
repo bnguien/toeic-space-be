@@ -1,9 +1,8 @@
 using System.Reflection;
 using Microsoft.Extensions.DependencyInjection;
-using ToeicSpace.Assessment.Application.Behaviors;
+using ToeicSpace.Assessment.Application.Common.Behaviors;
 using ToeicSpace.Assessment.Application.Common.Caching;
-using ToeicSpace.Assessment.Application.Questions.Common;
-using ToeicSpace.Assessment.Application.Tests.Common;
+using ToeicSpace.Assessment.Application.Services;
 
 namespace ToeicSpace.Assessment.Application;
 

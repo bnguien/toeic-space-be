@@ -1,7 +1,6 @@
 using Microsoft.Extensions.Logging.Abstractions;
 using ToeicSpace.Assessment.Application.Common.Caching;
-using ToeicSpace.Assessment.Application.Questions.Common;
-using ToeicSpace.Assessment.Application.Tests.Common;
+using ToeicSpace.Assessment.Application.Services;
 using ToeicSpace.Assessment.Domain.Rules;
 using ToeicSpace.Assessment.Infrastructure.Persistence;
 using ToeicSpace.Assessment.Infrastructure.Persistence.Interceptors;
