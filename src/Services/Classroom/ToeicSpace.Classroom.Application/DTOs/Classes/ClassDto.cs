@@ -15,4 +15,5 @@ public sealed record ClassDto(
     DateTime UpdatedAt,
     Guid UpdatedBy,
     Guid? TeacherId,
-    ClassStatus? ArchivedFromStatus);
+    ClassStatus? ArchivedFromStatus,
+    string? TeacherName = null);

@@ -164,6 +164,7 @@ public static class DependencyInjection
             configurator.AddConsumer<PasswordResetRequestedConsumer>();
             configurator.AddConsumer<PasswordChangeRequestedConsumer>();
             configurator.AddConsumer<TeacherSynchronizationRequestedConsumer>();
+            configurator.AddConsumer<StudentSynchronizationRequestedConsumer>();
         });
 
         var outbox = configuration.GetSection(OutboxOptions.SectionName);

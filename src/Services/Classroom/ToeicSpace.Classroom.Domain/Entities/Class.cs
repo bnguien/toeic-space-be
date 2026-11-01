@@ -19,6 +19,7 @@ public sealed class Class
     public Guid UpdatedBy { get; set; }
     public int Version { get; set; }
     public List<ClassInstructor> Instructors { get; set; } = [];
+    public List<ClassEnrollment> Enrollments { get; set; } = [];
 
     public void Touch(Guid adminId, DateTime now)
     {
@@ -48,6 +49,8 @@ public sealed class Class
     public bool CanEdit() => Status is ClassStatus.Draft or ClassStatus.Active;
 
     public bool CanAssignTeacher() => Status is ClassStatus.Draft or ClassStatus.Active;
+
+    public bool CanManageEnrollments() => Status is ClassStatus.Draft or ClassStatus.Active;
 
     public bool CanUnassignTeacher() => Status == ClassStatus.Draft;
 }

@@ -85,6 +85,50 @@ namespace ToeicSpace.Classroom.Infrastructure.Persistence.Migrations
                     b.ToTable("Classes", (string)null);
                 });
 
+            modelBuilder.Entity("ToeicSpace.Classroom.Domain.Entities.ClassEnrollment", b =>
+                {
+                    b.Property<Guid>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("char(36)");
+
+                    b.Property<Guid>("ClassId")
+                        .HasColumnType("char(36)");
+
+                    b.Property<Guid?>("CurrentStudentId")
+                        .ValueGeneratedOnAddOrUpdate()
+                        .HasColumnType("char(36)")
+                        .HasComputedColumnSql("CASE WHEN `Status` = 'Active' AND `WithdrawnAt` IS NULL THEN `StudentId` ELSE NULL END", true);
+
+                    b.Property<DateTime>("EnrolledAt")
+                        .HasColumnType("datetime(6)");
+
+                    b.Property<Guid>("EnrolledBy")
+                        .HasColumnType("char(36)");
+
+                    b.Property<string>("Status")
+                        .IsRequired()
+                        .HasMaxLength(24)
+                        .HasColumnType("varchar(24)");
+
+                    b.Property<Guid>("StudentId")
+                        .HasColumnType("char(36)");
+
+                    b.Property<DateTime?>("WithdrawnAt")
+                        .HasColumnType("datetime(6)");
+
+                    b.Property<Guid?>("WithdrawnBy")
+                        .HasColumnType("char(36)");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("ClassId", "CurrentStudentId")
+                        .IsUnique();
+
+                    b.HasIndex("ClassId", "StudentId", "EnrolledAt");
+
+                    b.ToTable("ClassEnrollments", (string)null);
+                });
+
             modelBuilder.Entity("ToeicSpace.Classroom.Domain.Entities.ClassInstructor", b =>
                 {
                     b.Property<Guid>("Id")
@@ -124,6 +168,55 @@ namespace ToeicSpace.Classroom.Infrastructure.Persistence.Migrations
                     b.HasIndex("TeacherId", "UnassignedAt");
 
                     b.ToTable("ClassInstructors", (string)null);
+                });
+
+            modelBuilder.Entity("ToeicSpace.Classroom.Domain.Entities.StudentReadModel", b =>
+                {
+                    b.Property<Guid>("StudentId")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("char(36)");
+
+                    b.Property<string>("Email")
+                        .IsRequired()
+                        .HasMaxLength(254)
+                        .HasColumnType("varchar(254)");
+
+                    b.Property<bool>("IsEligible")
+                        .HasColumnType("tinyint(1)");
+
+                    b.Property<bool>("IsVerified")
+                        .HasColumnType("tinyint(1)");
+
+                    b.Property<Guid>("LastEventId")
+                        .HasColumnType("char(36)");
+
+                    b.Property<string>("Name")
+                        .IsRequired()
+                        .HasMaxLength(200)
+                        .HasColumnType("varchar(200)");
+
+                    b.Property<string>("Role")
+                        .IsRequired()
+                        .HasMaxLength(32)
+                        .HasColumnType("varchar(32)");
+
+                    b.Property<string>("Status")
+                        .IsRequired()
+                        .HasMaxLength(32)
+                        .HasColumnType("varchar(32)");
+
+                    b.Property<DateTime>("SynchronizedAt")
+                        .HasColumnType("datetime(6)");
+
+                    b.Property<long>("Version")
+                        .IsConcurrencyToken()
+                        .HasColumnType("bigint");
+
+                    b.HasKey("StudentId");
+
+                    b.HasIndex("IsEligible", "Name");
+
+                    b.ToTable("StudentReadModels", (string)null);
                 });
 
             modelBuilder.Entity("ToeicSpace.Classroom.Domain.Entities.TeacherReadModel", b =>
@@ -176,6 +269,17 @@ namespace ToeicSpace.Classroom.Infrastructure.Persistence.Migrations
                     b.ToTable("TeacherReadModels", (string)null);
                 });
 
+            modelBuilder.Entity("ToeicSpace.Classroom.Domain.Entities.ClassEnrollment", b =>
+                {
+                    b.HasOne("ToeicSpace.Classroom.Domain.Entities.Class", "Class")
+                        .WithMany("Enrollments")
+                        .HasForeignKey("ClassId")
+                        .OnDelete(DeleteBehavior.Restrict)
+                        .IsRequired();
+
+                    b.Navigation("Class");
+                });
+
             modelBuilder.Entity("ToeicSpace.Classroom.Domain.Entities.ClassInstructor", b =>
                 {
                     b.HasOne("ToeicSpace.Classroom.Domain.Entities.Class", "Class")
@@ -189,6 +293,8 @@ namespace ToeicSpace.Classroom.Infrastructure.Persistence.Migrations
 
             modelBuilder.Entity("ToeicSpace.Classroom.Domain.Entities.Class", b =>
                 {
+                    b.Navigation("Enrollments");
+
                     b.Navigation("Instructors");
                 });
 #pragma warning restore 612, 618

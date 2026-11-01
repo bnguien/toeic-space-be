@@ -9,6 +9,8 @@ using ToeicSpace.Classroom.Infrastructure.Consumers;
 using ToeicSpace.Classroom.Infrastructure.Persistence;
 using ToeicSpace.Classroom.Infrastructure.Persistence.Repositories;
 using ToeicSpace.Classroom.Infrastructure.Services.Teachers;
+using ToeicSpace.Classroom.Infrastructure.Services.Students;
+using ToeicSpace.Classroom.Infrastructure.Services.Classes;
 
 namespace ToeicSpace.Classroom.Infrastructure;
 
@@ -22,12 +24,22 @@ public static class DependencyInjection
         services.AddScoped<IClassRepository, ClassRepository>();
         services.AddScoped<IUnitOfWork, UnitOfWork>();
         services.AddScoped<ITeacherReadRepository, TeacherReadRepository>();
+        services.AddScoped<IStudentReadRepository, StudentReadRepository>();
+        services.AddScoped<IEnrollmentRepository, EnrollmentRepository>();
+        services.AddScoped<IEnrollmentImportReader, EnrollmentImportReader>();
         services.AddSingleton(TimeProvider.System);
+        services.AddSingleton(_ => TimeZoneInfo.FindSystemTimeZoneById(
+            config["Classroom:TimeZoneId"] ?? "Asia/Ho_Chi_Minh"));
         services.AddMessagingBus(config, messaging =>
-            messaging.AddConsumer<TeacherChangedConsumer>(typeof(TeacherChangedConsumerDefinition)));
+        {
+            messaging.AddConsumer<TeacherChangedConsumer>(typeof(TeacherChangedConsumerDefinition));
+            messaging.AddConsumer<StudentChangedConsumer>(typeof(StudentChangedConsumerDefinition));
+        });
         services.AddSingleton<TeacherSynchronizationRequester>();
         services.AddSingleton<ITeacherSynchronizationRequester>(sp => sp.GetRequiredService<TeacherSynchronizationRequester>());
         services.AddHostedService(sp => sp.GetRequiredService<TeacherSynchronizationRequester>());
+        services.AddHostedService<StudentSynchronizationRequester>();
+        services.AddHostedService<ClassAutoStartJob>();
         return services;
     }
 }

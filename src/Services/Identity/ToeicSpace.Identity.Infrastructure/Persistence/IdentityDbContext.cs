@@ -26,13 +26,13 @@ public class IdentityDbContext : DbContext
 
     public override int SaveChanges()
     {
-        CaptureTeacherChanges();
+        CaptureUserChanges();
         return base.SaveChanges();
     }
 
     public override Task<int> SaveChangesAsync(CancellationToken cancellationToken = default)
     {
-        CaptureTeacherChanges();
+        CaptureUserChanges();
         return base.SaveChangesAsync(cancellationToken);
     }
 
@@ -42,7 +42,7 @@ public class IdentityDbContext : DbContext
         base.OnModelCreating(modelBuilder);
     }
 
-    private void CaptureTeacherChanges()
+    private void CaptureUserChanges()
     {
         ChangeTracker.DetectChanges();
         foreach (var entry in ChangeTracker.Entries<User>().ToArray())
@@ -51,7 +51,7 @@ public class IdentityDbContext : DbContext
                 || entry.State == EntityState.Modified && new[]
                 {
                     nameof(User.FullName), nameof(User.Email), nameof(User.AvatarUrl),
-                    nameof(User.Role), nameof(User.Status), nameof(User.DeletedAt)
+                    nameof(User.Role), nameof(User.Status), nameof(User.DeletedAt), nameof(User.EmailVerifiedAt)
                 }.Any(name => entry.Property(name).IsModified);
             if (!relevantChange) continue;
 
@@ -65,6 +65,12 @@ public class IdentityDbContext : DbContext
                 user.Id, user.FullName, user.Email, user.AvatarUrl,
                 user.Role.ToString(), deleted ? "Deleted" : user.Status.ToString(),
                 !deleted && user.Role == UserRole.Teacher && user.Status == UserStatus.Active,
+                user.Version));
+            EnqueueIntegrationEvent(new StudentChangedIntegrationEvent(
+                user.Id, user.FullName, user.Email, user.Role.ToString(),
+                deleted ? "Deleted" : user.Status.ToString(),
+                !deleted && user.EmailVerifiedAt is not null,
+                !deleted && user.Role == UserRole.User && user.Status == UserStatus.Active && user.EmailVerifiedAt is not null,
                 user.Version));
         }
     }
