@@ -40,6 +40,7 @@ public sealed class PracticeSetsController : ControllerBase
     }
 
     [HttpGet("{id:guid}")]
+    [ResponseCache(NoStore = true, Location = ResponseCacheLocation.None)]
     [AllowAnonymous]
     [SwaggerOperation(
         Summary = "Get practice set by ID",
@@ -56,6 +57,7 @@ public sealed class PracticeSetsController : ControllerBase
     }
 
     [HttpGet("{id:guid}/content")]
+    [ResponseCache(NoStore = true, Location = ResponseCacheLocation.None)]
     [SwaggerOperation(
         Summary = "Get practice content",
         Description = "Passages and questions of the set in order, including answers and explanations for instant feedback.")]
@@ -73,9 +75,10 @@ public sealed class PracticeSetsController : ControllerBase
 
     [HttpPost]
     [Authorize(Policy = AuthorizationPolicies.ContentManager)]
+    [ProducesResponseType(StatusCodes.Status403Forbidden)]
     [SwaggerOperation(
         Summary = "Create a practice set",
-        Description = "Creates an empty practice set in Draft status.")]
+        Description = "Creates metadata and ordered questions together. Defaults to Draft; Active requires publishable content.")]
     [ProducesResponseType(typeof(PracticeSetDetailDto), StatusCodes.Status201Created)]
     [ProducesResponseType(StatusCodes.Status400BadRequest)]
     [ProducesResponseType(StatusCodes.Status409Conflict)]
@@ -90,6 +93,7 @@ public sealed class PracticeSetsController : ControllerBase
 
     [HttpPut("{id:guid}")]
     [Authorize(Policy = AuthorizationPolicies.ContentManager)]
+    [ProducesResponseType(StatusCodes.Status403Forbidden)]
     [SwaggerOperation(
         Summary = "Update a practice set",
         Description = "Updates practice set metadata.")]
@@ -109,9 +113,10 @@ public sealed class PracticeSetsController : ControllerBase
 
     [HttpPut("{id:guid}/items")]
     [Authorize(Policy = AuthorizationPolicies.ContentManager)]
+    [ProducesResponseType(StatusCodes.Status403Forbidden)]
     [SwaggerOperation(
         Summary = "Replace practice set questions",
-        Description = "Replaces the ordered list of questions. All questions must belong to the set's part.")]
+        Description = "Replaces ordered questions only if expectedQuestionIds matches the current ordered list. Stale edits return 409.")]
     [ProducesResponseType(typeof(PracticeSetDetailDto), StatusCodes.Status200OK)]
     [ProducesResponseType(StatusCodes.Status400BadRequest)]
     [ProducesResponseType(StatusCodes.Status404NotFound)]
@@ -121,13 +126,15 @@ public sealed class PracticeSetsController : ControllerBase
         [FromBody] ReplacePracticeSetItemsRequest request,
         CancellationToken cancellationToken)
     {
-        var result = await _mediator.Send(new ReplacePracticeSetItemsCommand(id, request.QuestionIds), cancellationToken);
+        var result = await _mediator.Send(new ReplacePracticeSetItemsCommand(
+            id, request.QuestionIds, request.ExpectedQuestionIds), cancellationToken);
 
         return Ok(result);
     }
 
     [HttpPatch("{id:guid}/status")]
     [Authorize(Policy = AuthorizationPolicies.ContentManager)]
+    [ProducesResponseType(StatusCodes.Status403Forbidden)]
     [SwaggerOperation(
         Summary = "Update practice set status",
         Description = "Publishing (Active) requires at least one Active question of the set's part.")]
@@ -146,6 +153,7 @@ public sealed class PracticeSetsController : ControllerBase
 
     [HttpDelete("{id:guid}")]
     [Authorize(Policy = AuthorizationPolicies.ContentManager)]
+    [ProducesResponseType(StatusCodes.Status403Forbidden)]
     [SwaggerOperation(
         Summary = "Delete a practice set",
         Description = "Soft deletes the practice set. Its questions stay in the bank.")]

@@ -23,20 +23,48 @@ public sealed class CreatePracticeSetHandler : IRequestHandler<CreatePracticeSet
         CreatePracticeSetCommand request,
         CancellationToken cancellationToken)
     {
-        await _context.EnsureCodeIsAvailableAsync(request.Code.Trim(), currentPracticeSetId: null, cancellationToken);
-
-        var practiceSet = new ToeicPracticeSet
+        PracticeSetAuthorization.EnsureCanCreate(_currentUser);
+        var practiceSetId = Guid.NewGuid();
+        return await _context.ExecutePracticeSetUpdateAsync(practiceSetId, async () =>
         {
-            Id = Guid.NewGuid(),
-            Status = ContentStatus.Draft,
-            CreatedByUserId = _currentUser.UserId
-        };
+            await _context.EnsureCodeIsAvailableAsync(request.Code.Trim(), currentPracticeSetId: null, cancellationToken);
+            var questionIds = request.QuestionIds ?? [];
+            await _context.LockPracticeContentAsync(questionIds.ToArray(), cancellationToken);
+            var questions = await _context.ToeicQuestions.AsNoTracking()
+                .Where(question => questionIds.Contains(question.Id))
+                .Select(question => new { question.Id, question.Part })
+                .ToListAsync(cancellationToken);
+            if (questionIds.Except(questions.Select(question => question.Id)).Any()
+                || questions.Any(question => question.Part != request.Part))
+            {
+                throw AppException.Validation(
+                    "Every selected question must exist and belong to the practice set's part.",
+                    ErrorCodes.InvalidReference);
+            }
 
-        PracticeSetContentValidator.ApplyContent(practiceSet, request);
+            var practiceSet = new ToeicPracticeSet
+            {
+                Id = practiceSetId,
+                Status = request.Status,
+                CreatedByUserId = _currentUser.UserId
+            };
 
-        _context.ToeicPracticeSets.Add(practiceSet);
-        await _context.SaveChangesAsync(cancellationToken);
+            PracticeSetContentValidator.ApplyContent(practiceSet, request);
+            if (practiceSet.Status == ContentStatus.Active)
+                await PracticeSetPublishingGuard.EnsureValidAsync(
+                    _context, practiceSet, questionIds, cancellationToken, lockContent: false);
 
-        return practiceSet.ToDetailDto([]);
+            practiceSet.Items = questionIds.Select((questionId, index) => new ToeicPracticeSetItem
+            {
+                PracticeSetId = practiceSet.Id,
+                QuestionId = questionId,
+                OrderIndex = index
+            }).ToList();
+            _context.ToeicPracticeSets.Add(practiceSet);
+            // Metadata, status and ordered questions commit together, after all validation.
+            await _context.SaveChangesAsync(cancellationToken);
+
+            return practiceSet.ToDetailDto(await _context.LoadItemsAsync(practiceSet.Id, cancellationToken));
+        }, cancellationToken);
     }
 }

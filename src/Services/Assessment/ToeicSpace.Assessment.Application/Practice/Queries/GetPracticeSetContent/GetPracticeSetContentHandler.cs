@@ -28,7 +28,19 @@ public sealed class GetPracticeSetContentHandler : IRequestHandler<GetPracticeSe
         GetPracticeSetContentQuery request,
         CancellationToken cancellationToken)
     {
+        if (!_currentUser.IsAuthenticated)
+        {
+            throw new AppException(ErrorType.Unauthenticated, "Sign in to view practice question content.");
+        }
+
         var canManageContent = _currentUser.CanManageContent;
+        // Visibility is checked even on cache hits, so cached content cannot reveal an archived set.
+        var practiceSet = await _context.ToeicPracticeSets
+            .AsNoTracking()
+            .VisibleTo(canManageContent)
+            .FirstOrDefaultAsync(item => item.Id == request.Id, cancellationToken)
+            ?? throw AppException.NotFound(nameof(ToeicPracticeSet), request.Id);
+
         var cacheKey = ContentCacheKeys.PracticeSet(request.Id, canManageContent);
         var cached = await _cache.GetAsync<PracticeSetContentDto>(cacheKey, cancellationToken);
 
@@ -36,12 +48,6 @@ public sealed class GetPracticeSetContentHandler : IRequestHandler<GetPracticeSe
         {
             return cached;
         }
-
-        var practiceSet = await _context.ToeicPracticeSets
-            .AsNoTracking()
-            .VisibleTo(canManageContent)
-            .FirstOrDefaultAsync(item => item.Id == request.Id, cancellationToken)
-            ?? throw AppException.NotFound(nameof(ToeicPracticeSet), request.Id);
 
         var itemQuery = _context.ToeicPracticeSetItems
             .AsNoTracking()

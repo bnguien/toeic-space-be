@@ -12,9 +12,9 @@ public class PracticeSetHandlerTests
         using var database = new TestDatabase();
         var practiceSet = database.AddPracticeSet(ToeicPart.Part5, ContentStatus.Draft);
         var part1Question = database.AddQuestion(null, ToeicPart.Part1, null);
-        var handler = new ReplacePracticeSetItemsHandler(database.Context, database.CacheInvalidator);
+        var handler = new ReplacePracticeSetItemsHandler(database.Context, FakeCurrentUser.Admin(), database.CacheInvalidator);
 
-        var act = () => handler.Handle(new ReplacePracticeSetItemsCommand(practiceSet.Id, [part1Question.Id]), CancellationToken.None);
+        var act = () => handler.Handle(new ReplacePracticeSetItemsCommand(practiceSet.Id, [part1Question.Id], []), CancellationToken.None);
 
         (await act.Should().ThrowAsync<AppException>())
             .Which.Code.Should().Be(ErrorCodes.InvalidReference);
@@ -27,9 +27,9 @@ public class PracticeSetHandlerTests
         var practiceSet = database.AddPracticeSet(ToeicPart.Part5, ContentStatus.Draft);
         var first = database.AddQuestion(null, ToeicPart.Part5, null);
         var second = database.AddQuestion(null, ToeicPart.Part5, null);
-        var handler = new ReplacePracticeSetItemsHandler(database.Context, database.CacheInvalidator);
+        var handler = new ReplacePracticeSetItemsHandler(database.Context, FakeCurrentUser.Admin(), database.CacheInvalidator);
 
-        var result = await handler.Handle(new ReplacePracticeSetItemsCommand(practiceSet.Id, [second.Id, first.Id]), CancellationToken.None);
+        var result = await handler.Handle(new ReplacePracticeSetItemsCommand(practiceSet.Id, [second.Id, first.Id], []), CancellationToken.None);
 
         result.Items.Select(item => item.QuestionId).Should().Equal(second.Id, first.Id);
     }
@@ -41,9 +41,9 @@ public class PracticeSetHandlerTests
         var practiceSet = database.AddPracticeSet(ToeicPart.Part5, ContentStatus.Active);
         var active = database.AddQuestion(null, ToeicPart.Part5, null);
         var draft = database.AddQuestion(null, ToeicPart.Part5, null, status: ContentStatus.Draft);
-        var handler = new ReplacePracticeSetItemsHandler(database.Context, database.CacheInvalidator);
+        var handler = new ReplacePracticeSetItemsHandler(database.Context, FakeCurrentUser.Admin(), database.CacheInvalidator);
 
-        var act = () => handler.Handle(new ReplacePracticeSetItemsCommand(practiceSet.Id, [active.Id, draft.Id]), CancellationToken.None);
+        var act = () => handler.Handle(new ReplacePracticeSetItemsCommand(practiceSet.Id, [active.Id, draft.Id], []), CancellationToken.None);
 
         (await act.Should().ThrowAsync<AppException>())
             .Which.Code.Should().Be(ErrorCodes.PracticeSetNotPublishable);
@@ -56,9 +56,9 @@ public class PracticeSetHandlerTests
         using var database = new TestDatabase();
         var practiceSet = database.AddPracticeSet(ToeicPart.Part5, ContentStatus.Draft);
         var draft = database.AddQuestion(null, ToeicPart.Part5, null, status: ContentStatus.Draft);
-        var handler = new ReplacePracticeSetItemsHandler(database.Context, database.CacheInvalidator);
+        var handler = new ReplacePracticeSetItemsHandler(database.Context, FakeCurrentUser.Admin(), database.CacheInvalidator);
 
-        var result = await handler.Handle(new ReplacePracticeSetItemsCommand(practiceSet.Id, [draft.Id]), CancellationToken.None);
+        var result = await handler.Handle(new ReplacePracticeSetItemsCommand(practiceSet.Id, [draft.Id], []), CancellationToken.None);
 
         result.Items.Should().ContainSingle().Which.QuestionId.Should().Be(draft.Id);
     }

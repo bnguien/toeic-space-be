@@ -10,6 +10,7 @@ public sealed class ReplacePracticeSetItemsValidator : AbstractValidator<Replace
             .NotEmpty();
 
         RuleFor(command => command.QuestionIds)
+            .Cascade(CascadeMode.Stop)
             .NotNull()
             .Must(questionIds => questionIds.Count <= MaxQuestions)
             .WithMessage($"A practice set can have at most {MaxQuestions} questions.")
@@ -18,5 +19,12 @@ public sealed class ReplacePracticeSetItemsValidator : AbstractValidator<Replace
 
         RuleForEach(command => command.QuestionIds)
             .NotEmpty();
+
+        RuleFor(command => command.ExpectedQuestionIds)
+            .Cascade(CascadeMode.Stop)
+            .NotNull()
+            .Must(ids => ids.Count <= MaxQuestions)
+            .Must(ids => ids.Distinct().Count() == ids.Count);
+        RuleForEach(command => command.ExpectedQuestionIds).NotEmpty();
     }
 }
