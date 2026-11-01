@@ -3,9 +3,10 @@ using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using Swashbuckle.AspNetCore.Annotations;
 using ToeicSpace.BuildingBlocks.Security.Jwt;
-using ToeicSpace.Identity.Application.Features.Profile.Commands;
-using ToeicSpace.Identity.Application.Features.Profile.Queries;
-using ToeicSpace.Identity.Application.Features.Profile.Results;
+using ToeicSpace.Identity.Application.DTOs.Profiles;
+using ToeicSpace.Identity.Application.Features.Profiles.Commands.UpdateProfile;
+using ToeicSpace.Identity.Application.Features.Profiles.Commands.UploadAvatar;
+using ToeicSpace.Identity.Application.Features.Profiles.Queries.GetProfile;
 
 namespace ToeicSpace.Identity.API.Controllers;
 

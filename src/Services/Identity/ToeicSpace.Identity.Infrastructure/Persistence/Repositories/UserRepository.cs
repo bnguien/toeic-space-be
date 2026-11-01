@@ -1,7 +1,7 @@
 using System.Data;
-using ToeicSpace.Identity.Application.Features.UserManagement.Models;
-using ToeicSpace.Identity.Application.Features.UserManagement.Results;
+using ToeicSpace.Identity.Application.DTOs.Users;
 using ToeicSpace.Identity.Application.Interfaces.Persistence;
+using ToeicSpace.Identity.Application.Models;
 using ToeicSpace.Identity.Domain.Entities;
 using ToeicSpace.Identity.Domain.Enums;
 using ToeicSpace.Identity.Domain.Exceptions;

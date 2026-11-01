@@ -1,5 +1,5 @@
 using Microsoft.Extensions.Logging.Abstractions;
-using ToeicSpace.Identity.Application.Features.CleanupInactiveAccounts.Commands;
+using ToeicSpace.Identity.Application.Features.Users.Commands.CleanupInactiveAccounts;
 using ToeicSpace.Identity.Application.Options;
 using ToeicSpace.Identity.Domain.Entities;
 using ToeicSpace.Identity.Domain.Enums;

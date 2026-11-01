@@ -1,7 +1,7 @@
 using System.Reflection;
 using ToeicSpace.Identity.Application.Common.Behaviors;
 using ToeicSpace.Identity.Application.Common.Sessions;
-using ToeicSpace.Identity.Application.Features.UserManagement.Common;
+using ToeicSpace.Identity.Application.Services;
 
 namespace ToeicSpace.Identity.Application;
 

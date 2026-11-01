@@ -1,8 +1,8 @@
 using MassTransit;
-using ToeicSpace.Identity.Application.Extensions;
 using ToeicSpace.Identity.Application.Interfaces.Caching;
 using ToeicSpace.Identity.Application.Interfaces.Persistence;
 using ToeicSpace.Identity.Application.Interfaces.Security;
+using ToeicSpace.Identity.Application.Mappings;
 using ToeicSpace.Identity.Application.Messaging.Events;
 using ToeicSpace.Identity.Application.Options;
 using ToeicSpace.Identity.Infrastructure.Services.Email;

@@ -1,7 +1,6 @@
-using ToeicSpace.Identity.Application.Features.UserManagement.Models;
-using ToeicSpace.Identity.Application.Features.UserManagement.Results;
-using ToeicSpace.Identity.Application.Interfaces.Caching;
 using ToeicSpace.BuildingBlocks.Messaging;
+using ToeicSpace.Identity.Application.DTOs.Users;
+using ToeicSpace.Identity.Application.Interfaces.Caching;
 using ToeicSpace.Identity.Application.Interfaces.Persistence;
 using ToeicSpace.Identity.Application.Interfaces.Security;
 using ToeicSpace.Identity.Application.Models;

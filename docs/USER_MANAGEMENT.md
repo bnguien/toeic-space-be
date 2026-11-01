@@ -53,18 +53,20 @@ Qua gateway: `/identity/api/v1/admin/users`. Lỗi dùng ProblemDetails với `c
 ## Code
 
 ```text
-Identity.Application/Features/UserManagement/
-├── Common/        UserAdministrationRules (luật dùng chung), ManagedUserReader (detail + phiên)
-├── Models/        UserSearchCriteria
-├── Results/       ManagedUserResult, ManagedUserDetailResult, CreateUserResult, UserStatisticsResult
-├── Commands/      CreateUser, UpdateUser, ChangeUserRole, ChangeUserStatus,
-│                  RevokeUserSessions, DeleteUser, RestoreUser
-└── Queries/       GetUsers, GetUserById, GetUserStatistics
+Identity.Application/
+├── Features/Users/
+│   ├── Commands/  CreateUser, UpdateUser, ChangeUserRole, ChangeUserStatus,
+│   │              RevokeUserSessions, DeleteUser, RestoreUser, CleanupInactiveAccounts
+│   └── Queries/   GetUsers, GetUserById, GetUserStatistics
+├── DTOs/Users/    ManagedUserResult, ManagedUserDetailResult, CreateUserResult,
+│                  UserStatisticsResult, UserTrendResult, TrendBucketResult
+├── Models/        UserSearchCriteria, UserSortOrder, UserCounts, SignIn, StatisticsPeriod
+└── Services/      UserAdministrationRules (luật dùng chung), ManagedUserReader (detail + phiên)
 Identity.API/Controllers/AdminUsersController.cs
 Identity.Infrastructure/Services/Security/TemporaryPasswordGenerator.cs
 ```
 
-Test: `tests/UnitTests/ToeicSpace.Identity.Application.UnitTests/UserManagement` (SQLite, repository thật).
+Test: `tests/UnitTests/ToeicSpace.Identity.Application.UnitTests/Users` (SQLite, repository thật).
 
 ## Chưa làm
 
