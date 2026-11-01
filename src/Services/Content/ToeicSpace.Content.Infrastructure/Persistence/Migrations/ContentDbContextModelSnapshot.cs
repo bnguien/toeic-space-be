@@ -146,6 +146,115 @@ namespace ToeicSpace.Content.Infrastructure.Persistence.Migrations
                     b.ToTable("CourseModules", (string)null);
                 });
 
+            modelBuilder.Entity("ToeicSpace.Content.Domain.Entities.LearnerVocabularyPreferences", b =>
+                {
+                    b.Property<Guid>("LearnerId")
+                        .HasColumnType("char(36)");
+
+                    b.Property<bool>("AutoPlayAudio")
+                        .HasColumnType("tinyint(1)");
+
+                    b.Property<int>("DailyGoal")
+                        .HasColumnType("int");
+
+                    b.Property<string>("DefaultMode")
+                        .IsRequired()
+                        .HasMaxLength(16)
+                        .HasColumnType("varchar(16)");
+
+                    b.Property<double>("FontScale")
+                        .HasColumnType("double");
+
+                    b.Property<Guid?>("LastFolderId")
+                        .HasColumnType("char(36)");
+
+                    b.Property<Guid?>("LastFolderPickerId")
+                        .HasColumnType("char(36)");
+
+                    b.Property<Guid?>("LastStageId")
+                        .HasColumnType("char(36)");
+
+                    b.Property<string>("LastView")
+                        .IsRequired()
+                        .HasMaxLength(16)
+                        .HasColumnType("varchar(16)");
+
+                    b.Property<bool>("SidebarCollapsed")
+                        .HasColumnType("tinyint(1)");
+
+                    b.Property<int?>("SidebarWidth")
+                        .HasColumnType("int");
+
+                    b.Property<bool>("Snowfall")
+                        .HasColumnType("tinyint(1)");
+
+                    b.Property<DateTime?>("UpdatedAt")
+                        .HasColumnType("datetime(6)");
+
+                    b.HasKey("LearnerId");
+
+                    b.ToTable("LearnerVocabularyPreferences", (string)null);
+                });
+
+            modelBuilder.Entity("ToeicSpace.Content.Domain.Entities.LearnerWordProgress", b =>
+                {
+                    b.Property<Guid>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("char(36)");
+
+                    b.Property<DateTime>("CreatedAt")
+                        .HasColumnType("datetime(6)");
+
+                    b.Property<DateOnly>("DueOn")
+                        .HasColumnType("date");
+
+                    b.Property<double>("EaseFactor")
+                        .HasColumnType("double");
+
+                    b.Property<int>("IntervalDays")
+                        .HasColumnType("int");
+
+                    b.Property<int>("Lapses")
+                        .HasColumnType("int");
+
+                    b.Property<string>("LastGrade")
+                        .HasMaxLength(16)
+                        .HasColumnType("varchar(16)");
+
+                    b.Property<DateOnly?>("LastGradeDay")
+                        .HasColumnType("date");
+
+                    b.Property<DateTime?>("LastReviewedAt")
+                        .HasColumnType("datetime(6)");
+
+                    b.Property<Guid>("LearnerId")
+                        .HasColumnType("char(36)");
+
+                    b.Property<int>("Repetitions")
+                        .HasColumnType("int");
+
+                    b.Property<DateTime>("UpdatedAt")
+                        .HasColumnType("datetime(6)");
+
+                    b.Property<int>("Version")
+                        .IsConcurrencyToken()
+                        .HasColumnType("int");
+
+                    b.Property<Guid>("WordId")
+                        .HasColumnType("char(36)");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("WordId");
+
+                    b.HasIndex("LearnerId", "DueOn");
+
+                    b.HasIndex("LearnerId", "WordId")
+                        .IsUnique();
+
+                    b.ToTable("LearnerWordProgress", (string)null);
+                });
+
             modelBuilder.Entity("ToeicSpace.Content.Domain.Entities.Lesson", b =>
                 {
                     b.Property<Guid>("Id")
@@ -329,6 +438,199 @@ namespace ToeicSpace.Content.Infrastructure.Persistence.Migrations
                     b.ToTable("LessonVideos", (string)null);
                 });
 
+            modelBuilder.Entity("ToeicSpace.Content.Domain.Entities.ReelBackground", b =>
+                {
+                    b.Property<Guid>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("char(36)");
+
+                    b.Property<string>("Author")
+                        .IsRequired()
+                        .HasMaxLength(200)
+                        .HasColumnType("varchar(200)");
+
+                    b.Property<DateTime>("CreatedAt")
+                        .HasColumnType("datetime(6)");
+
+                    b.Property<int>("DurationSeconds")
+                        .HasColumnType("int");
+
+                    b.Property<int>("Height")
+                        .HasColumnType("int");
+
+                    b.Property<bool>("IsActive")
+                        .HasColumnType("tinyint(1)");
+
+                    b.Property<DateTime>("LastSeenAt")
+                        .HasColumnType("datetime(6)");
+
+                    b.Property<int>("MissCount")
+                        .HasColumnType("int");
+
+                    b.Property<string>("PageUrl")
+                        .IsRequired()
+                        .HasMaxLength(1000)
+                        .HasColumnType("varchar(1000)");
+
+                    b.Property<string>("PosterUrl")
+                        .IsRequired()
+                        .HasMaxLength(1000)
+                        .HasColumnType("varchar(1000)");
+
+                    b.Property<string>("Provider")
+                        .IsRequired()
+                        .HasMaxLength(32)
+                        .HasColumnType("varchar(32)");
+
+                    b.Property<string>("ProviderId")
+                        .IsRequired()
+                        .HasMaxLength(64)
+                        .HasColumnType("varchar(64)");
+
+                    b.Property<string>("Tags")
+                        .IsRequired()
+                        .HasMaxLength(500)
+                        .HasColumnType("varchar(500)");
+
+                    b.Property<DateTime>("UpdatedAt")
+                        .HasColumnType("datetime(6)");
+
+                    b.Property<string>("VideoUrl")
+                        .IsRequired()
+                        .HasMaxLength(1000)
+                        .HasColumnType("varchar(1000)");
+
+                    b.Property<int>("Width")
+                        .HasColumnType("int");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("IsActive");
+
+                    b.HasIndex("Provider", "ProviderId")
+                        .IsUnique();
+
+                    b.ToTable("ReelBackgrounds", (string)null);
+                });
+
+            modelBuilder.Entity("ToeicSpace.Content.Domain.Entities.SavedWord", b =>
+                {
+                    b.Property<Guid>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("char(36)");
+
+                    b.Property<Guid?>("FolderId")
+                        .HasColumnType("char(36)");
+
+                    b.Property<Guid>("LearnerId")
+                        .HasColumnType("char(36)");
+
+                    b.Property<string>("Note")
+                        .HasMaxLength(300)
+                        .HasColumnType("varchar(300)");
+
+                    b.Property<DateTime>("SavedAt")
+                        .HasColumnType("datetime(6)");
+
+                    b.Property<DateTime>("UpdatedAt")
+                        .HasColumnType("datetime(6)");
+
+                    b.Property<Guid>("WordId")
+                        .HasColumnType("char(36)");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("FolderId");
+
+                    b.HasIndex("WordId");
+
+                    b.HasIndex("LearnerId", "WordId")
+                        .IsUnique();
+
+                    b.HasIndex("LearnerId", "FolderId", "SavedAt");
+
+                    b.ToTable("SavedWords", (string)null);
+                });
+
+            modelBuilder.Entity("ToeicSpace.Content.Domain.Entities.StudySession", b =>
+                {
+                    b.Property<Guid>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("char(36)");
+
+                    b.Property<string>("ActiveSlot")
+                        .HasMaxLength(80)
+                        .HasColumnType("varchar(80)");
+
+                    b.Property<DateTime?>("CompletedAt")
+                        .HasColumnType("datetime(6)");
+
+                    b.Property<int>("CorrectCount")
+                        .HasColumnType("int");
+
+                    b.Property<Guid>("LearnerId")
+                        .HasColumnType("char(36)");
+
+                    b.Property<string>("Mode")
+                        .IsRequired()
+                        .HasMaxLength(16)
+                        .HasColumnType("varchar(16)");
+
+                    b.Property<int>("Position")
+                        .HasColumnType("int");
+
+                    b.Property<string>("Queue")
+                        .IsRequired()
+                        .HasColumnType("json");
+
+                    b.Property<string>("Requeued")
+                        .IsRequired()
+                        .HasColumnType("json");
+
+                    b.Property<string>("Results")
+                        .IsRequired()
+                        .HasColumnType("json");
+
+                    b.Property<int>("ReviewCount")
+                        .HasColumnType("int");
+
+                    b.Property<Guid?>("SourceId")
+                        .HasColumnType("char(36)");
+
+                    b.Property<string>("SourceKind")
+                        .IsRequired()
+                        .HasMaxLength(16)
+                        .HasColumnType("varchar(16)");
+
+                    b.Property<string>("SourceTitle")
+                        .HasMaxLength(200)
+                        .HasColumnType("varchar(200)");
+
+                    b.Property<DateTime>("StartedAt")
+                        .HasColumnType("datetime(6)");
+
+                    b.Property<string>("Status")
+                        .IsRequired()
+                        .HasMaxLength(16)
+                        .HasColumnType("varchar(16)");
+
+                    b.Property<DateTime>("UpdatedAt")
+                        .HasColumnType("datetime(6)");
+
+                    b.Property<int>("Version")
+                        .IsConcurrencyToken()
+                        .HasColumnType("int");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("LearnerId", "ActiveSlot")
+                        .IsUnique();
+
+                    b.HasIndex("LearnerId", "Status", "UpdatedAt");
+
+                    b.ToTable("StudySessions", (string)null);
+                });
+
             modelBuilder.Entity("ToeicSpace.Content.Domain.Entities.ThumbnailUpload", b =>
                 {
                     b.Property<string>("Key")
@@ -362,6 +664,368 @@ namespace ToeicSpace.Content.Infrastructure.Persistence.Migrations
                     b.ToTable("ThumbnailUploads", (string)null);
                 });
 
+            modelBuilder.Entity("ToeicSpace.Content.Domain.Entities.VocabularyFolder", b =>
+                {
+                    b.Property<Guid>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("char(36)");
+
+                    b.Property<DateTime>("CreatedAt")
+                        .HasColumnType("datetime(6)");
+
+                    b.Property<Guid>("LearnerId")
+                        .HasColumnType("char(36)");
+
+                    b.Property<string>("Name")
+                        .IsRequired()
+                        .HasMaxLength(60)
+                        .HasColumnType("varchar(60)");
+
+                    b.Property<string>("NormalizedName")
+                        .IsRequired()
+                        .HasMaxLength(60)
+                        .HasColumnType("varchar(60)");
+
+                    b.Property<int>("Order")
+                        .HasColumnType("int");
+
+                    b.Property<DateTime>("UpdatedAt")
+                        .HasColumnType("datetime(6)");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("LearnerId", "NormalizedName")
+                        .IsUnique();
+
+                    b.ToTable("VocabularyFolders", (string)null);
+                });
+
+            modelBuilder.Entity("ToeicSpace.Content.Domain.Entities.VocabularySet", b =>
+                {
+                    b.Property<Guid>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("char(36)");
+
+                    b.Property<DateTime>("CreatedAt")
+                        .HasColumnType("datetime(6)");
+
+                    b.Property<bool>("IsActive")
+                        .HasColumnType("tinyint(1)");
+
+                    b.Property<int>("Order")
+                        .HasColumnType("int");
+
+                    b.Property<string>("Slug")
+                        .IsRequired()
+                        .HasMaxLength(120)
+                        .HasColumnType("varchar(120)");
+
+                    b.Property<Guid>("StageId")
+                        .HasColumnType("char(36)");
+
+                    b.Property<string>("Title")
+                        .IsRequired()
+                        .HasMaxLength(200)
+                        .HasColumnType("varchar(200)");
+
+                    b.Property<string>("Topic")
+                        .HasMaxLength(200)
+                        .HasColumnType("varchar(200)");
+
+                    b.Property<DateTime>("UpdatedAt")
+                        .HasColumnType("datetime(6)");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("StageId", "Order");
+
+                    b.HasIndex("StageId", "Slug")
+                        .IsUnique();
+
+                    b.ToTable("VocabularySets", (string)null);
+                });
+
+            modelBuilder.Entity("ToeicSpace.Content.Domain.Entities.VocabularySetWord", b =>
+                {
+                    b.Property<Guid>("SetId")
+                        .HasColumnType("char(36)");
+
+                    b.Property<Guid>("WordId")
+                        .HasColumnType("char(36)");
+
+                    b.Property<int>("Order")
+                        .HasColumnType("int");
+
+                    b.HasKey("SetId", "WordId");
+
+                    b.HasIndex("WordId");
+
+                    b.HasIndex("SetId", "Order")
+                        .IsUnique();
+
+                    b.ToTable("VocabularySetWords", (string)null);
+                });
+
+            modelBuilder.Entity("ToeicSpace.Content.Domain.Entities.VocabularyStage", b =>
+                {
+                    b.Property<Guid>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("char(36)");
+
+                    b.Property<DateTime>("CreatedAt")
+                        .HasColumnType("datetime(6)");
+
+                    b.Property<string>("Description")
+                        .HasMaxLength(1000)
+                        .HasColumnType("varchar(1000)");
+
+                    b.Property<bool>("IsActive")
+                        .HasColumnType("tinyint(1)");
+
+                    b.Property<int>("Order")
+                        .HasColumnType("int");
+
+                    b.Property<string>("Slug")
+                        .IsRequired()
+                        .HasMaxLength(120)
+                        .HasColumnType("varchar(120)");
+
+                    b.Property<string>("Title")
+                        .IsRequired()
+                        .HasMaxLength(200)
+                        .HasColumnType("varchar(200)");
+
+                    b.Property<int?>("ToeicTarget")
+                        .HasColumnType("int");
+
+                    b.Property<DateTime>("UpdatedAt")
+                        .HasColumnType("datetime(6)");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("Order");
+
+                    b.HasIndex("Slug")
+                        .IsUnique();
+
+                    b.ToTable("VocabularyStages", (string)null);
+                });
+
+            modelBuilder.Entity("ToeicSpace.Content.Domain.Entities.VocabularyWord", b =>
+                {
+                    b.Property<Guid>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("char(36)");
+
+                    b.Property<string>("Cefr")
+                        .HasMaxLength(8)
+                        .HasColumnType("varchar(8)");
+
+                    b.Property<DateTime>("CreatedAt")
+                        .HasColumnType("datetime(6)");
+
+                    b.Property<string>("DefinitionEn")
+                        .HasMaxLength(1000)
+                        .HasColumnType("varchar(1000)");
+
+                    b.Property<string>("Example")
+                        .HasMaxLength(1000)
+                        .HasColumnType("varchar(1000)");
+
+                    b.Property<string>("ExampleVi")
+                        .HasMaxLength(1000)
+                        .HasColumnType("varchar(1000)");
+
+                    b.Property<string>("Headword")
+                        .IsRequired()
+                        .HasMaxLength(100)
+                        .HasColumnType("varchar(100)");
+
+                    b.Property<string>("MeaningVi")
+                        .IsRequired()
+                        .HasMaxLength(300)
+                        .HasColumnType("varchar(300)");
+
+                    b.Property<string>("NormalizedHeadword")
+                        .IsRequired()
+                        .HasMaxLength(100)
+                        .HasColumnType("varchar(100)");
+
+                    b.Property<Guid>("OwnerKey")
+                        .HasColumnType("char(36)");
+
+                    b.Property<string>("PartOfSpeech")
+                        .IsRequired()
+                        .HasMaxLength(24)
+                        .HasColumnType("varchar(24)");
+
+                    b.Property<string>("Phonetic")
+                        .IsRequired()
+                        .HasMaxLength(100)
+                        .HasColumnType("varchar(100)");
+
+                    b.Property<string>("Synonyms")
+                        .IsRequired()
+                        .HasColumnType("json");
+
+                    b.Property<DateTime>("UpdatedAt")
+                        .HasColumnType("datetime(6)");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("OwnerKey", "NormalizedHeadword", "PartOfSpeech")
+                        .IsUnique();
+
+                    b.ToTable("VocabularyWords", (string)null);
+                });
+
+            modelBuilder.Entity("ToeicSpace.Content.Domain.Entities.WordGlossCacheEntry", b =>
+                {
+                    b.Property<Guid>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("char(36)");
+
+                    b.Property<string>("Cefr")
+                        .HasMaxLength(8)
+                        .HasColumnType("varchar(8)");
+
+                    b.Property<DateTime>("CreatedAt")
+                        .HasColumnType("datetime(6)");
+
+                    b.Property<string>("DefinitionEn")
+                        .HasMaxLength(400)
+                        .HasColumnType("varchar(400)");
+
+                    b.Property<string>("Example")
+                        .HasMaxLength(400)
+                        .HasColumnType("varchar(400)");
+
+                    b.Property<string>("ExampleVi")
+                        .HasMaxLength(400)
+                        .HasColumnType("varchar(400)");
+
+                    b.Property<DateTime>("ExpiresAt")
+                        .HasColumnType("datetime(6)");
+
+                    b.Property<string>("Explanation")
+                        .HasMaxLength(500)
+                        .HasColumnType("varchar(500)");
+
+                    b.Property<string>("Headword")
+                        .IsRequired()
+                        .HasMaxLength(100)
+                        .HasColumnType("varchar(100)");
+
+                    b.Property<string>("Kind")
+                        .IsRequired()
+                        .HasMaxLength(16)
+                        .HasColumnType("varchar(16)");
+
+                    b.Property<string>("LiteralMeaning")
+                        .HasMaxLength(500)
+                        .HasColumnType("varchar(500)");
+
+                    b.Property<string>("MeaningVi")
+                        .IsRequired()
+                        .HasMaxLength(300)
+                        .HasColumnType("varchar(300)");
+
+                    b.Property<string>("NormalizedText")
+                        .IsRequired()
+                        .HasMaxLength(100)
+                        .HasColumnType("varchar(100)");
+
+                    b.Property<string>("PartOfSpeech")
+                        .HasMaxLength(24)
+                        .HasColumnType("varchar(24)");
+
+                    b.Property<string>("Phonetic")
+                        .HasMaxLength(100)
+                        .HasColumnType("varchar(100)");
+
+                    b.Property<string>("PhraseType")
+                        .HasMaxLength(32)
+                        .HasColumnType("varchar(32)");
+
+                    b.Property<string>("Sources")
+                        .IsRequired()
+                        .HasColumnType("json");
+
+                    b.Property<string>("Usage")
+                        .HasMaxLength(500)
+                        .HasColumnType("varchar(500)");
+
+                    b.Property<int>("Version")
+                        .HasColumnType("int");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("ExpiresAt");
+
+                    b.HasIndex("NormalizedText", "Kind")
+                        .IsUnique();
+
+                    b.ToTable("WordGlossCache", (string)null);
+                });
+
+            modelBuilder.Entity("ToeicSpace.Content.Domain.Entities.WordReviewLog", b =>
+                {
+                    b.Property<Guid>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("char(36)");
+
+                    b.Property<Guid>("ClientEventId")
+                        .HasColumnType("char(36)");
+
+                    b.Property<double>("EaseFactorAfter")
+                        .HasColumnType("double");
+
+                    b.Property<double>("EaseFactorBefore")
+                        .HasColumnType("double");
+
+                    b.Property<string>("Grade")
+                        .IsRequired()
+                        .HasMaxLength(16)
+                        .HasColumnType("varchar(16)");
+
+                    b.Property<int>("IntervalAfter")
+                        .HasColumnType("int");
+
+                    b.Property<int>("IntervalBefore")
+                        .HasColumnType("int");
+
+                    b.Property<Guid>("LearnerId")
+                        .HasColumnType("char(36)");
+
+                    b.Property<DateOnly>("LocalDay")
+                        .HasColumnType("date");
+
+                    b.Property<string>("Mode")
+                        .IsRequired()
+                        .HasMaxLength(16)
+                        .HasColumnType("varchar(16)");
+
+                    b.Property<DateTime>("ReviewedAt")
+                        .HasColumnType("datetime(6)");
+
+                    b.Property<bool>("ScheduleChanged")
+                        .HasColumnType("tinyint(1)");
+
+                    b.Property<Guid>("WordId")
+                        .HasColumnType("char(36)");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("WordId");
+
+                    b.HasIndex("LearnerId", "ClientEventId")
+                        .IsUnique();
+
+                    b.HasIndex("LearnerId", "LocalDay");
+
+                    b.ToTable("WordReviewLogs", (string)null);
+                });
+
             modelBuilder.Entity("ToeicSpace.Content.Domain.Entities.CourseModule", b =>
                 {
                     b.HasOne("ToeicSpace.Content.Domain.Entities.Course", "Course")
@@ -371,6 +1035,17 @@ namespace ToeicSpace.Content.Infrastructure.Persistence.Migrations
                         .IsRequired();
 
                     b.Navigation("Course");
+                });
+
+            modelBuilder.Entity("ToeicSpace.Content.Domain.Entities.LearnerWordProgress", b =>
+                {
+                    b.HasOne("ToeicSpace.Content.Domain.Entities.VocabularyWord", "Word")
+                        .WithMany()
+                        .HasForeignKey("WordId")
+                        .OnDelete(DeleteBehavior.Restrict)
+                        .IsRequired();
+
+                    b.Navigation("Word");
                 });
 
             modelBuilder.Entity("ToeicSpace.Content.Domain.Entities.Lesson", b =>
@@ -406,6 +1081,63 @@ namespace ToeicSpace.Content.Infrastructure.Persistence.Migrations
                     b.Navigation("Lesson");
                 });
 
+            modelBuilder.Entity("ToeicSpace.Content.Domain.Entities.SavedWord", b =>
+                {
+                    b.HasOne("ToeicSpace.Content.Domain.Entities.VocabularyFolder", "Folder")
+                        .WithMany()
+                        .HasForeignKey("FolderId")
+                        .OnDelete(DeleteBehavior.SetNull);
+
+                    b.HasOne("ToeicSpace.Content.Domain.Entities.VocabularyWord", "Word")
+                        .WithMany()
+                        .HasForeignKey("WordId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+
+                    b.Navigation("Folder");
+
+                    b.Navigation("Word");
+                });
+
+            modelBuilder.Entity("ToeicSpace.Content.Domain.Entities.VocabularySet", b =>
+                {
+                    b.HasOne("ToeicSpace.Content.Domain.Entities.VocabularyStage", "Stage")
+                        .WithMany("Sets")
+                        .HasForeignKey("StageId")
+                        .OnDelete(DeleteBehavior.Restrict)
+                        .IsRequired();
+
+                    b.Navigation("Stage");
+                });
+
+            modelBuilder.Entity("ToeicSpace.Content.Domain.Entities.VocabularySetWord", b =>
+                {
+                    b.HasOne("ToeicSpace.Content.Domain.Entities.VocabularySet", "Set")
+                        .WithMany("Words")
+                        .HasForeignKey("SetId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+
+                    b.HasOne("ToeicSpace.Content.Domain.Entities.VocabularyWord", "Word")
+                        .WithMany()
+                        .HasForeignKey("WordId")
+                        .OnDelete(DeleteBehavior.Restrict)
+                        .IsRequired();
+
+                    b.Navigation("Set");
+
+                    b.Navigation("Word");
+                });
+
+            modelBuilder.Entity("ToeicSpace.Content.Domain.Entities.WordReviewLog", b =>
+                {
+                    b.HasOne("ToeicSpace.Content.Domain.Entities.VocabularyWord", null)
+                        .WithMany()
+                        .HasForeignKey("WordId")
+                        .OnDelete(DeleteBehavior.Restrict)
+                        .IsRequired();
+                });
+
             modelBuilder.Entity("ToeicSpace.Content.Domain.Entities.Course", b =>
                 {
                     b.Navigation("Modules");
@@ -421,6 +1153,16 @@ namespace ToeicSpace.Content.Infrastructure.Persistence.Migrations
                     b.Navigation("Resources");
 
                     b.Navigation("Videos");
+                });
+
+            modelBuilder.Entity("ToeicSpace.Content.Domain.Entities.VocabularySet", b =>
+                {
+                    b.Navigation("Words");
+                });
+
+            modelBuilder.Entity("ToeicSpace.Content.Domain.Entities.VocabularyStage", b =>
+                {
+                    b.Navigation("Sets");
                 });
 #pragma warning restore 612, 618
         }

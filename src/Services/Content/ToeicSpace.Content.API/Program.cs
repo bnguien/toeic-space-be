@@ -2,6 +2,7 @@ using System.Text.Json.Serialization;
 using Microsoft.AspNetCore.Authorization;
 using ToeicSpace.BuildingBlocks.Security.Extensions;
 using ToeicSpace.Content.API.Middlewares;
+using ToeicSpace.Content.API.RateLimiting;
 using ToeicSpace.Content.Application;
 using ToeicSpace.Content.Infrastructure;
 using Microsoft.OpenApi;
@@ -20,6 +21,7 @@ builder.Services.AddToeicSpaceJwtAuthentication(builder.Configuration);
 builder.Services.AddAuthorizationBuilder()
     .SetFallbackPolicy(new AuthorizationPolicyBuilder().RequireAuthenticatedUser().Build())
     .AddPolicy("Admin", policy => policy.RequireRole("Admin"));
+builder.Services.AddVocabularyRateLimits();
 builder.Services.AddControllers().AddJsonOptions(options =>
     options.JsonSerializerOptions.Converters.Add(new JsonStringEnumConverter()));
 builder.Services.AddEndpointsApiExplorer();
@@ -51,6 +53,7 @@ if (app.Environment.IsDevelopment())
 
 app.UseAuthentication();
 app.UseAuthorization();
+app.UseRateLimiter();
 
 app.MapControllers();
 

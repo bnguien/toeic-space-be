@@ -14,6 +14,11 @@ public static class DependencyInjection
         services.AddValidatorsFromAssembly(assembly);
         services.AddTransient(typeof(IPipelineBehavior<,>), typeof(ValidationBehavior<,>));
         services.AddScoped<LessonScopeService>();
+        services.AddScoped<LibraryWordService>();
+        services.AddScoped<StudyQueueService>();
+        services.AddScoped<ReviewRecorder>();
+        services.AddScoped<StudySessionPresenter>();
+        services.AddScoped<ToeicSpace.Content.Application.Services.Enrichment.WordEnricher>();
         return services;
     }
 }

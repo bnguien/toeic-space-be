@@ -9,6 +9,8 @@
     <PackageReference Include="Microsoft.Extensions.Configuration.Abstractions" Version="10.0.14" />
     <PackageReference Include="Microsoft.Extensions.DependencyInjection.Abstractions" Version="10.0.14" />
     <PackageReference Include="Microsoft.Extensions.Hosting.Abstractions" Version="10.0.14" />
+    <PackageReference Include="Microsoft.Extensions.Http" Version="10.0.14" />
+    <PackageReference Include="Microsoft.Extensions.Options.ConfigurationExtensions" Version="10.0.14" />
     <PackageReference Include="Pomelo.EntityFrameworkCore.MySql" Version="9.0.0" />
     <PackageReference Include="MySqlConnector" Version="2.6.2" />
     <PackageReference Include="Microsoft.EntityFrameworkCore" Version="9.0.11" />
@@ -18,6 +20,12 @@
 
   <ItemGroup>
     <ProjectReference Include="../../../BuildingBlocks/ToeicSpace.BuildingBlocks.Storage/ToeicSpace.BuildingBlocks.Storage.csproj" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <EmbeddedResource Include="Services/Enrichment/Prompts/*.md">
+      <LogicalName>ToeicSpace.Content.Infrastructure.Prompts.%(Filename)%(Extension)</LogicalName>
+    </EmbeddedResource>
   </ItemGroup>
 
   <PropertyGroup>
