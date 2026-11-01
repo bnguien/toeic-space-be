@@ -1,4 +1,4 @@
-namespace ToeicSpace.Identity.Application.Features.Students.Queries;
+namespace ToeicSpace.Identity.Application.Features.Students.Queries.GetStudents;
 
 public sealed class GetStudentsValidator : AbstractValidator<GetStudentsQuery>
 {

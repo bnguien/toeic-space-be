@@ -1,7 +1,7 @@
-using ToeicSpace.Identity.Application.Features.Students.Results;
+using ToeicSpace.Identity.Application.DTOs.Students;
 using ToeicSpace.Identity.Application.Interfaces.Persistence;
 
-namespace ToeicSpace.Identity.Application.Features.Students.Queries;
+namespace ToeicSpace.Identity.Application.Features.Students.Queries.GetStudents;
 
 public sealed class GetStudentsHandler(IUserRepository users)
     : IRequestHandler<GetStudentsQuery, GetStudentsResult>
