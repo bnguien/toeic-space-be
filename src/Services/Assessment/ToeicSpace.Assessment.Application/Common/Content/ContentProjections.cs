@@ -1,6 +1,6 @@
 using System.Linq.Expressions;
-using ToeicSpace.Assessment.Application.Data;
-using ToeicSpace.Assessment.Application.Dtos;
+using ToeicSpace.Assessment.Application.DTOs.Content;
+using ToeicSpace.Assessment.Application.Interfaces.Persistence;
 
 namespace ToeicSpace.Assessment.Application.Common.Content;
 

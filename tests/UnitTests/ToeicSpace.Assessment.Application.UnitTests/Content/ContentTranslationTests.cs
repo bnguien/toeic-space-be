@@ -1,8 +1,8 @@
 using ToeicSpace.Assessment.Application.Common.Content;
 using ToeicSpace.Assessment.Application.Common.Validation;
-using ToeicSpace.Assessment.Application.Questions.Commands.CreateQuestion;
-using ToeicSpace.Assessment.Application.Questions.Queries.GetQuestionById;
-using ToeicSpace.Assessment.Application.Tests.Queries.GetFullTest;
+using ToeicSpace.Assessment.Application.Features.Questions.Commands.CreateQuestion;
+using ToeicSpace.Assessment.Application.Features.Questions.Queries.GetQuestionById;
+using ToeicSpace.Assessment.Application.Features.Tests.Queries.GetFullTest;
 
 namespace ToeicSpace.Assessment.Application.UnitTests.Content;
 

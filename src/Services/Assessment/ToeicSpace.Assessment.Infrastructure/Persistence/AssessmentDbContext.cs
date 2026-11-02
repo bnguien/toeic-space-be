@@ -1,4 +1,4 @@
-using ToeicSpace.Assessment.Application.Data;
+using ToeicSpace.Assessment.Application.Interfaces.Persistence;
 using ToeicSpace.Assessment.Domain.Entities;
 using ToeicSpace.Assessment.Infrastructure.Messaging.Outbox;
 

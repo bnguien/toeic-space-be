@@ -1,6 +1,7 @@
 using Microsoft.AspNetCore.Authorization;
 using ToeicSpace.Assessment.API.Security;
-using ToeicSpace.Assessment.Application.Bank.Queries.GetBankOverview;
+using ToeicSpace.Assessment.Application.DTOs.Bank;
+using ToeicSpace.Assessment.Application.Features.Bank.Queries.GetBankOverview;
 
 namespace ToeicSpace.Assessment.API.Controllers;
 

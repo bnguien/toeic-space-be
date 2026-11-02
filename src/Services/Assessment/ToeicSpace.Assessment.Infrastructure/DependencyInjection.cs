@@ -1,7 +1,7 @@
 using Microsoft.EntityFrameworkCore.Diagnostics;
 using Microsoft.Extensions.DependencyInjection.Extensions;
-using ToeicSpace.Assessment.Application.Data;
 using ToeicSpace.Assessment.Application.Interfaces.Caching;
+using ToeicSpace.Assessment.Application.Interfaces.Persistence;
 using ToeicSpace.Assessment.Infrastructure.Messaging.Outbox;
 using ToeicSpace.Assessment.Infrastructure.Persistence;
 using ToeicSpace.Assessment.Infrastructure.Persistence.Interceptors;

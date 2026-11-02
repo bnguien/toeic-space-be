@@ -1,6 +1,11 @@
 global using MediatR;
 global using Microsoft.AspNetCore.Mvc;
 global using Swashbuckle.AspNetCore.Annotations;
-global using ToeicSpace.Assessment.Application.Dtos;
+global using ToeicSpace.Assessment.Application.DTOs.Bank;
+global using ToeicSpace.Assessment.Application.DTOs.Content;
+global using ToeicSpace.Assessment.Application.DTOs.Passages;
+global using ToeicSpace.Assessment.Application.DTOs.PracticeSets;
+global using ToeicSpace.Assessment.Application.DTOs.Questions;
+global using ToeicSpace.Assessment.Application.DTOs.Tests;
 global using ToeicSpace.Assessment.Domain.Enums;
 global using ToeicSpace.BuildingBlocks.Pagination;

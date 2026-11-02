@@ -1,12 +1,13 @@
 using Microsoft.AspNetCore.Authorization;
 using ToeicSpace.Assessment.API.Contracts;
 using ToeicSpace.Assessment.API.Security;
-using ToeicSpace.Assessment.Application.Questions.Commands.CreateQuestion;
-using ToeicSpace.Assessment.Application.Questions.Commands.DeleteQuestion;
-using ToeicSpace.Assessment.Application.Questions.Commands.UpdateQuestion;
-using ToeicSpace.Assessment.Application.Questions.Commands.UpdateQuestionStatus;
-using ToeicSpace.Assessment.Application.Questions.Queries.GetQuestionById;
-using ToeicSpace.Assessment.Application.Questions.Queries.GetQuestions;
+using ToeicSpace.Assessment.Application.DTOs.Questions;
+using ToeicSpace.Assessment.Application.Features.Questions.Commands.CreateQuestion;
+using ToeicSpace.Assessment.Application.Features.Questions.Commands.DeleteQuestion;
+using ToeicSpace.Assessment.Application.Features.Questions.Commands.UpdateQuestion;
+using ToeicSpace.Assessment.Application.Features.Questions.Commands.UpdateQuestionStatus;
+using ToeicSpace.Assessment.Application.Features.Questions.Queries.GetQuestionById;
+using ToeicSpace.Assessment.Application.Features.Questions.Queries.GetQuestions;
 
 namespace ToeicSpace.Assessment.API.Controllers;
 

@@ -47,14 +47,26 @@ Tách thành 4 project:
 <Service>.Infrastructure
 ```
 
-Trong `Application`, ưu tiên tổ chức theo feature/use case:
+Trong `Application`, use case nằm trong `Features/`, chia theo **nhóm nghiệp vụ trước**, rồi tới `Commands/` / `Queries/`, mỗi use case một thư mục. Code dùng chung cho nhiều use case đặt **ngoài** `Features/`, không tạo `Common/`, `Models/`, `Results/` bên trong một nhóm.
 
 ```text
-Users/
-├── Commands/
-├── Queries/
-└── EventHandlers/
+<Service>.Application/
+├── Common/          Behaviors/, Validation/, ... (dùng chung toàn service)
+├── DTOs/<Nhóm>/     kết quả trả về (*Dto, *Result), mỗi file một type
+├── Features/
+│   └── <Nhóm>/      danh từ số nhiều hoặc năng lực nghiệp vụ: Users, Classes, Authentication
+│       ├── Commands/<UseCase>/   <UseCase>Command, <UseCase>Handler, <UseCase>Validator
+│       └── Queries/<UseCase>/    <UseCase>Query, <UseCase>Handler, <UseCase>Validator
+├── Interfaces/      hợp đồng với Infrastructure (repository, service ngoài)
+├── Mappings/        extension method map Entity → DTO
+├── Models/          kiểu nội bộ dùng giữa Application và Infrastructure
+└── Services/        logic nghiệp vụ dùng chung giữa các use case
 ```
+
+- Namespace bám theo thư mục, ví dụ `ToeicSpace.Identity.Application.Features.Users.Commands.CreateUser`.
+- `Interfaces/`, `Models/`, `DTOs/`, `Services/` và repository bên `Infrastructure` không được tham chiếu namespace bên trong `Features/`. Kiểu nào cả hai phía cùng dùng thì đặt ở `Models/` hoặc `DTOs/`. Chỉ nơi kích hoạt use case (controller, job nền, consumer) mới gửi Command/Query.
+- Một nhóm trong `Features/` không tham chiếu nhóm khác; phần dùng chung đưa ra `Services/` hoặc `Common/`.
+- Mẫu tham khảo: `Classroom.Application`, `Identity.Application`, `Assessment.Application`.
 
 ---
 
@@ -68,7 +80,7 @@ Users/
 Ví dụ:
 
 ```text
-Users/
+Features/Users/
 └── Commands/
     └── CreateUser/
         ├── CreateUserCommand.cs

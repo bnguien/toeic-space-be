@@ -27,6 +27,14 @@ public static class ErrorCodes
     public const string RegistrationCouldNotBeCompleted =
         "REGISTRATION_COULD_NOT_BE_COMPLETED";
 
+    // User management
+    public const string CannotModifySelf = "USER_CANNOT_MODIFY_SELF";
+    public const string LastAdministrator = "USER_LAST_ADMINISTRATOR";
+    public const string UserDeleted = "USER_DELETED";
+    public const string UserNotDeleted = "USER_NOT_DELETED";
+    public const string UserNotVerified = "USER_NOT_VERIFIED";
+    public const string ConcurrentUserUpdate = "USER_CONCURRENT_UPDATE";
+
     // OTP
     public const string InvalidOrExpiredOtp = "OTP_INVALID_OR_EXPIRED";
     public const string OtpRateLimitExceeded = "OTP_RATE_LIMIT_EXCEEDED";
