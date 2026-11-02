@@ -22,6 +22,7 @@ public static class DependencyInjection
         services.AddDbContext<ContentDbContext>(options => options.UseMySql(connection,
             new MySqlServerVersion(new Version(8, 4, 0))));
         services.AddScoped<ICourseRepository, CourseRepository>();
+        services.AddScoped<IPublicCourseRepository, PublicCourseRepository>();
         services.AddScoped<ICourseModuleRepository, CourseModuleRepository>();
         services.AddScoped<ILessonRepository, LessonRepository>();
         services.AddScoped<ILessonUploadRepository, LessonUploadRepository>();
