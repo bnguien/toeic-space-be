@@ -60,6 +60,7 @@ App native không dùng được cookie `__Secure-*`: cờ `Secure` chặn cooki
 | `POST /identity/api/auth/logout` | Đọc và xoá cookie | Đọc `refreshToken` trong body |
 | `POST /identity/api/v1/auth/password-reset/verify` | Đặt cookie `__Secure-ts_pr` | Body có thêm `resetToken`; không đặt cookie |
 | `POST /identity/api/v1/auth/password-reset/confirm` | Đọc cookie | Đọc `resetToken` trong body |
+| `PUT /identity/api/v1/auth/change-password` | Xoá cookie refresh và reset | Không đụng cookie |
 
 - Header `X-CSRF-Protection: 1` vẫn bắt buộc ở các endpoint như cũ.
 - Ở chế độ native, server **không bao giờ đọc hay ghi cookie**. Một script trong trình duyệt tự gắn header cũng không đổi được cookie `HttpOnly` thành token đọc được.
