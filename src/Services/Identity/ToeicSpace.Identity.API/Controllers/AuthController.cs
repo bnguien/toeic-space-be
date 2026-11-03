@@ -242,10 +242,7 @@ public sealed class AuthController : ControllerBase
         var resetToken = Request.IsNativeClient() ? request.ResetToken : _cookieService.Get(ResetCookie);
         await _mediator.Send(new ConfirmPasswordResetCommand(resetToken ?? string.Empty,
             request.NewPassword, request.ConfirmPassword), cancellationToken);
-        if (!Request.IsNativeClient())
-        {
-            ClearCookies();
-        }
+        ClearCookies();
 
         return NoContent();
     }
@@ -281,8 +278,14 @@ public sealed class AuthController : ControllerBase
         return NoContent();
     }
 
+    // Native clients never receive cookies, so there is nothing to clear and no Set-Cookie to send.
     private void ClearCookies()
     {
+        if (Request.IsNativeClient())
+        {
+            return;
+        }
+
         _cookieService.Delete(ResetCookie, ResetCookiePath);
         _cookieService.Delete(_refreshCookie.Name, _refreshCookie.Path);
     }
