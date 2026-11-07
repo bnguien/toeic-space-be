@@ -51,3 +51,12 @@ scripts/__pycache__/
 
 # Ignore Docker tools configuration
 /docker-compose.tools.yml
+
+# News cover store of a locally run Content API (News:CoverDirectory default)
+**/App_Data/
+
+# PBL-107 game datasets pulled from Studychill: produced locally by scripts/*_data_pipeline.py, never committed
+/data/news/
+/data/videos/
+/data/dictation/
+/data/grammar/

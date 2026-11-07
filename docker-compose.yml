@@ -368,6 +368,12 @@ services:
       CloudflareR2__AccessKey: ${R2_ACCESS_KEY}
       CloudflareR2__SecretKey: ${R2_SECRET_KEY}
       CloudflareR2__BucketName: ${R2_BUCKET_NAME}
+      Pixabay__ApiKey: ${PIXABAY_API_KEY}
+      Gemini__ApiKey: ${GEMINI_API_KEY}
+      Gemini__ApiKeys: ${GEMINI_API_KEYS}
+      Gemini__InteractiveModel: ${DICT_AI_MODEL}
+      Gemini__BatchModel: ${FLASHCARD_AI_MODEL}
+      GoogleTranslate__ApiKey: ${GOOGLE_TRANSLATE_API_KEY}
     depends_on:
       content-db:
         condition: service_healthy
