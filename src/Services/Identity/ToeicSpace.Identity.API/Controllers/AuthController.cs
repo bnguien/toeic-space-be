@@ -1,6 +1,7 @@
 using MediatR;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
+using Microsoft.AspNetCore.Mvc.ModelBinding;
 using Microsoft.AspNetCore.RateLimiting;
 using Swashbuckle.AspNetCore.Annotations;
 using ToeicSpace.BuildingBlocks.Security.Jwt;
@@ -99,6 +100,7 @@ public sealed class AuthController : ControllerBase
     [SwaggerOperation(
         Summary = "Sign in",
         Description = "Returns a short-lived access token and sets the refresh token as an HttpOnly cookie. " +
+            $"With the {NativeClient.HeaderName} header the refresh token is returned in the body instead. " +
             "Repeated failures lock the email address temporarily.")]
     [ProducesResponseType(typeof(AuthResponse), StatusCodes.Status200OK)]
     [ProducesResponseType(StatusCodes.Status400BadRequest)]
@@ -121,13 +123,16 @@ public sealed class AuthController : ControllerBase
     [SwaggerOperation(
         Summary = "Refresh the session",
         Description = $"Rotates the refresh cookie and returns a new access token. Requires the {RequireCsrfHeaderAttribute.HeaderName} header. " +
+            $"Native clients send the {NativeClient.HeaderName} header and the refresh token in the body. " +
             "Reusing an old refresh token ends every session of the account.")]
     [ProducesResponseType(typeof(AuthResponse), StatusCodes.Status200OK)]
     [ProducesResponseType(StatusCodes.Status401Unauthorized)]
     [ProducesResponseType(StatusCodes.Status403Forbidden)]
-    public async Task<IActionResult> Refresh(CancellationToken cancellationToken)
+    public async Task<IActionResult> Refresh(
+        [FromBody(EmptyBodyBehavior = EmptyBodyBehavior.Allow)] RefreshTokenRequest? request,
+        CancellationToken cancellationToken)
     {
-        var refreshToken = _cookieService.Get(_refreshCookie.Name);
+        var refreshToken = ReadRefreshToken(request);
 
         if (string.IsNullOrEmpty(refreshToken))
         {
@@ -158,13 +163,16 @@ public sealed class AuthController : ControllerBase
         Description = "Revokes the current refresh token and clears the cookie.")]
     [ProducesResponseType(StatusCodes.Status204NoContent)]
     [ProducesResponseType(StatusCodes.Status403Forbidden)]
-    public async Task<IActionResult> Logout(CancellationToken cancellationToken)
+    public async Task<IActionResult> Logout(
+        [FromBody(EmptyBodyBehavior = EmptyBodyBehavior.Allow)] RefreshTokenRequest? request,
+        CancellationToken cancellationToken)
     {
-        await _mediator.Send(
-            new LogoutCommand(_cookieService.Get(_refreshCookie.Name)),
-            cancellationToken);
+        await _mediator.Send(new LogoutCommand(ReadRefreshToken(request)), cancellationToken);
 
-        _cookieService.Delete(_refreshCookie.Name, _refreshCookie.Path);
+        if (!Request.IsNativeClient())
+        {
+            _cookieService.Delete(_refreshCookie.Name, _refreshCookie.Path);
+        }
 
         return NoContent();
     }
@@ -197,7 +205,11 @@ public sealed class AuthController : ControllerBase
         [FromBody] RequestPasswordResetCommand command, CancellationToken cancellationToken)
     {
         await _mediator.Send(command, cancellationToken);
-        _cookieService.Delete(ResetCookie, ResetCookiePath);
+        if (!Request.IsNativeClient())
+        {
+            _cookieService.Delete(ResetCookie, ResetCookiePath);
+        }
+
         return Ok(new
         {
             Message = "If the account is eligible, a password reset OTP will be sent to its email.",
@@ -212,6 +224,11 @@ public sealed class AuthController : ControllerBase
         [FromBody] VerifyPasswordResetCommand command, CancellationToken cancellationToken)
     {
         var result = await _mediator.Send(command, cancellationToken);
+        if (Request.IsNativeClient())
+        {
+            return Ok(new { result.ExpiresAt, ResetToken = result.Token });
+        }
+
         _cookieService.Set(ResetCookie, result.Token, result.ExpiresAt, ResetCookiePath);
         return Ok(new { result.ExpiresAt });
     }
@@ -222,9 +239,11 @@ public sealed class AuthController : ControllerBase
     public async Task<IActionResult> Confirm(
         [FromBody] ConfirmPasswordResetRequest request, CancellationToken cancellationToken)
     {
-        await _mediator.Send(new ConfirmPasswordResetCommand(_cookieService.Get(ResetCookie) ?? string.Empty,
+        var resetToken = Request.IsNativeClient() ? request.ResetToken : _cookieService.Get(ResetCookie);
+        await _mediator.Send(new ConfirmPasswordResetCommand(resetToken ?? string.Empty,
             request.NewPassword, request.ConfirmPassword), cancellationToken);
         ClearCookies();
+
         return NoContent();
     }
 
@@ -259,19 +278,34 @@ public sealed class AuthController : ControllerBase
         return NoContent();
     }
 
+    // Native clients never receive cookies, so there is nothing to clear and no Set-Cookie to send.
     private void ClearCookies()
     {
+        if (Request.IsNativeClient())
+        {
+            return;
+        }
+
         _cookieService.Delete(ResetCookie, ResetCookiePath);
         _cookieService.Delete(_refreshCookie.Name, _refreshCookie.Path);
     }
 
+    // Native clients never fall back to the cookie, so the header cannot expose a browser's refresh token.
+    private string? ReadRefreshToken(RefreshTokenRequest? request) =>
+        Request.IsNativeClient() ? request?.RefreshToken : _cookieService.Get(_refreshCookie.Name);
+
     private AuthResponse StartSession(AuthSession session)
     {
-        _cookieService.Set(
-            _refreshCookie.Name,
-            session.RefreshToken,
-            session.RefreshTokenExpiresAt,
-            _refreshCookie.Path);
+        var isNativeClient = Request.IsNativeClient();
+
+        if (!isNativeClient)
+        {
+            _cookieService.Set(
+                _refreshCookie.Name,
+                session.RefreshToken,
+                session.RefreshTokenExpiresAt,
+                _refreshCookie.Path);
+        }
 
         var expiresIn = (int)Math.Max(
             0,
@@ -282,12 +316,14 @@ public sealed class AuthController : ControllerBase
             BearerTokenType,
             expiresIn,
             session.AccessTokenExpiresAt,
-            session.User);
+            session.User,
+            isNativeClient ? session.RefreshToken : null,
+            isNativeClient ? session.RefreshTokenExpiresAt : null);
     }
 
     private ObjectResult SessionEnded(string code, bool clearCookie = true)
     {
-        if (clearCookie)
+        if (clearCookie && !Request.IsNativeClient())
         {
             _cookieService.Delete(_refreshCookie.Name, _refreshCookie.Path);
         }

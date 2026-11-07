@@ -13,4 +13,5 @@ public sealed record UpdatePracticeSetCommand(
     int? Level,
     int? TargetScore,
     int DurationMinutes,
-    int OrderIndex = 0) : IRequest<PracticeSetDetailDto>, IPracticeSetContent;
+    int OrderIndex = 0,
+    DateTime? ExpectedUpdatedAt = null) : IRequest<PracticeSetDetailDto>, IPracticeSetContent;

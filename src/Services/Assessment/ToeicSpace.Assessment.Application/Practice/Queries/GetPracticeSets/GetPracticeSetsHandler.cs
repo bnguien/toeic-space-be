@@ -28,6 +28,12 @@ public sealed class GetPracticeSetsHandler : IRequestHandler<GetPracticeSetsQuer
             .AsNoTracking()
             .VisibleTo(_currentUser.CanManageContent);
 
+        if (request.OwnedOnly)
+        {
+            PracticeSetAuthorization.EnsureCanCreate(_currentUser);
+            query = query.Where(practiceSet => practiceSet.CreatedByUserId == _currentUser.UserId);
+        }
+
         if (_currentUser.CanManageContent && request.Status.HasValue)
         {
             query = query.Where(practiceSet => practiceSet.Status == request.Status);
@@ -65,6 +71,8 @@ public sealed class GetPracticeSetsHandler : IRequestHandler<GetPracticeSetsQuer
             .Take(request.PageSize)
             .Select(PracticeSetMappingExtensions.DtoProjection)
             .ToListAsync(cancellationToken);
+
+        if (!_currentUser.CanManageContent) items = items.Select(item => item with { CreatedByUserId = null }).ToList();
 
         return new PaginatedResult<PracticeSetDto>(items, totalCount, request.Page, request.PageSize);
     }

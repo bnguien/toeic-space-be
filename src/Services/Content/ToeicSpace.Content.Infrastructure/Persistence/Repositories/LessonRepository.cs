@@ -18,6 +18,15 @@ public sealed class LessonRepository(ContentDbContext db) : ILessonRepository
         PersistenceExceptionTranslator.ExecuteAsync(async () =>
             await db.LessonVideos.AnyAsync(x => x.ObjectKey == key, ct) ||
             await db.LessonResources.AnyAsync(x => x.ObjectKey == key, ct));
+    public Task LockAsync(Guid lessonId, CancellationToken ct) =>
+        PersistenceExceptionTranslator.ExecuteAsync(async () =>
+        {
+            if (db.Database.ProviderName?.Contains("MySql", StringComparison.OrdinalIgnoreCase) != true)
+                return true;
+            await db.Database.ExecuteSqlInterpolatedAsync(
+                $"SELECT `Id` FROM `Lessons` WHERE `Id` = {lessonId} FOR UPDATE", ct);
+            return true;
+        });
     public void AddVideo(LessonVideo video) => db.LessonVideos.Add(video);
     public void RemoveVideo(LessonVideo video) => db.LessonVideos.Remove(video);
     public Task ShiftOrdersAsync(Guid moduleId, int offset, CancellationToken ct) =>

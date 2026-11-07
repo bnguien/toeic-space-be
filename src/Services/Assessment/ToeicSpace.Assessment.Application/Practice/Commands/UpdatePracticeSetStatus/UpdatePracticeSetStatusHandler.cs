@@ -2,6 +2,7 @@ using ToeicSpace.Assessment.Application.Common.Caching;
 using ToeicSpace.Assessment.Application.Data;
 using ToeicSpace.Assessment.Application.Dtos;
 using ToeicSpace.Assessment.Application.Extensions;
+using ToeicSpace.Assessment.Application.Interfaces.Security;
 using ToeicSpace.Assessment.Application.Practice.Common;
 
 namespace ToeicSpace.Assessment.Application.Practice.Commands.UpdatePracticeSetStatus;
@@ -9,13 +10,16 @@ namespace ToeicSpace.Assessment.Application.Practice.Commands.UpdatePracticeSetS
 public sealed class UpdatePracticeSetStatusHandler : IRequestHandler<UpdatePracticeSetStatusCommand, PracticeSetDetailDto>
 {
     private readonly IAssessmentDbContext _context;
+    private readonly ICurrentUserService _currentUser;
     private readonly ContentCacheInvalidator _cacheInvalidator;
 
     public UpdatePracticeSetStatusHandler(
         IAssessmentDbContext context,
+        ICurrentUserService currentUser,
         ContentCacheInvalidator cacheInvalidator)
     {
         _context = context;
+        _currentUser = currentUser;
         _cacheInvalidator = cacheInvalidator;
     }
 
@@ -23,40 +27,33 @@ public sealed class UpdatePracticeSetStatusHandler : IRequestHandler<UpdatePract
         UpdatePracticeSetStatusCommand request,
         CancellationToken cancellationToken)
     {
-        var practiceSet = await _context.ToeicPracticeSets
-            .FirstOrDefaultAsync(item => item.Id == request.Id, cancellationToken)
-            ?? throw AppException.NotFound(nameof(ToeicPracticeSet), request.Id);
-
-        if (request.Status == ContentStatus.Active && practiceSet.Status != ContentStatus.Active)
+        var result = await _context.ExecutePracticeSetUpdateAsync(request.Id, async () =>
         {
-            var questions = await _context.ToeicPracticeSetItems
-                .AsNoTracking()
-                .Where(item => item.PracticeSetId == practiceSet.Id)
-                .Select(item => new { item.Question.Part, item.Question.Status })
-                .ToListAsync(cancellationToken);
+            var practiceSet = await _context.ToeicPracticeSets
+                .FirstOrDefaultAsync(item => item.Id == request.Id, cancellationToken)
+                ?? throw AppException.NotFound(nameof(ToeicPracticeSet), request.Id);
 
-            if (questions.Count == 0)
+            PracticeSetAuthorization.EnsureCanManage(practiceSet, _currentUser);
+
+            if (request.Status == ContentStatus.Active)
             {
-                throw AppException.Conflict(
-                    "The practice set cannot be published because it has no questions.",
-                    ErrorCodes.PracticeSetNotPublishable);
+                var questionIds = await _context.ToeicPracticeSetItems
+                    .Where(item => item.PracticeSetId == practiceSet.Id)
+                    .Select(item => item.QuestionId)
+                    .ToListAsync(cancellationToken);
+                await PracticeSetPublishingGuard.EnsureValidAsync(_context, practiceSet, questionIds, cancellationToken);
             }
 
-            if (questions.Any(question => question.Part != practiceSet.Part || question.Status != ContentStatus.Active))
-            {
-                throw AppException.Conflict(
-                    $"The practice set cannot be published: every question must be an Active Part {(int)practiceSet.Part} question.",
-                    ErrorCodes.PracticeSetNotPublishable);
-            }
-        }
+            practiceSet.Status = request.Status;
+            await _context.SaveChangesAsync(cancellationToken);
 
-        practiceSet.Status = request.Status;
-        await _context.SaveChangesAsync(cancellationToken);
+            var items = await _context.LoadItemsAsync(practiceSet.Id, cancellationToken);
 
-        await _cacheInvalidator.InvalidatePracticeSetsAsync([practiceSet.Id], cancellationToken);
+            return practiceSet.ToDetailDto(items);
+        }, cancellationToken);
 
-        var items = await _context.LoadItemsAsync(practiceSet.Id, cancellationToken);
+        await _cacheInvalidator.InvalidatePracticeSetsAsync([request.Id], cancellationToken);
 
-        return practiceSet.ToDetailDto(items);
+        return result;
     }
 }

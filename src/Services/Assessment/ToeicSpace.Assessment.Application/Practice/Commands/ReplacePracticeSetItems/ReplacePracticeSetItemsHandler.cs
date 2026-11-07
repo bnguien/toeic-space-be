@@ -2,6 +2,7 @@ using ToeicSpace.Assessment.Application.Common.Caching;
 using ToeicSpace.Assessment.Application.Data;
 using ToeicSpace.Assessment.Application.Dtos;
 using ToeicSpace.Assessment.Application.Extensions;
+using ToeicSpace.Assessment.Application.Interfaces.Security;
 using ToeicSpace.Assessment.Application.Practice.Common;
 
 namespace ToeicSpace.Assessment.Application.Practice.Commands.ReplacePracticeSetItems;
@@ -9,13 +10,16 @@ namespace ToeicSpace.Assessment.Application.Practice.Commands.ReplacePracticeSet
 public sealed class ReplacePracticeSetItemsHandler : IRequestHandler<ReplacePracticeSetItemsCommand, PracticeSetDetailDto>
 {
     private readonly IAssessmentDbContext _context;
+    private readonly ICurrentUserService _currentUser;
     private readonly ContentCacheInvalidator _cacheInvalidator;
 
     public ReplacePracticeSetItemsHandler(
         IAssessmentDbContext context,
+        ICurrentUserService currentUser,
         ContentCacheInvalidator cacheInvalidator)
     {
         _context = context;
+        _currentUser = currentUser;
         _cacheInvalidator = cacheInvalidator;
     }
 
@@ -23,69 +27,97 @@ public sealed class ReplacePracticeSetItemsHandler : IRequestHandler<ReplacePrac
         ReplacePracticeSetItemsCommand request,
         CancellationToken cancellationToken)
     {
-        var practiceSet = await _context.ToeicPracticeSets
-            .FirstOrDefaultAsync(item => item.Id == request.Id, cancellationToken)
-            ?? throw AppException.NotFound(nameof(ToeicPracticeSet), request.Id);
-
-        if (practiceSet.Status == ContentStatus.Active && request.QuestionIds.Count == 0)
+        var result = await _context.ExecutePracticeSetUpdateAsync(request.Id, async () =>
         {
-            throw AppException.Conflict(
-                "A published practice set must keep at least one question.",
-                ErrorCodes.PracticeSetNotPublishable);
-        }
+            var practiceSet = await _context.ToeicPracticeSets
+                .FirstOrDefaultAsync(item => item.Id == request.Id, cancellationToken)
+                ?? throw AppException.NotFound(nameof(ToeicPracticeSet), request.Id);
 
-        var questions = await _context.ToeicQuestions
-            .AsNoTracking()
-            .Where(question => request.QuestionIds.Contains(question.Id))
-            .Select(question => new { question.Id, question.Part, question.Status })
-            .ToListAsync(cancellationToken);
+            PracticeSetAuthorization.EnsureCanManage(practiceSet, _currentUser);
 
-        var missingIds = request.QuestionIds
-            .Except(questions.Select(question => question.Id))
-            .ToList();
+            var storedIds = await _context.ToeicPracticeSetItems.AsNoTracking()
+                .Where(item => item.PracticeSetId == request.Id)
+                .OrderBy(item => item.OrderIndex).Select(item => item.QuestionId).ToListAsync(cancellationToken);
+            // Compare inside the set lock, before touching membership or order. Refetching in
+            // the browser cannot close the race between two users submitting the same baseline.
+            if (request.ExpectedQuestionIds is null || !storedIds.SequenceEqual(request.ExpectedQuestionIds))
+            {
+                throw AppException.Conflict(
+                    "Practice set questions changed. Reload the question list before saving.",
+                    ErrorCodes.ConcurrencyConflict);
+            }
+            await _context.LockPracticeContentAsync(storedIds.Concat(request.QuestionIds).Distinct().ToList(), cancellationToken);
 
-        if (missingIds.Count > 0)
-        {
-            throw AppException.Validation(
-                $"Questions not found: {string.Join(", ", missingIds.Take(10))}.",
-                ErrorCodes.InvalidReference);
-        }
+            if (practiceSet.Status == ContentStatus.Active && request.QuestionIds.Count == 0)
+            {
+                throw AppException.Conflict(
+                    "A published practice set must keep at least one question.",
+                    ErrorCodes.PracticeSetNotPublishable);
+            }
 
-        if (questions.Any(question => question.Part != practiceSet.Part))
-        {
-            throw AppException.Validation(
-                $"Every question of this practice set must be a Part {(int)practiceSet.Part} question.",
-                ErrorCodes.InvalidReference);
-        }
+            var questions = await _context.ToeicQuestions
+                .AsNoTracking()
+                .Where(question => request.QuestionIds.Contains(question.Id))
+                .Select(question => new { question.Id, question.Part })
+                .ToListAsync(cancellationToken);
 
-        // Learners only see Active questions, so a published set may not take anything else.
-        if (practiceSet.Status == ContentStatus.Active
-            && questions.Any(question => question.Status != ContentStatus.Active))
-        {
-            throw AppException.Conflict(
-                "A published practice set can only contain Active questions. "
-                + "Publish those questions or move the set back to Draft first.",
-                ErrorCodes.PracticeSetNotPublishable);
-        }
+            var missingIds = request.QuestionIds
+                .Except(questions.Select(question => question.Id))
+                .ToList();
 
-        var existingItems = await _context.ToeicPracticeSetItems
-            .Where(item => item.PracticeSetId == practiceSet.Id)
-            .ToListAsync(cancellationToken);
+            if (missingIds.Count > 0)
+            {
+                throw AppException.Validation(
+                    $"Questions not found: {string.Join(", ", missingIds.Take(10))}.",
+                    ErrorCodes.InvalidReference);
+            }
 
-        _context.ToeicPracticeSetItems.RemoveRange(existingItems);
-        _context.ToeicPracticeSetItems.AddRange(request.QuestionIds.Select((questionId, index) => new ToeicPracticeSetItem
-        {
-            PracticeSetId = practiceSet.Id,
-            QuestionId = questionId,
-            OrderIndex = index
-        }));
+            if (questions.Any(question => question.Part != practiceSet.Part))
+            {
+                throw AppException.Validation(
+                    $"Every question of this practice set must be a Part {(int)practiceSet.Part} question.",
+                    ErrorCodes.InvalidReference);
+            }
 
-        await _context.SaveChangesAsync(cancellationToken);
+            if (practiceSet.Status == ContentStatus.Active)
+            {
+                await PracticeSetPublishingGuard.EnsureValidAsync(_context, practiceSet, request.QuestionIds, cancellationToken, lockContent: false);
+            }
 
-        await _cacheInvalidator.InvalidatePracticeSetsAsync([practiceSet.Id], cancellationToken);
+            var existingItems = await _context.ToeicPracticeSetItems
+                .Where(item => item.PracticeSetId == practiceSet.Id)
+                .ToListAsync(cancellationToken);
 
-        var items = await _context.LoadItemsAsync(practiceSet.Id, cancellationToken);
+            var requestedIds = request.QuestionIds.ToHashSet();
+            _context.ToeicPracticeSetItems.RemoveRange(existingItems.Where(item => !requestedIds.Contains(item.QuestionId)));
+            var retained = existingItems.ToDictionary(item => item.QuestionId);
+            for (var index = 0; index < request.QuestionIds.Count; index++)
+            {
+                var questionId = request.QuestionIds[index];
+                if (retained.TryGetValue(questionId, out var item))
+                {
+                    item.OrderIndex = index;
+                }
+                else
+                {
+                    _context.ToeicPracticeSetItems.Add(new ToeicPracticeSetItem
+                    {
+                        PracticeSetId = practiceSet.Id,
+                        QuestionId = questionId,
+                        OrderIndex = index
+                    });
+                }
+            }
 
-        return practiceSet.ToDetailDto(items);
+            await _context.SaveChangesAsync(cancellationToken);
+
+            var items = await _context.LoadItemsAsync(practiceSet.Id, cancellationToken);
+
+            return practiceSet.ToDetailDto(items);
+        }, cancellationToken);
+
+        await _cacheInvalidator.InvalidatePracticeSetsAsync([request.Id], cancellationToken);
+
+        return result;
     }
 }

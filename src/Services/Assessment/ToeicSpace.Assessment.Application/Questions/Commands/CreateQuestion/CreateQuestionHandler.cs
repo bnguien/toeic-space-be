@@ -41,6 +41,14 @@ public sealed class CreateQuestionHandler : IRequestHandler<CreateQuestionComman
         CreateQuestionCommand request,
         CancellationToken cancellationToken)
     {
+        var result = await _context.ExecuteQuestionUpdateAsync(null, request.PassageId,
+            () => CreateAsync(request, cancellationToken), cancellationToken, request.TestId);
+        await _cacheInvalidator.InvalidateTestsAsync([result.TestId], cancellationToken);
+        return result;
+    }
+
+    private async Task<QuestionDetailDto> CreateAsync(CreateQuestionCommand request, CancellationToken cancellationToken)
+    {
         await _referenceGuard.EnsureValidAsync(request, currentQuestionId: null, cancellationToken);
         await PublishedTestGuard.EnsureTestIsNotPublishedAsync(
             _context,
@@ -65,7 +73,6 @@ public sealed class CreateQuestionHandler : IRequestHandler<CreateQuestionComman
         await _eventPublisher.PublishAsync(QuestionIntegrationEvents.Created(question), cancellationToken);
         await _context.SaveChangesAsync(cancellationToken);
 
-        await _cacheInvalidator.InvalidateTestsAsync([question.TestId], cancellationToken);
 
         _logger.LogInformation(
             "Created question {QuestionId} for test {TestId}",

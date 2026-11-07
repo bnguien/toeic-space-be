@@ -175,6 +175,119 @@ public sealed class LessonManagementTests
     }
 
     [Fact]
+    public async Task Updating_lesson_swaps_video_order_without_violating_unique_sort_order()
+    {
+        await using var f = new Fixture();
+        var (course, module) = await f.SetupAsync();
+        async Task<string> Upload(string name)
+        {
+            var ticket = await f.Presign.Handle(new(LessonUploadKind.Video, name, "video/mp4", 1000, Admin), default);
+            f.Media.Objects[ticket.Key] = new StoredThumbnail("video/mp4", 1000, true);
+            await f.Confirm.Handle(new(ticket.Key, Admin), default);
+            return ticket.Key;
+        }
+        var firstKey = await Upload("first.mp4");
+        var secondKey = await Upload("second.mp4");
+        var lesson = await f.Creator.Handle(new CreateLessonCommand("Lesson", null, "Text",
+            [firstKey, secondKey], 30, null) { CourseId = course, ModuleId = module, AdminId = Admin }, default);
+        Assert.True(f.Db.Model.FindEntityType(typeof(LessonVideo))!.GetIndexes()
+            .Single(x => x.Properties.Select(p => p.Name).SequenceEqual(new[] { "LessonId", "SortOrder" })).IsUnique);
+
+        var swapped = await f.Updater.Handle(new UpdateLessonCommand("Lesson", null, "Text",
+            [secondKey, firstKey], 30, false) { CourseId = course, ModuleId = module, LessonId = lesson.Id, AdminId = Admin }, default);
+
+        Assert.Equal(new[] { secondKey, firstKey }, swapped.Videos.Select(x => x.ObjectKey));
+        Assert.Equal(new[] { 1, 2 }, swapped.Videos.Select(x => x.SortOrder));
+        f.Db.ChangeTracker.Clear();
+        var persisted = await f.Db.LessonVideos.OrderBy(x => x.SortOrder).ToListAsync();
+        Assert.Equal(new[] { secondKey, firstKey }, persisted.Select(x => x.ObjectKey));
+        Assert.Equal(new[] { 1, 2 }, persisted.Select(x => x.SortOrder));
+    }
+
+    [Fact]
+    public async Task Video_reorder_uses_a_temporary_range_above_non_contiguous_orders()
+    {
+        await using var f = new Fixture();
+        var (course, module) = await f.SetupAsync();
+        async Task<string> Upload(string name)
+        {
+            var ticket = await f.Presign.Handle(new(LessonUploadKind.Video, name, "video/mp4", 1000, Admin), default);
+            f.Media.Objects[ticket.Key] = new StoredThumbnail("video/mp4", 1000, true);
+            await f.Confirm.Handle(new(ticket.Key, Admin), default);
+            return ticket.Key;
+        }
+        var firstKey = await Upload("first.mp4");
+        var secondKey = await Upload("second.mp4");
+        var lesson = await f.Creator.Handle(new CreateLessonCommand("Lesson", null, "Text",
+            [firstKey, secondKey], 30, null) { CourseId = course, ModuleId = module, AdminId = Admin }, default);
+        // Simulate legacy data where orders are sparse and higher than the number of videos.
+        var stored = await f.Db.LessonVideos.OrderBy(x => x.ObjectKey == firstKey ? 0 : 1).ToListAsync();
+        stored[0].SortOrder = 40;
+        stored[1].SortOrder = 50;
+        await f.Db.SaveChangesAsync();
+        f.Db.ChangeTracker.Clear();
+
+        var swapped = await f.Updater.Handle(new UpdateLessonCommand("Lesson", null, "Text",
+            [secondKey, firstKey], 30, false) { CourseId = course, ModuleId = module, LessonId = lesson.Id, AdminId = Admin }, default);
+
+        Assert.Equal(new[] { secondKey, firstKey }, swapped.Videos.Select(x => x.ObjectKey));
+        Assert.Equal(new[] { 1, 2 }, swapped.Videos.Select(x => x.SortOrder));
+    }
+
+    [Fact]
+    public async Task Video_reorder_clears_temporary_range_when_new_videos_are_added()
+    {
+        await using var f = new Fixture();
+        var (course, module) = await f.SetupAsync();
+        async Task<string> Upload(string name)
+        {
+            var ticket = await f.Presign.Handle(new(LessonUploadKind.Video, name, "video/mp4", 1000, Admin), default);
+            f.Media.Objects[ticket.Key] = new StoredThumbnail("video/mp4", 1000, true);
+            await f.Confirm.Handle(new(ticket.Key, Admin), default);
+            return ticket.Key;
+        }
+        var firstKey = await Upload("first.mp4");
+        var secondKey = await Upload("second.mp4");
+        var lesson = await f.Creator.Handle(new CreateLessonCommand("Lesson", null, "Text",
+            [firstKey, secondKey], 30, null) { CourseId = course, ModuleId = module, AdminId = Admin }, default);
+        var addedKey = await Upload("added.mp4");
+
+        var updated = await f.Updater.Handle(new UpdateLessonCommand("Lesson", null, "Text",
+            [firstKey, secondKey, addedKey], 30, false) { CourseId = course, ModuleId = module, LessonId = lesson.Id, AdminId = Admin }, default);
+
+        Assert.Equal(new[] { firstKey, secondKey, addedKey }, updated.Videos.Select(x => x.ObjectKey));
+        Assert.Equal(new[] { 1, 2, 3 }, updated.Videos.Select(x => x.SortOrder));
+    }
+
+    [Fact]
+    public async Task Video_reorder_rolls_back_when_the_final_save_fails()
+    {
+        await using var f = new Fixture();
+        var (course, module) = await f.SetupAsync();
+        async Task<string> Upload(string name)
+        {
+            var ticket = await f.Presign.Handle(new(LessonUploadKind.Video, name, "video/mp4", 1000, Admin), default);
+            f.Media.Objects[ticket.Key] = new StoredThumbnail("video/mp4", 1000, true);
+            await f.Confirm.Handle(new(ticket.Key, Admin), default);
+            return ticket.Key;
+        }
+        var firstKey = await Upload("first.mp4");
+        var secondKey = await Upload("second.mp4");
+        var lesson = await f.Creator.Handle(new CreateLessonCommand("Lesson", null, "Text",
+            [firstKey, secondKey], 30, null) { CourseId = course, ModuleId = module, AdminId = Admin }, default);
+        var handler = new UpdateLessonHandler(f.Scope, f.Uploads, f.Lessons, new FailSecondSave(f.Uow), TimeProvider.System);
+
+        await Assert.ThrowsAsync<InvalidOperationException>(() => handler.Handle(
+            new UpdateLessonCommand("Lesson", null, "Text", [secondKey, firstKey], 30, false)
+                { CourseId = course, ModuleId = module, LessonId = lesson.Id, AdminId = Admin }, default));
+
+        f.Db.ChangeTracker.Clear();
+        var persisted = await f.Db.LessonVideos.OrderBy(x => x.SortOrder).ToListAsync();
+        Assert.Equal(new[] { firstKey, secondKey }, persisted.Select(x => x.ObjectKey));
+        Assert.Equal(new[] { 1, 2 }, persisted.Select(x => x.SortOrder));
+    }
+
+    [Fact]
     public async Task Ownership_archived_state_and_unconfirmed_media_are_rejected()
     {
         await using var f = new Fixture();

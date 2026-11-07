@@ -14,6 +14,8 @@ public sealed class UpdateLessonHandler(LessonScopeService scope, ILessonUploadR
 {
     public async Task<LessonDto> Handle(UpdateLessonCommand request, CancellationToken ct)
     {
+        await using var transaction = await unitOfWork.BeginTransactionAsync(ct);
+        await lessons.LockAsync(request.LessonId, ct);
         var (course, _, lesson) = await scope.GetLessonAsync(request.CourseId, request.ModuleId, request.LessonId, true, ct);
         var videoKeys = request.VideoKeys ?? [];
         if (videoKeys.Count > 10 || videoKeys.Distinct(StringComparer.Ordinal).Count() != videoKeys.Count)
@@ -28,8 +30,10 @@ public sealed class UpdateLessonHandler(LessonScopeService scope, ILessonUploadR
             throw new ContentRuleException("unconfirmed_media", "Every new video must be confirmed by the current Admin and unused.", 409);
         var uploadsByKey = confirmed.ToDictionary(x => x.Key, StringComparer.Ordinal);
         var now = clock.GetUtcNow().UtcDateTime;
+        var highestSortOrder = lesson.Videos.Select(x => x.SortOrder).DefaultIfEmpty(0).Max();
         lesson.SetMetadata(request.Title, request.Description, request.TextContent,
             request.DurationSeconds, request.IsFreePreview, now);
+
         foreach (var (key, oldVideo) in previousVideos)
         {
             if (!videoKeys.Contains(key, StringComparer.Ordinal))
@@ -38,6 +42,18 @@ public sealed class UpdateLessonHandler(LessonScopeService scope, ILessonUploadR
                 lesson.Videos.Remove(oldVideo);
             }
         }
+        if (lesson.Status == LessonStatus.Published && string.IsNullOrWhiteSpace(lesson.TextContent)
+            && lesson.Videos.Count == 0 && lesson.Resources.Count == 0)
+            throw new ContentRuleException("publish_requirements", "Published lesson must retain text, video or attachments.", 409);
+
+        var retained = videoKeys.Where(previousVideos.ContainsKey).Select(key => previousVideos[key]).ToArray();
+        
+        var temporaryOffset = Math.Max(highestSortOrder, videoKeys.Count) + 1;
+        for (var index = 0; index < retained.Length; index++)
+            retained[index].SortOrder = temporaryOffset + index;
+        course.Touch(now);
+        await unitOfWork.SaveChangesAsync(ct);
+
         for (var index = 0; index < videoKeys.Count; index++)
         {
             var key = videoKeys[index];
@@ -47,15 +63,11 @@ public sealed class UpdateLessonHandler(LessonScopeService scope, ILessonUploadR
                 continue;
             }
             var upload = uploadsByKey[key];
-            var added = new LessonVideo { LessonId = lesson.Id, ObjectKey = upload.Key, FileName = upload.FileName,
-                ContentType = upload.ContentType, FileSize = upload.SizeBytes, SortOrder = index + 1, CreatedAt = now };
-            lessons.AddVideo(added);
+            lessons.AddVideo(new LessonVideo { LessonId = lesson.Id, ObjectKey = upload.Key, FileName = upload.FileName,
+                ContentType = upload.ContentType, FileSize = upload.SizeBytes, SortOrder = index + 1, CreatedAt = now });
         }
-        if (lesson.Status == LessonStatus.Published && string.IsNullOrWhiteSpace(lesson.TextContent)
-            && lesson.Videos.Count == 0 && lesson.Resources.Count == 0)
-            throw new ContentRuleException("publish_requirements", "Published lesson must retain text, video or attachments.", 409);
-        course.Touch(now);
         await unitOfWork.SaveChangesAsync(ct);
+        await transaction.CommitAsync(ct);
         return lesson.ToDto();
     }
 }
