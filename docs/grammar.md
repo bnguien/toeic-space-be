@@ -198,6 +198,8 @@ another learner's attempt id → 404 `grammar_attempt_not_found`.
 
 ## Importing the content
 
+> **Data is not committed.** `data/grammar/` is gitignored (content pulled from Studychill stays out of the repository). Produce it locally with `python scripts/grammar_data_pipeline.py export` (read-only SSH to the Studychill VPS) and `build`, or get the files from the maintainer, then import them as below.
+
 1. Snapshot (read-only, the server is never written): `python scripts/grammar_data_pipeline.py export` — streams
    `tar` of `cd-*/{knowledge,vocab,tests}.json` and `chang-*/test.json` from `/root/Studychill/content/grammar` into
    `data/source/studychill_grammar_<date>/` (gitignored).

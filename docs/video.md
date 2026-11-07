@@ -196,6 +196,8 @@ API instance); a scaled-out deployment would only repeat some YouTube/translatio
 
 ## Importing the data
 
+> **Data is not committed.** `data/videos/` is gitignored (content pulled from Studychill stays out of the repository). Produce it locally with `python scripts/video_data_pipeline.py export` (read-only SSH to the Studychill VPS) and `build`, or get the files from the maintainer, then import them as below.
+
 Data: `data/videos/catalog.json` (3,963 catalog videos, 8 topics) and `data/videos/subtitles-01..14.json.gz`
 (3,384 subtitle documents, 3,464 tracks: `en-orig` 2,586, `en` 656, `en-GB` 90, `en-US` 29, `en-CA` 3, `vi` 100;
 1,005,817 cues, 787,068 with word offsets). Format, counts and sizes: `data/videos/README.md`. Produced by

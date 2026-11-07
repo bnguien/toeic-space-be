@@ -116,6 +116,8 @@ article (required for CC BY / BY-SA).
 
 ## Importing the news
 
+> **Data is not committed.** `data/news/` is gitignored (content pulled from Studychill stays out of the repository). Produce it locally with `python scripts/news_data_pipeline.py export` (read-only SSH to the Studychill VPS) and `build`, or get the files from the maintainer, then import them as below.
+
 Data: `data/news/articles.json` (schemaVersion 1; 287 published articles, 10,718 sentences, 4,235 vocabulary items,
 4.5 MB; `articles.json.gz` is written instead once the file passes 5 MB) and `data/news/covers/` (287 WebP, 21.6 MB).
 `data/news/import_report.md` has the counts per stage and topic. Article shape:

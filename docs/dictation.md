@@ -143,6 +143,8 @@ across instances), `Dictation:ProofIterations` (20 000), `Dictation:PrewarmAhead
 
 ## Importing the data
 
+> **Data is not committed.** `data/dictation/` is gitignored (content pulled from Studychill stays out of the repository). Produce it locally with `python scripts/dictation_data_pipeline.py export` (read-only SSH to the Studychill VPS) and `build`, or get the files from the maintainer, then import them as below.
+
 Data lives in `data/dictation/<pack>.json.gz` (schemaVersion 1; `import_report.md` lists counts and sizes), produced by:
 
 ```bash
