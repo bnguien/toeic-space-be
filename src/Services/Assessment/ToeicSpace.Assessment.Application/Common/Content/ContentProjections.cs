@@ -24,7 +24,9 @@ public static class ContentProjections
         TranslatedText.TranscriptText(question.Transcript),
         TranslatedText.TranscriptTranslation(question.Transcript),
         question.DifficultyLevel,
-        question.OrderIndex);
+        question.OrderIndex,
+        question.Status,
+        question.Topic);
 
     public static readonly Expression<Func<ToeicPassage, ContentPassageDto>> Passage = passage => new ContentPassageDto(
         passage.Id,

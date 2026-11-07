@@ -32,6 +32,14 @@ public sealed class DeleteQuestionHandler : IRequestHandler<DeleteQuestionComman
         DeleteQuestionCommand request,
         CancellationToken cancellationToken)
     {
+        var result = await _context.ExecuteQuestionUpdateAsync(request.Id, null,
+            () => DeleteAsync(request, cancellationToken), cancellationToken);
+        await _cacheInvalidator.InvalidateTestsAsync([result.TestId], cancellationToken);
+        await _cacheInvalidator.InvalidatePracticeSetsAsync(result.SetIds, cancellationToken);
+    }
+
+    private async Task<(Guid? TestId, List<Guid> SetIds)> DeleteAsync(DeleteQuestionCommand request, CancellationToken cancellationToken)
+    {
         var question = await _context.ToeicQuestions
             .FirstOrDefaultAsync(item => item.Id == request.Id, cancellationToken)
             ?? throw AppException.NotFound(nameof(ToeicQuestion), request.Id);
@@ -62,12 +70,11 @@ public sealed class DeleteQuestionHandler : IRequestHandler<DeleteQuestionComman
         await _eventPublisher.PublishAsync(QuestionIntegrationEvents.Deleted(question), cancellationToken);
         await _context.SaveChangesAsync(cancellationToken);
 
-        await _cacheInvalidator.InvalidateTestsAsync([question.TestId], cancellationToken);
-        await _cacheInvalidator.InvalidatePracticeSetsAsync(practiceSetIds, cancellationToken);
 
         _logger.LogInformation(
             "Deleted question {QuestionId} and removed it from {PracticeSetCount} practice sets",
             question.Id,
             practiceSetIds.Count);
+        return (question.TestId, practiceSetIds);
     }
 }

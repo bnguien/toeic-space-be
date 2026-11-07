@@ -13,7 +13,8 @@ public sealed record PracticeSetDto(
     ContentStatus Status,
     int OrderIndex,
     int QuestionCount,
-    DateTime CreatedAt);
+    DateTime CreatedAt,
+    [property: System.Text.Json.Serialization.JsonIgnore(Condition = System.Text.Json.Serialization.JsonIgnoreCondition.WhenWritingNull)] Guid? CreatedByUserId = null);
 
 public sealed record PracticeSetItemDto(
     Guid QuestionId,
@@ -33,7 +34,8 @@ public sealed record PracticeSetDetailDto(
     int OrderIndex,
     IReadOnlyList<PracticeSetItemDto> Items,
     DateTime CreatedAt,
-    DateTime? UpdatedAt);
+    DateTime? UpdatedAt,
+    [property: System.Text.Json.Serialization.JsonIgnore(Condition = System.Text.Json.Serialization.JsonIgnoreCondition.WhenWritingNull)] Guid? CreatedByUserId = null);
 
 public sealed record PracticeSetContentDto(
     Guid Id,

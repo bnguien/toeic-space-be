@@ -8,6 +8,7 @@ public sealed class UpdatePracticeSetStatusValidator : AbstractValidator<UpdateP
             .NotEmpty();
 
         RuleFor(command => command.Status)
-            .IsInEnum();
+            .Must(status => status is ContentStatus.Active or ContentStatus.Archived)
+            .WithMessage("Status must be Active or Archived.");
     }
 }
