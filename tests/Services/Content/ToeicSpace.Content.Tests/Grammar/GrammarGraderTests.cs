@@ -122,7 +122,7 @@ public sealed class GrammarGraderTests
         Assert.False(GrammarGrader.GradeQuestion(Q("""{"kind":"mcq5","answer":"A"}"""), null));
     }
 
-    [Fact]
+    [RequiresDataFact("data/grammar/grammar-content.json.gz")]
     public void Every_content_answer_grades_correct()
     {
         var bundle = GrammarTestData.Bundle();
@@ -137,7 +137,7 @@ public sealed class GrammarGraderTests
         Assert.Empty(failures);
     }
 
-    [Fact]
+    [RequiresDataFact("data/grammar/grammar-content.json.gz")]
     public void All_ten_question_kinds_are_present_in_the_content()
     {
         var kinds = GrammarTestData.Questions(GrammarTestData.Bundle())

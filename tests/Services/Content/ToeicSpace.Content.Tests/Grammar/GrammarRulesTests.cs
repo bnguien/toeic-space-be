@@ -82,7 +82,7 @@ public sealed class GrammarRulesTests
         Assert.Null(tokens.Read(ticket));
     }
 
-    [Fact]
+    [RequiresDataFact("data/grammar/grammar-content.json.gz")]
     public void Public_payload_never_contains_answers()
     {
         var bundle = GrammarContentBuilder.Build(Documents());

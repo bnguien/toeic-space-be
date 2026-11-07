@@ -96,7 +96,7 @@ public sealed class GrammarHandlerTests : IAsyncLifetime
         return answers;
     }
 
-    [Fact]
+    [RequiresDataFact("data/grammar/grammar-content.json.gz")]
     public async Task Guest_is_graded_but_nothing_is_stored()
     {
         var result = await Submit().Handle(new SubmitTopicAttemptCommand("qc-1", Answers("04", "qc-1")) { Topic = "04" }, default);
@@ -108,7 +108,7 @@ public sealed class GrammarHandlerTests : IAsyncLifetime
         Assert.Equal(0, await Db().GrammarQuestionResults.CountAsync());
     }
 
-    [Fact]
+    [RequiresDataFact("data/grammar/grammar-content.json.gz")]
     public async Task Learner_attempt_records_progress_results_and_fixes()
     {
         var answers = Answers("04", "mt");
@@ -147,7 +147,7 @@ public sealed class GrammarHandlerTests : IAsyncLifetime
         Assert.Equal(1, await Db().GrammarAttempts.CountAsync());
     }
 
-    [Fact]
+    [RequiresDataFact("data/grammar/grammar-content.json.gz")]
     public async Task Stage_test_is_locked_for_guests_and_unlocks_at_80_percent()
     {
         var s = Scope();

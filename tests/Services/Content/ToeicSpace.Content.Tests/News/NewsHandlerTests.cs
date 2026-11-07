@@ -40,8 +40,10 @@ public sealed class MemoryCoverStore : INewsCoverStore
 /// <summary>News handlers on SQLite in memory, fed with the committed data/news/articles.json.</summary>
 public sealed class NewsHandlerTests : IAsyncLifetime
 {
-    private static readonly byte[] ArticlesFile =
-        File.ReadAllBytes(VocabularyTestContext.RepositoryFile("data/news/articles.json"));
+    private static readonly Lazy<byte[]> ArticlesData =
+        new(() => File.ReadAllBytes(VocabularyTestContext.RepositoryFile("data/news/articles.json")));
+
+    private static byte[] ArticlesFile => ArticlesData.Value;
 
     private readonly SqliteConnection _connection = new("DataSource=:memory:");
     private readonly List<ContentDbContext> _contexts = [];
@@ -112,7 +114,7 @@ public sealed class NewsHandlerTests : IAsyncLifetime
             .Handle(new CheckNewsDictationCommand(slug, sentenceId, text, false, learner), default);
     }
 
-    [Fact]
+    [RequiresDataFact("data/news/articles.json")]
     public async Task Imports_the_committed_articles_and_reimport_is_unchanged()
     {
         var expected = JsonNode.Parse(ArticlesFile)!["articles"]!.AsArray().Count;
@@ -125,7 +127,7 @@ public sealed class NewsHandlerTests : IAsyncLifetime
         Assert.Equal(expected, await Db().NewsArticles.CountAsync());
     }
 
-    [Fact]
+    [RequiresDataFact("data/news/articles.json")]
     public async Task Gzip_documents_and_covers_are_accepted_and_bad_files_rejected()
     {
         using var packed = new MemoryStream();
@@ -144,7 +146,7 @@ public sealed class NewsHandlerTests : IAsyncLifetime
         await Assert.ThrowsAsync<ContentRuleException>(() => ImportAsync(Json("{\"schemaVersion\":2,\"articles\":[]}"u8.ToArray())));
     }
 
-    [Fact]
+    [RequiresDataFact("data/news/articles.json")]
     public async Task Lists_filter_on_the_server_and_report_facets()
     {
         await ImportAsync(Json(ArticlesFile));
@@ -171,7 +173,7 @@ public sealed class NewsHandlerTests : IAsyncLifetime
         Assert.Empty(all.Items.Select(x => x.Slug).Intersect(page2.Items.Select(x => x.Slug)));
     }
 
-    [Fact]
+    [RequiresDataFact("data/news/articles.json")]
     public async Task Learner_state_is_saved_and_reflected_in_the_list()
     {
         await ImportAsync(Json(ArticlesFile));
@@ -222,7 +224,7 @@ public sealed class NewsHandlerTests : IAsyncLifetime
         Assert.Equal(95, done.Items[0].ReadingSeconds);
     }
 
-    [Fact]
+    [RequiresDataFact("data/news/articles.json")]
     public async Task Guest_state_merges_with_larger_clock_and_newer_notes()
     {
         await ImportAsync(Json(ArticlesFile));
