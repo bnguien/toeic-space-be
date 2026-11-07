@@ -24,6 +24,23 @@ public sealed class ContentDbContext(DbContextOptions<ContentDbContext> options)
     public DbSet<StudySession> StudySessions => Set<StudySession>();
     public DbSet<LearnerVocabularyPreferences> LearnerVocabularyPreferences => Set<LearnerVocabularyPreferences>();
     public DbSet<WordGlossCacheEntry> WordGlossCache => Set<WordGlossCacheEntry>();
+    public DbSet<NewsArticle> NewsArticles => Set<NewsArticle>();
+    public DbSet<NewsReading> NewsReadings => Set<NewsReading>();
+    public DbSet<DictationCourse> DictationCourses => Set<DictationCourse>();
+    public DbSet<DictationItem> DictationItems => Set<DictationItem>();
+    public DbSet<DictationProgress> DictationProgress => Set<DictationProgress>();
+    public DbSet<DictationLearnerState> DictationLearnerStates => Set<DictationLearnerState>();
+    public DbSet<VideoCatalogItem> VideoCatalogItems => Set<VideoCatalogItem>();
+    public DbSet<VideoSubtitle> VideoSubtitles => Set<VideoSubtitle>();
+    public DbSet<VideoWatch> VideoWatches => Set<VideoWatch>();
+    public DbSet<VideoLearnerState> VideoLearnerStates => Set<VideoLearnerState>();
+    public DbSet<GrammarDocument> GrammarDocuments => Set<GrammarDocument>();
+    public DbSet<GrammarLessonProgress> GrammarLessonProgress => Set<GrammarLessonProgress>();
+    public DbSet<GrammarAttempt> GrammarAttempts => Set<GrammarAttempt>();
+    public DbSet<GrammarQuestionResult> GrammarQuestionResults => Set<GrammarQuestionResult>();
+    public DbSet<GrammarLearnerState> GrammarLearnerStates => Set<GrammarLearnerState>();
+    public DbSet<GrammarComment> GrammarComments => Set<GrammarComment>();
+    public DbSet<GrammarCommentLike> GrammarCommentLikes => Set<GrammarCommentLike>();
 
     protected override void OnModelCreating(ModelBuilder modelBuilder)
     {

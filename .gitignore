@@ -51,3 +51,6 @@ scripts/__pycache__/
 
 # Ignore Docker tools configuration
 /docker-compose.tools.yml
+
+# News cover store of a locally run Content API (News:CoverDirectory default)
+**/App_Data/

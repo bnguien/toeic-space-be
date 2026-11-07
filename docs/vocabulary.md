@@ -371,6 +371,29 @@ word or fills blanks of the existing one (`updated`). With `createFoldersFromCat
 | `GoogleTranslate:ApiKey` | `GOOGLE_TRANSLATE_API_KEY` | empty (paid tier skipped) |
 | `Enrichment:CacheTtlDays`, `*DeadlineSeconds` | — | 30, 6 / 12 / 20 / 12 |
 
+## Select to look up ("Bôi đen để tra", PBL-107)
+
+Site-wide layer ported from Studychill: selecting text on any learner page opens a lookup bubble.
+
+- **API:** `POST /content/api/v1/dictionary/lookup` (`DictionaryController`, anonymous, `dictionary-lookup` limit
+  60/min per user or IP) with body `{text ≤ 600, context ≤ 500, allowAi}`. Returns `SelectionLookupDto`
+  `{text, kind, found, meaning, phonetic, partOfSpeech, cefr, definitionEn, example, exampleVi, phraseType, complete,
+  aiUsed, aiAllowed, savedWordId, officialWordId}`.
+  - A word or a 2–5 word phrase goes through the enrichment tiers above (`WordEnricher`). AI runs only when `allowAi`
+    is set **and** the caller is signed in. Signed-in callers also get `savedWordId` when the word is already in
+    their library.
+  - Longer text (`kind = sentence`) is translated with `ITranslationProvider` and cannot be saved.
+- **Frontend** (`src/modules/vocabulary`):
+  - `SelectionLookupProvider` is mounted in `RootLayout` and disabled on `/admin` and `/teacher`.
+  - It captures `mouseup`, `touchend` and Shift+arrow selections. It skips form fields and `[data-no-lookup]`, and
+    closes on Esc, on a new page or after scrolling more than 60 px.
+  - Selections longer than 12 words ask before translating.
+  - Lookups run in two passes: the fast tiers first, then the AI pass when the card is incomplete and `aiAllowed`.
+  - `utils/selection-lookup.ts` caches results per session and de-duplicates in-flight requests.
+  - `LookupPopover` shows the card and saves through `me/words/import` with the folder picker.
+  - Hooks: `useSelectionLookup()` (receiver/request API for pages that draw results themselves) and `useLookupGate()`
+    (puts lookups behind a page switch, for exam pages).
+
 ## Importing the vocabulary
 
 Data lives in `data/vocabulary/0[1-5]-toeic-roadmap-*.json` (format: `data/vocabulary/README.md`): one file per
