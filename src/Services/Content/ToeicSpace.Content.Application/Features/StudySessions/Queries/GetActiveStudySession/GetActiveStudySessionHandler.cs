@@ -15,7 +15,8 @@ public sealed class GetActiveStudySessionHandler(IStudySessionRepository session
         StudySourceKind? kind = null;
         Guid? sourceId = null;
         if (request.SourceCount == 1)
-            (kind, sourceId) = StudyQueueService.KindOf(request.SetId, request.FolderId, request.Library, request.Due, null);
+            (kind, sourceId) = StudyQueueService.KindOf(request.SetId, request.FolderId, request.Library, request.Due, null,
+                request.Mistakes);
         var session = await sessions.GetLatestActiveAsync(request.LearnerId, request.Mode, kind, sourceId,
             now - StudySession.StaleAfter, ct);
         return session is null ? null : await presenter.ToDtoAsync(session, request.TzOffset, ct);

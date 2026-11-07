@@ -15,6 +15,7 @@ public static class DependencyInjection
         services.AddTransient(typeof(IPipelineBehavior<,>), typeof(ValidationBehavior<,>));
         services.AddScoped<LessonScopeService>();
         services.AddScoped<LibraryWordService>();
+        services.AddScoped<PersonalWordOverlay>();
         services.AddScoped<StudyQueueService>();
         services.AddScoped<ReviewRecorder>();
         services.AddScoped<StudySessionPresenter>();

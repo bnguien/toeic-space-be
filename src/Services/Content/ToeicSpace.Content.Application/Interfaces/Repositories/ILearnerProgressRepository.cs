@@ -1,3 +1,4 @@
+using ToeicSpace.Content.Application.Common.Pagination;
 using ToeicSpace.Content.Domain.Entities;
 
 namespace ToeicSpace.Content.Application.Interfaces.Repositories;
@@ -12,6 +13,12 @@ public interface ILearnerProgressRepository
     /// <summary>Due rows ordered by due date, then oldest review.</summary>
     Task<IReadOnlyList<LearnerWordProgress>> GetDueAsync(Guid learnerId, DateOnly localToday, int limit,
         CancellationToken ct);
+    /// <summary>Pending mistakes, most recent mistake first.</summary>
+    Task<PagedResult<LearnerWordProgress>> GetMistakesAsync(Guid learnerId, int page, int pageSize,
+        CancellationToken ct);
+    /// <summary>Word ids of every pending mistake, most recent mistake first.</summary>
+    Task<IReadOnlyList<Guid>> GetMistakeWordIdsAsync(Guid learnerId, CancellationToken ct);
+    Task<int> CountMistakesAsync(Guid learnerId, CancellationToken ct);
     Task<WordReviewLog?> GetReviewLogAsync(Guid learnerId, Guid clientEventId, CancellationToken ct);
     /// <summary>Distinct local days with at least one review, newest first.</summary>
     Task<IReadOnlyList<DateOnly>> GetReviewDaysAsync(Guid learnerId, CancellationToken ct);

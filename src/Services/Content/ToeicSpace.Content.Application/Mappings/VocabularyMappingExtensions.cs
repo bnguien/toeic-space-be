@@ -1,4 +1,5 @@
 using ToeicSpace.Content.Application.DTOs.Vocabulary;
+using ToeicSpace.Content.Application.Services;
 using ToeicSpace.Content.Domain.Entities;
 using ToeicSpace.Content.Domain.Enums;
 using ToeicSpace.Content.Domain.Rules;
@@ -40,7 +41,15 @@ public static class VocabularyMappingExtensions
         return new SchedulePreviewDto(preview.Forget, preview.Hard, preview.Good, preview.Easy);
     }
 
+    /// <summary>A study item; <paramref name="saved"/> is the learner's library row (personal edits, note, id).</summary>
     public static StudyItemDto ToStudyItemDto(this VocabularyWord word, LearnerWordProgress? progress,
-        DateOnly localToday, Guid? savedWordId) =>
-        new(word.ToDto(), progress.ToProgressDto(localToday), progress.ToPreviewDto(localToday), savedWordId);
+        DateOnly localToday, SavedWord? saved) =>
+        new(PersonalWordOverlay.Apply(word.ToDto(), saved), progress.ToProgressDto(localToday),
+            progress.ToPreviewDto(localToday), saved?.Id);
+
+    /// <summary>A pending mistake with the learner's personal edits laid over the word.</summary>
+    public static MistakeItemDto ToMistakeDto(this LearnerWordProgress x, VocabularyWord word, SavedWord? saved,
+        DateOnly localToday) =>
+        new(PersonalWordOverlay.Apply(word.ToDto(), saved), x.ToProgressDto(localToday), saved?.Id, x.MistakeCount,
+            DateTime.SpecifyKind(x.LastMistakeAt ?? x.UpdatedAt, DateTimeKind.Utc));
 }

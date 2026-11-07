@@ -25,8 +25,10 @@ public sealed class VocabularyController(ISender sender) : ControllerBase
     public Task<IReadOnlyList<SetSummaryDto>> StageSets(Guid stageId, CancellationToken ct) =>
         sender.Send(new GetStageSetsQuery(stageId), ct);
 
+    /// <summary>A signed-in caller sees the words with their personal edits.</summary>
     [HttpGet("sets/{setId:guid}")]
-    public Task<SetDetailDto> Set(Guid setId, CancellationToken ct) => sender.Send(new GetSetDetailQuery(setId), ct);
+    public Task<SetDetailDto> Set(Guid setId, CancellationToken ct) =>
+        sender.Send(new GetSetDetailQuery(setId, OptionalLearnerId), ct);
 
     /// <summary>Guests get official words only; a signed-in caller may also quiz their own custom words.</summary>
     [HttpPost("quizzes")]

@@ -22,10 +22,13 @@ public interface ILearnerLibraryRepository
     Task<PagedResult<SavedWord>> SearchSavedWordsAsync(Guid learnerId, Guid? folderId, bool unfiledOnly,
         string? search, int page, int pageSize, CancellationToken ct);
     Task<SavedWord?> GetSavedWordForUpdateAsync(Guid learnerId, Guid savedWordId, CancellationToken ct);
+    /// <summary>Tracked library row of a word, with its word, or null.</summary>
     Task<SavedWord?> GetSavedWordByWordForUpdateAsync(Guid learnerId, Guid wordId, CancellationToken ct);
-    /// <summary>Saved-word id per word id, for the words the learner has in the library.</summary>
-    Task<IReadOnlyDictionary<Guid, Guid>> GetSavedWordIdsAsync(Guid learnerId, IReadOnlyCollection<Guid> wordIds,
+    /// <summary>Library rows of the given words (no tracking, without their word).</summary>
+    Task<IReadOnlyList<SavedWord>> GetSavedWordsByWordAsync(Guid learnerId, IReadOnlyCollection<Guid> wordIds,
         CancellationToken ct);
+    /// <summary>Library rows with at least one personal edit (no tracking, without their word).</summary>
+    Task<IReadOnlyList<SavedWord>> GetPersonalizedAsync(Guid learnerId, CancellationToken ct);
     Task<int> CountSavedWordsAsync(Guid learnerId, CancellationToken ct);
     void AddSavedWord(SavedWord savedWord);
     void RemoveSavedWord(SavedWord savedWord);

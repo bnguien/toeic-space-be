@@ -5,8 +5,9 @@ namespace ToeicSpace.Content.Application.Features.StudySessions.Queries.GetActiv
 
 /// <summary>Most recently used active session matching the optional filters, or null.</summary>
 public sealed record GetActiveStudySessionQuery(Guid LearnerId, StudyMode? Mode = null, Guid? SetId = null,
-    Guid? FolderId = null, bool? Library = null, bool? Due = null, int TzOffset = 0) : IRequest<StudySessionDto?>
+    Guid? FolderId = null, bool? Library = null, bool? Due = null, int TzOffset = 0, bool? Mistakes = null)
+    : IRequest<StudySessionDto?>
 {
     public int SourceCount => (SetId.HasValue ? 1 : 0) + (FolderId.HasValue ? 1 : 0) + (Library == true ? 1 : 0)
-        + (Due == true ? 1 : 0);
+        + (Due == true ? 1 : 0) + (Mistakes == true ? 1 : 0);
 }

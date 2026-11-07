@@ -147,18 +147,18 @@ public sealed class VocabularyValidatorTests
         CreateCustomWordCommand Word(string headword = "kickoff", string meaning = "khai mạc", string? example = null,
             string? note = null, PartOfSpeech pos = PartOfSpeech.Noun) =>
             new(headword, null, pos, meaning, null, example, null, null, note, 0, Learner);
-        Assert.True(validator.Validate(Word(new string('a', 80), new string('b', 200), new string('c', 300), new string('d', 300))).IsValid);
+        Assert.True(validator.Validate(Word(new string('a', 80), new string('b', 200), new string('c', 300), new string('d', 1000))).IsValid);
         Assert.False(validator.Validate(Word(headword: new string('a', 81))).IsValid);
         Assert.False(validator.Validate(Word(headword: " ")).IsValid);
         Assert.False(validator.Validate(Word(meaning: new string('b', 201))).IsValid);
         Assert.False(validator.Validate(Word(meaning: "")).IsValid);
         Assert.False(validator.Validate(Word(example: new string('c', 301))).IsValid);
-        Assert.False(validator.Validate(Word(note: new string('d', 301))).IsValid);
+        Assert.False(validator.Validate(Word(note: new string('d', 1001))).IsValid);
         Assert.False(validator.Validate(Word(pos: (PartOfSpeech)99)).IsValid);
 
         var update = new UpdateSavedWordValidator();
         Assert.True(update.Validate(new UpdateSavedWordCommand(Optional<Guid?>.Of(null), default, null, 0, Guid.NewGuid(), Learner)).IsValid);
-        Assert.False(update.Validate(new UpdateSavedWordCommand(default, Optional<string?>.Of(new string('x', 301)), null, 0,
+        Assert.False(update.Validate(new UpdateSavedWordCommand(default, Optional<string?>.Of(new string('x', 1001)), null, 0,
             Guid.NewGuid(), Learner)).IsValid);
         Assert.False(update.Validate(new UpdateSavedWordCommand(default, default,
             new CustomWordInput("", null, PartOfSpeech.Noun, "x", null, null, null), 0, Guid.NewGuid(), Learner)).IsValid);

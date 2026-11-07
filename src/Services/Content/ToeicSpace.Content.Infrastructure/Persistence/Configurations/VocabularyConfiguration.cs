@@ -90,6 +90,7 @@ public sealed class LearnerWordProgressConfiguration : IEntityTypeConfiguration<
         b.Property(x => x.Version).IsConcurrencyToken();
         b.HasIndex(x => new { x.LearnerId, x.WordId }).IsUnique();
         b.HasIndex(x => new { x.LearnerId, x.DueOn });
+        b.HasIndex(x => new { x.LearnerId, x.MistakePending, x.LastMistakeAt });
     }
 }
 
@@ -147,6 +148,12 @@ public sealed class SavedWordConfiguration : IEntityTypeConfiguration<SavedWord>
         b.HasOne(x => x.Word).WithMany().HasForeignKey(x => x.WordId).OnDelete(DeleteBehavior.Cascade);
         b.HasOne(x => x.Folder).WithMany().HasForeignKey(x => x.FolderId).OnDelete(DeleteBehavior.SetNull);
         b.Property(x => x.Note).HasMaxLength(SavedWord.NoteMaxLength);
+        b.Property(x => x.MyPhonetic).HasMaxLength(SavedWord.MyPhoneticMaxLength);
+        b.Property(x => x.MyPartOfSpeech).HasConversion<string>().HasMaxLength(24);
+        b.Property(x => x.MyMeaningVi).HasMaxLength(SavedWord.MyMeaningMaxLength);
+        b.Property(x => x.MyExample).HasMaxLength(SavedWord.MyTextMaxLength);
+        b.Property(x => x.MyExampleVi).HasMaxLength(SavedWord.MyTextMaxLength);
+        b.Ignore(x => x.HasPersonalEdits);
         b.HasIndex(x => new { x.LearnerId, x.WordId }).IsUnique();
         b.HasIndex(x => new { x.LearnerId, x.FolderId, x.SavedAt });
     }

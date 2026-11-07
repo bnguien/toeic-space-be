@@ -1,6 +1,7 @@
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Logging.Abstractions;
+using ToeicSpace.Content.Application.Common.Json;
 using ToeicSpace.Content.Application.DTOs.LibraryImport;
 using ToeicSpace.Content.Application.Features.LibraryImport.Commands.ImportWords;
 using ToeicSpace.Content.Application.Features.LibraryImport.Commands.ParseImport;
@@ -9,6 +10,7 @@ using ToeicSpace.Content.Application.Features.VocabularyLibrary.Commands.CreateC
 using ToeicSpace.Content.Application.Features.VocabularyLibrary.Commands.CreateFolder;
 using ToeicSpace.Content.Application.Features.VocabularyLookup.Queries.LookupWord;
 using ToeicSpace.Content.Application.Features.VocabularyLibrary.Commands.SaveWord;
+using ToeicSpace.Content.Application.Features.VocabularyLibrary.Commands.UpdatePersonalWord;
 using ToeicSpace.Content.Application.Models.Enrichment;
 using ToeicSpace.Content.Domain.Enums;
 using ToeicSpace.Content.Domain.Exceptions;
@@ -180,6 +182,16 @@ public sealed class LibraryImportTests : IAsyncLifetime
             "cộng hưởng", null, null, null, null, null, 0, Learner), default);
         var mine = await Handler().Handle(new LookupWordQuery("synergy", null, false, Learner), default);
         Assert.Equal((custom.Id, (Guid?)null), (mine.Existing!.SavedWordId, mine.OfficialWordId));
+
+        // A saved official word the learner edited shows the learner's values ("personal" source); others do not.
+        await _ctx.PersonalEdit().Handle(new UpdatePersonalWordCommand(MeaningVi: Optional<string?>.Of("ngân quỹ riêng"),
+            WordId: _official["budget"], LearnerId: Learner), default);
+        var edited = await Handler().Handle(new LookupWordQuery("budget", null, false, Learner), default);
+        Assert.Equal(("ngân quỹ riêng", "personal", saved.SavedWord.Id),
+            (edited.MeaningVi, edited.Sources["meaningVi"], edited.Existing!.SavedWordId));
+        var other = await Handler().Handle(new LookupWordQuery("budget", null, false, Guid.NewGuid()), default);
+        Assert.Equal("ngân sách", other.MeaningVi);
+        Assert.NotEqual("personal", other.Sources["meaningVi"]);
 
         Assert.False(new LookupWordValidator().Validate(new LookupWordQuery("a b c d e f", null, false, Learner)).IsValid);
         Assert.False(new LookupWordValidator().Validate(new LookupWordQuery("???", null, false, Learner)).IsValid);

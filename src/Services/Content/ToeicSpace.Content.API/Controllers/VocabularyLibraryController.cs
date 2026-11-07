@@ -10,6 +10,7 @@ using ToeicSpace.Content.Application.Features.VocabularyLibrary.Commands.DeleteF
 using ToeicSpace.Content.Application.Features.VocabularyLibrary.Commands.RemoveSavedWord;
 using ToeicSpace.Content.Application.Features.VocabularyLibrary.Commands.SaveWord;
 using ToeicSpace.Content.Application.Features.VocabularyLibrary.Commands.UpdateFolder;
+using ToeicSpace.Content.Application.Features.VocabularyLibrary.Commands.UpdatePersonalWord;
 using ToeicSpace.Content.Application.Features.VocabularyLibrary.Commands.UpdateSavedWord;
 using ToeicSpace.Content.Application.Features.VocabularyLibrary.Queries.GetLibrary;
 using ToeicSpace.Content.Application.Features.VocabularyLibrary.Queries.GetSavedWords;
@@ -64,6 +65,18 @@ public sealed class VocabularyLibraryController(ISender sender) : ControllerBase
     public async Task<ActionResult<SavedWordDto>> CreateCustomWord([FromBody] CreateCustomWordCommand command,
         CancellationToken ct) =>
         StatusCode(StatusCodes.Status201Created, await sender.Send(command with { LearnerId = LearnerId }, ct));
+
+    /// <summary>
+    /// The learner's own edit of a word (official: personal overrides, custom: the word itself); 201 when the edit
+    /// added the word to the library, else 200.
+    /// </summary>
+    [HttpPut("word-edits/{wordId:guid}")]
+    public async Task<ActionResult<SavedWordDto>> UpdatePersonalWord(Guid wordId,
+        [FromBody] UpdatePersonalWordCommand command, CancellationToken ct)
+    {
+        var result = await sender.Send(command with { WordId = wordId, LearnerId = LearnerId }, ct);
+        return result.Created ? StatusCode(StatusCodes.Status201Created, result.SavedWord) : Ok(result.SavedWord);
+    }
 
     [HttpPut("words/{savedWordId:guid}")]
     public Task<SavedWordDto> UpdateWord(Guid savedWordId, [FromBody] UpdateSavedWordCommand command,

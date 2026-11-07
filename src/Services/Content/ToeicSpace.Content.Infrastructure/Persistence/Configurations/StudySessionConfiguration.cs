@@ -5,6 +5,7 @@ using Microsoft.EntityFrameworkCore.ChangeTracking;
 using Microsoft.EntityFrameworkCore.Metadata.Builders;
 using ToeicSpace.Content.Domain.Entities;
 using ToeicSpace.Content.Domain.Enums;
+using ToeicSpace.Content.Domain.Rules;
 
 namespace ToeicSpace.Content.Infrastructure.Persistence.Configurations;
 
@@ -49,6 +50,8 @@ public sealed class StudySessionConfiguration : IEntityTypeConfiguration<StudySe
 
 public sealed class LearnerVocabularyPreferencesConfiguration : IEntityTypeConfiguration<LearnerVocabularyPreferences>
 {
+    private static readonly JsonSerializerOptions Json = new(JsonSerializerDefaults.Web);
+
     public void Configure(EntityTypeBuilder<LearnerVocabularyPreferences> b)
     {
         b.ToTable("LearnerVocabularyPreferences");
@@ -56,5 +59,9 @@ public sealed class LearnerVocabularyPreferencesConfiguration : IEntityTypeConfi
         b.Property(x => x.LearnerId).ValueGeneratedNever();
         b.Property(x => x.DefaultMode).HasConversion<string>().HasMaxLength(16).IsRequired();
         b.Property(x => x.LastView).HasConversion<string>().HasMaxLength(16).IsRequired();
+        // Null = defaults; the record is immutable, so value equality is enough to detect a change.
+        b.Property(x => x.StudySettings)
+            .HasConversion(v => JsonSerializer.Serialize(v, Json), v => JsonSerializer.Deserialize<StudySettings>(v, Json))
+            .HasColumnType("json");
     }
 }

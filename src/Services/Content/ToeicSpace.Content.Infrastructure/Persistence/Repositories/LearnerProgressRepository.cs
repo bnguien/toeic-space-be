@@ -1,4 +1,5 @@
 using Microsoft.EntityFrameworkCore;
+using ToeicSpace.Content.Application.Common.Pagination;
 using ToeicSpace.Content.Application.Interfaces.Repositories;
 using ToeicSpace.Content.Domain.Entities;
 
@@ -27,6 +28,28 @@ public sealed class LearnerProgressRepository(ContentDbContext db) : ILearnerPro
                 .Where(x => x.LearnerId == learnerId && x.DueOn <= localToday)
                 .OrderBy(x => x.DueOn).ThenBy(x => x.LastReviewedAt).ThenBy(x => x.Id)
                 .Take(limit).ToListAsync(ct));
+
+    public Task<PagedResult<LearnerWordProgress>> GetMistakesAsync(Guid learnerId, int page, int pageSize,
+        CancellationToken ct) =>
+        PersistenceExceptionTranslator.ExecuteAsync(async () =>
+        {
+            var query = Mistakes(learnerId);
+            var count = await query.CountAsync(ct);
+            var items = await query.Skip((page - 1) * pageSize).Take(pageSize).ToListAsync(ct);
+            return new PagedResult<LearnerWordProgress>(items, page, pageSize, count);
+        });
+
+    public Task<IReadOnlyList<Guid>> GetMistakeWordIdsAsync(Guid learnerId, CancellationToken ct) =>
+        PersistenceExceptionTranslator.ExecuteAsync<IReadOnlyList<Guid>>(async () =>
+            await Mistakes(learnerId).Select(x => x.WordId).ToListAsync(ct));
+
+    public Task<int> CountMistakesAsync(Guid learnerId, CancellationToken ct) =>
+        PersistenceExceptionTranslator.ExecuteAsync(() => db.LearnerWordProgress
+            .CountAsync(x => x.LearnerId == learnerId && x.MistakePending, ct));
+
+    private IQueryable<LearnerWordProgress> Mistakes(Guid learnerId) => db.LearnerWordProgress.AsNoTracking()
+        .Where(x => x.LearnerId == learnerId && x.MistakePending)
+        .OrderByDescending(x => x.LastMistakeAt).ThenBy(x => x.Id);
 
     public Task<WordReviewLog?> GetReviewLogAsync(Guid learnerId, Guid clientEventId, CancellationToken ct) =>
         PersistenceExceptionTranslator.ExecuteAsync(() => db.WordReviewLogs.AsNoTracking()

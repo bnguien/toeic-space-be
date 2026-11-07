@@ -51,7 +51,8 @@ public sealed class GetLearnerSummaryHandler(ILearnerProgressRepository progress
             stageProgress,
             (await sessions.GetLatestActiveAsync(request.LearnerId, null, null, null, now - StudySession.StaleAfter, ct))
                 ?.ToActiveDto(),
-            (await preferences.GetAsync(request.LearnerId, ct))?.DailyGoal ?? LearnerVocabularyPreferences.DefaultDailyGoal);
+            (await preferences.GetAsync(request.LearnerId, ct))?.DailyGoal ?? LearnerVocabularyPreferences.DefaultDailyGoal,
+            rows.Count(x => x.MistakePending));
     }
 
     /// <summary>Consecutive local days with a review, ending today or yesterday.</summary>

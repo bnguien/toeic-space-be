@@ -1,3 +1,4 @@
+using ToeicSpace.Content.Application.Common.Validation;
 using ToeicSpace.Content.Domain.Entities;
 
 namespace ToeicSpace.Content.Application.Features.VocabularyPreferences.Commands.UpdatePreferences;
@@ -23,5 +24,7 @@ public sealed class UpdatePreferencesValidator : AbstractValidator<UpdatePrefere
             .When(x => x.LastFolderId.IsSet && x.LastFolderId.Value.HasValue);
         RuleFor(x => x.LastFolderPickerId.Value).NotEqual(Guid.Empty).WithName("lastFolderPickerId")
             .When(x => x.LastFolderPickerId.IsSet && x.LastFolderPickerId.Value.HasValue);
+        RuleFor(x => x.Study!).SetValidator(new StudySettingsInputValidator()).OverridePropertyName("study")
+            .When(x => x.Study is not null);
     }
 }

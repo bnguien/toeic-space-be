@@ -18,6 +18,7 @@ public sealed class GetLibraryHandler(ILearnerLibraryRepository library, ILearne
             .ToDictionary(x => x.WordId);
         var byFolder = words.ToLookup(x => x.FolderId);
         return new LibraryDto(words.Count, LibraryCounter.Count(byFolder[null], rows, today),
-            folders.Select(f => f.ToDto(LibraryCounter.Count(byFolder[f.Id], rows, today))).ToArray());
+            folders.Select(f => f.ToDto(LibraryCounter.Count(byFolder[f.Id], rows, today))).ToArray(),
+            await progress.CountMistakesAsync(request.LearnerId, ct));
     }
 }

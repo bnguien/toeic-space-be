@@ -42,6 +42,9 @@ public static class VocabularyErrors
     public static ContentRuleException SessionEmpty() =>
         new("study_session_empty", "There are no words to study for this source.");
 
+    public static ContentRuleException CustomMeaningRequired() =>
+        new("validation_error", "meaningVi cannot be empty for a custom word.");
+
     public static ContentRuleException CustomWordExists() =>
         new("custom_word_exists", "You already have a custom word with this headword and part of speech.", 409);
 }

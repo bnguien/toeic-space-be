@@ -188,6 +188,9 @@ namespace ToeicSpace.Content.Infrastructure.Persistence.Migrations
                     b.Property<bool>("Snowfall")
                         .HasColumnType("tinyint(1)");
 
+                    b.Property<string>("StudySettings")
+                        .HasColumnType("json");
+
                     b.Property<DateTime?>("UpdatedAt")
                         .HasColumnType("datetime(6)");
 
@@ -224,11 +227,20 @@ namespace ToeicSpace.Content.Infrastructure.Persistence.Migrations
                     b.Property<DateOnly?>("LastGradeDay")
                         .HasColumnType("date");
 
+                    b.Property<DateTime?>("LastMistakeAt")
+                        .HasColumnType("datetime(6)");
+
                     b.Property<DateTime?>("LastReviewedAt")
                         .HasColumnType("datetime(6)");
 
                     b.Property<Guid>("LearnerId")
                         .HasColumnType("char(36)");
+
+                    b.Property<int>("MistakeCount")
+                        .HasColumnType("int");
+
+                    b.Property<bool>("MistakePending")
+                        .HasColumnType("tinyint(1)");
 
                     b.Property<int>("Repetitions")
                         .HasColumnType("int");
@@ -251,6 +263,8 @@ namespace ToeicSpace.Content.Infrastructure.Persistence.Migrations
 
                     b.HasIndex("LearnerId", "WordId")
                         .IsUnique();
+
+                    b.HasIndex("LearnerId", "MistakePending", "LastMistakeAt");
 
                     b.ToTable("LearnerWordProgress", (string)null);
                 });
@@ -525,9 +539,32 @@ namespace ToeicSpace.Content.Infrastructure.Persistence.Migrations
                     b.Property<Guid>("LearnerId")
                         .HasColumnType("char(36)");
 
-                    b.Property<string>("Note")
+                    b.Property<string>("MyExample")
                         .HasMaxLength(300)
                         .HasColumnType("varchar(300)");
+
+                    b.Property<string>("MyExampleVi")
+                        .HasMaxLength(300)
+                        .HasColumnType("varchar(300)");
+
+                    b.Property<string>("MyMeaningVi")
+                        .HasMaxLength(200)
+                        .HasColumnType("varchar(200)");
+
+                    b.Property<string>("MyPartOfSpeech")
+                        .HasMaxLength(24)
+                        .HasColumnType("varchar(24)");
+
+                    b.Property<string>("MyPhonetic")
+                        .HasMaxLength(100)
+                        .HasColumnType("varchar(100)");
+
+                    b.Property<string>("Note")
+                        .HasMaxLength(1000)
+                        .HasColumnType("varchar(1000)");
+
+                    b.Property<DateTime?>("PersonalizedAt")
+                        .HasColumnType("datetime(6)");
 
                     b.Property<DateTime>("SavedAt")
                         .HasColumnType("datetime(6)");

@@ -9,7 +9,7 @@ namespace ToeicSpace.Content.API.Controllers;
 
 /// <summary>Admin import of the roadmap stage files from <c>data/vocabulary</c>.</summary>
 [ApiController]
-[Route("api/v1/vocabulary/admin")]
+[Route("api/v1/admin/vocabulary")]
 [Authorize(Policy = "Admin")]
 public sealed class AdminVocabularyController(ISender sender) : ControllerBase
 {

@@ -10,7 +10,8 @@ using ToeicSpace.Content.Domain.Rules;
 namespace ToeicSpace.Content.Application.Services;
 
 /// <summary>
-/// Records one review with <see cref="SpacedRepetitionScheduler"/>; shared by <c>me/reviews</c> and session answers.
+/// Records one review with <see cref="SpacedRepetitionScheduler"/> and the mistake flags; shared by <c>me/reviews</c>
+/// and session answers.
 /// Changes are staged only; the caller saves them (with its own changes) in one unit of work.
 /// </summary>
 public sealed class ReviewRecorder(ILearnerProgressRepository progress, IVocabularyCatalogRepository catalog,
@@ -52,6 +53,8 @@ public sealed class ReviewRecorder(ILearnerProgressRepository progress, IVocabul
             row.UpdatedAt = now;
             row.Version++;
         }
+        // "Từ sai": Forget keeps the word for redo until a later Good/Easy (Hard and Seen leave it as it is).
+        row?.TrackMistake(grade, now);
 
         progress.AddReviewLog(new WordReviewLog
         {

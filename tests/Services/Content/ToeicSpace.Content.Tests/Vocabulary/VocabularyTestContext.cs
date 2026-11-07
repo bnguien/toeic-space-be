@@ -10,6 +10,7 @@ using ToeicSpace.Content.Application.Features.VocabularyCatalog.Queries.GetStage
 using ToeicSpace.Content.Application.Features.VocabularyImport.Commands.ImportVocabularyStages;
 using ToeicSpace.Content.Application.Features.VocabularyProgress.Commands.SubmitReview;
 using ToeicSpace.Content.Application.Features.VocabularyProgress.Queries.GetLearnerSummary;
+using ToeicSpace.Content.Application.Features.VocabularyProgress.Queries.GetMistakes;
 using ToeicSpace.Content.Application.Features.VocabularyProgress.Queries.GetStageSetProgress;
 using ToeicSpace.Content.Application.Features.VocabularyProgress.Queries.GetStudyQueue;
 using ToeicSpace.Content.Application.Features.VocabularyQuizzes.Commands.CreateQuiz;
@@ -25,6 +26,7 @@ using ToeicSpace.Content.Application.Features.VocabularyLibrary.Commands.DeleteF
 using ToeicSpace.Content.Application.Features.VocabularyLibrary.Commands.RemoveSavedWord;
 using ToeicSpace.Content.Application.Features.VocabularyLibrary.Commands.SaveWord;
 using ToeicSpace.Content.Application.Features.VocabularyLibrary.Commands.UpdateFolder;
+using ToeicSpace.Content.Application.Features.VocabularyLibrary.Commands.UpdatePersonalWord;
 using ToeicSpace.Content.Application.Features.VocabularyLibrary.Commands.UpdateSavedWord;
 using ToeicSpace.Content.Application.Features.VocabularyLibrary.Queries.GetLibrary;
 using ToeicSpace.Content.Application.Features.VocabularyLibrary.Queries.GetSavedWords;
@@ -90,11 +92,16 @@ public sealed class VocabularyTestContext : IAsyncLifetime
 
     public GetStagesHandler Stages() => new(new VocabularyCatalogRepository(Db()));
     public GetStageSetsHandler StageSets() => new(new VocabularyCatalogRepository(Db()));
-    public GetSetDetailHandler SetDetail() => new(new VocabularyCatalogRepository(Db()));
+    public GetSetDetailHandler SetDetail()
+    {
+        var db = Db();
+        return new(new VocabularyCatalogRepository(db), Overlay(db));
+    }
+
     public CreateQuizHandler Quiz()
     {
         var db = Db();
-        return new(new VocabularyCatalogRepository(db), new LearnerLibraryRepository(db));
+        return new(new VocabularyCatalogRepository(db), new LearnerLibraryRepository(db), Overlay(db));
     }
     public GetReelBackgroundsHandler Reels() => new(new ReelBackgroundRepository(Db()));
 
@@ -120,9 +127,16 @@ public sealed class VocabularyTestContext : IAsyncLifetime
 
     public GetStudyQueueHandler Queue() => new(QueueService(Db()), Clock);
 
+    public GetMistakesHandler Mistakes()
+    {
+        var db = Db();
+        return new(new LearnerProgressRepository(db), new VocabularyCatalogRepository(db), Overlay(db), Clock);
+    }
+
     // ---- shared application services ----
     public StudyQueueService QueueService(ContentDbContext db) => new(new LearnerProgressRepository(db),
-        new VocabularyCatalogRepository(db), new LearnerLibraryRepository(db));
+        new VocabularyCatalogRepository(db), new LearnerLibraryRepository(db), Overlay(db));
+    public PersonalWordOverlay Overlay(ContentDbContext db) => new(new LearnerLibraryRepository(db));
     public ReviewRecorder Recorder(ContentDbContext db) => new(new LearnerProgressRepository(db),
         new VocabularyCatalogRepository(db), NullLogger<ReviewRecorder>.Instance);
     public StudySessionPresenter Presenter(ContentDbContext db) => new(QueueService(db), Clock);
@@ -178,6 +192,13 @@ public sealed class VocabularyTestContext : IAsyncLifetime
     {
         var db = Db();
         return new(new LearnerLibraryRepository(db), LibraryWords(db), new UnitOfWork(db), Clock);
+    }
+
+    public UpdatePersonalWordHandler PersonalEdit()
+    {
+        var db = Db();
+        return new(new LearnerLibraryRepository(db), new VocabularyCatalogRepository(db), LibraryWords(db),
+            new UnitOfWork(db), Clock, NullLogger<UpdatePersonalWordHandler>.Instance);
     }
 
     public RemoveSavedWordHandler RemoveWord()

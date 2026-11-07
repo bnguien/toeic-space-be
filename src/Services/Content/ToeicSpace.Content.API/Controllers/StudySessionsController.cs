@@ -3,21 +3,18 @@ using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using ToeicSpace.BuildingBlocks.Security.Jwt;
 using ToeicSpace.Content.Application.DTOs.StudySessions;
-using ToeicSpace.Content.Application.DTOs.VocabularyPreferences;
 using ToeicSpace.Content.Application.Features.StudySessions.Commands.AbandonStudySession;
 using ToeicSpace.Content.Application.Features.StudySessions.Commands.AnswerStudySession;
 using ToeicSpace.Content.Application.Features.StudySessions.Commands.CompleteStudySession;
 using ToeicSpace.Content.Application.Features.StudySessions.Commands.StartStudySession;
 using ToeicSpace.Content.Application.Features.StudySessions.Queries.GetActiveStudySession;
 using ToeicSpace.Content.Application.Features.StudySessions.Queries.GetStudySession;
-using ToeicSpace.Content.Application.Features.VocabularyPreferences.Commands.UpdatePreferences;
-using ToeicSpace.Content.Application.Features.VocabularyPreferences.Queries.GetPreferences;
 using ToeicSpace.Content.Domain.Enums;
 using ToeicSpace.Content.Domain.Exceptions;
 
 namespace ToeicSpace.Content.API.Controllers;
 
-/// <summary>Server-side study sessions and personal preferences of the signed-in learner.</summary>
+/// <summary>Server-side study sessions of the signed-in learner.</summary>
 [ApiController]
 [Route("api/v1/vocabulary/me")]
 [Authorize]
@@ -38,11 +35,11 @@ public sealed class StudySessionsController(ISender sender) : ControllerBase
     /// <summary>The most recent active session matching the filters, or 204.</summary>
     [HttpGet("sessions/active")]
     public async Task<ActionResult<StudySessionDto>> Active([FromQuery] StudyMode? mode, [FromQuery] Guid? setId,
-        [FromQuery] Guid? folderId, [FromQuery] bool? library, [FromQuery] bool? due, [FromQuery] int tzOffset = 0,
-        CancellationToken ct = default)
+        [FromQuery] Guid? folderId, [FromQuery] bool? library, [FromQuery] bool? due, [FromQuery] bool? mistakes,
+        [FromQuery] int tzOffset = 0, CancellationToken ct = default)
     {
         var session = await sender.Send(new GetActiveStudySessionQuery(LearnerId, mode, setId, folderId, library, due,
-            tzOffset), ct);
+            tzOffset, mistakes), ct);
         return session is null ? NoContent() : Ok(session);
     }
 
@@ -66,12 +63,4 @@ public sealed class StudySessionsController(ISender sender) : ControllerBase
         await sender.Send(new AbandonStudySessionCommand(sessionId, LearnerId), ct);
         return NoContent();
     }
-
-    [HttpGet("preferences")]
-    public Task<PreferencesDto> Preferences(CancellationToken ct) =>
-        sender.Send(new GetPreferencesQuery(LearnerId), ct);
-
-    [HttpPut("preferences")]
-    public Task<PreferencesDto> UpdatePreferences([FromBody] UpdatePreferencesCommand command, CancellationToken ct) =>
-        sender.Send(command with { LearnerId = LearnerId }, ct);
 }

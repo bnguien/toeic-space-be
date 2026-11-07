@@ -57,7 +57,8 @@ public sealed class LearnerLibraryRepository(ContentDbContext db) : ILearnerLibr
             {
                 var term = search.ToLower();
                 query = query.Where(x => x.Word!.NormalizedHeadword.Contains(term)
-                    || x.Word.MeaningVi.ToLower().Contains(term));
+                    || x.Word.MeaningVi.ToLower().Contains(term)
+                    || (x.MyMeaningVi != null && x.MyMeaningVi.ToLower().Contains(term)));
             }
             var count = await query.CountAsync(ct);
             var items = await query.OrderByDescending(x => x.SavedAt).ThenBy(x => x.Id)
@@ -70,15 +71,21 @@ public sealed class LearnerLibraryRepository(ContentDbContext db) : ILearnerLibr
             .FirstOrDefaultAsync(x => x.Id == savedWordId && x.LearnerId == learnerId, ct));
 
     public Task<SavedWord?> GetSavedWordByWordForUpdateAsync(Guid learnerId, Guid wordId, CancellationToken ct) =>
-        PersistenceExceptionTranslator.ExecuteAsync(() => db.SavedWords
+        PersistenceExceptionTranslator.ExecuteAsync(() => db.SavedWords.Include(x => x.Word)
             .FirstOrDefaultAsync(x => x.LearnerId == learnerId && x.WordId == wordId, ct));
 
-    public Task<IReadOnlyDictionary<Guid, Guid>> GetSavedWordIdsAsync(Guid learnerId,
+    public Task<IReadOnlyList<SavedWord>> GetSavedWordsByWordAsync(Guid learnerId,
         IReadOnlyCollection<Guid> wordIds, CancellationToken ct) =>
-        PersistenceExceptionTranslator.ExecuteAsync<IReadOnlyDictionary<Guid, Guid>>(async () =>
+        PersistenceExceptionTranslator.ExecuteAsync<IReadOnlyList<SavedWord>>(async () =>
             await db.SavedWords.AsNoTracking()
-                .Where(x => x.LearnerId == learnerId && wordIds.Contains(x.WordId))
-                .ToDictionaryAsync(x => x.WordId, x => x.Id, ct));
+                .Where(x => x.LearnerId == learnerId && wordIds.Contains(x.WordId)).ToListAsync(ct));
+
+    public Task<IReadOnlyList<SavedWord>> GetPersonalizedAsync(Guid learnerId, CancellationToken ct) =>
+        PersistenceExceptionTranslator.ExecuteAsync<IReadOnlyList<SavedWord>>(async () =>
+            await db.SavedWords.AsNoTracking()
+                .Where(x => x.LearnerId == learnerId && (x.MyPhonetic != null || x.MyPartOfSpeech != null
+                    || x.MyMeaningVi != null || x.MyExample != null || x.MyExampleVi != null))
+                .ToListAsync(ct));
 
     public Task<int> CountSavedWordsAsync(Guid learnerId, CancellationToken ct) =>
         PersistenceExceptionTranslator.ExecuteAsync(() => db.SavedWords.CountAsync(x => x.LearnerId == learnerId, ct));

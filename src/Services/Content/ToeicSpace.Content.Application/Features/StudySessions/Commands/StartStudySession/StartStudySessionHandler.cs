@@ -19,7 +19,7 @@ public sealed class StartStudySessionHandler(IStudySessionRepository sessions, S
         var now = clock.GetUtcNow().UtcDateTime;
         var today = SpacedRepetitionScheduler.LocalDay(now, request.TzOffset);
         var (kind, sourceId) = StudyQueueService.KindOf(request.SetId, request.FolderId, request.Library, request.Due,
-            request.WordIds);
+            request.WordIds, request.Mistakes);
 
         var current = await sessions.GetActiveBySlotForUpdateAsync(request.LearnerId,
             StudySession.SlotOf(request.Mode, kind, sourceId), ct);

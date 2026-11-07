@@ -1,4 +1,5 @@
 using ToeicSpace.Content.Domain.Enums;
+using ToeicSpace.Content.Domain.Rules;
 
 namespace ToeicSpace.Content.Domain.Entities;
 
@@ -26,5 +27,7 @@ public sealed class LearnerVocabularyPreferences
     public Guid? LastFolderId { get; set; }
     /// <summary>Folder remembered by the "add word" dialog.</summary>
     public Guid? LastFolderPickerId { get; set; }
+    /// <summary>Study-mode settings (JSON); null = <see cref="Rules.StudySettings.Default"/>.</summary>
+    public StudySettings? StudySettings { get; set; }
     public DateTime? UpdatedAt { get; set; }
 }

@@ -4,6 +4,7 @@ using ToeicSpace.Content.Application.Interfaces;
 using ToeicSpace.Content.Application.Interfaces.Repositories;
 using ToeicSpace.Content.Application.Mappings;
 using ToeicSpace.Content.Domain.Entities;
+using ToeicSpace.Content.Domain.Rules;
 
 namespace ToeicSpace.Content.Application.Features.VocabularyPreferences.Commands.UpdatePreferences;
 
@@ -29,6 +30,7 @@ public sealed class UpdatePreferencesHandler(IVocabularyPreferencesRepository pr
         Set(request.LastView, v => row.LastView = v);
         Set(request.LastFolderId, v => row.LastFolderId = v);
         Set(request.LastFolderPickerId, v => row.LastFolderPickerId = v);
+        if (request.Study is not null) row.StudySettings = request.Study.ApplyTo(row.StudySettings ?? StudySettings.Default);
         row.UpdatedAt = clock.GetUtcNow().UtcDateTime;
         await unitOfWork.SaveChangesAsync(ct);
         return row.ToDto();

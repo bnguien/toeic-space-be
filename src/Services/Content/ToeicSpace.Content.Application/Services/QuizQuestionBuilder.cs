@@ -5,7 +5,8 @@ namespace ToeicSpace.Content.Application.Services;
 
 /// <summary>
 /// Builds a "meaning → pick the word" question: the answer plus up to three distractors taken from the candidate
-/// pools in priority order, never repeating a headword and never using a word whose meaning equals the prompt.
+/// pools in priority order. Options stay distinct case-insensitively: never a repeated headword, never a word whose
+/// meaning equals the prompt or another option's meaning. Words carry the learner's effective (personal) values.
 /// </summary>
 public static class QuizQuestionBuilder
 {
@@ -14,8 +15,8 @@ public static class QuizQuestionBuilder
     public static QuizQuestionDto Build(VocabularyWord answer, IEnumerable<IEnumerable<VocabularyWord>> pools,
         Random random)
     {
-        var prompt = NormalizeMeaning(answer.MeaningVi);
-        var usedHeadwords = new HashSet<string> { answer.NormalizedHeadword };
+        var usedHeadwords = new HashSet<string> { NormalizeHeadword(answer) };
+        var usedMeanings = new HashSet<string> { NormalizeMeaning(answer.MeaningVi) };
         var distractors = new List<VocabularyWord>(OptionCount - 1);
 
         foreach (var pool in pools)
@@ -23,9 +24,10 @@ public static class QuizQuestionBuilder
             foreach (var candidate in Shuffle(pool.ToArray(), random))
             {
                 if (distractors.Count == OptionCount - 1) break;
-                if (candidate.Id == answer.Id || usedHeadwords.Contains(candidate.NormalizedHeadword)
-                    || NormalizeMeaning(candidate.MeaningVi) == prompt) continue;
-                usedHeadwords.Add(candidate.NormalizedHeadword);
+                if (candidate.Id == answer.Id || usedHeadwords.Contains(NormalizeHeadword(candidate))
+                    || usedMeanings.Contains(NormalizeMeaning(candidate.MeaningVi))) continue;
+                usedHeadwords.Add(NormalizeHeadword(candidate));
+                usedMeanings.Add(NormalizeMeaning(candidate.MeaningVi));
                 distractors.Add(candidate);
             }
             if (distractors.Count == OptionCount - 1) break;
@@ -38,11 +40,14 @@ public static class QuizQuestionBuilder
 
     /// <summary>Candidates that would be accepted as distractors for <paramref name="answer"/> (same rules as Build).</summary>
     public static int CountEligible(VocabularyWord answer, IEnumerable<VocabularyWord> candidates) =>
-        candidates.Where(x => x.Id != answer.Id && x.NormalizedHeadword != answer.NormalizedHeadword
+        candidates.Where(x => x.Id != answer.Id && NormalizeHeadword(x) != NormalizeHeadword(answer)
                               && NormalizeMeaning(x.MeaningVi) != NormalizeMeaning(answer.MeaningVi))
-            .Select(x => x.NormalizedHeadword).Distinct().Count();
+            .DistinctBy(NormalizeHeadword).DistinctBy(x => NormalizeMeaning(x.MeaningVi)).Count();
 
-    private static string NormalizeMeaning(string meaning) => meaning.Trim().ToLowerInvariant();
+    private static string NormalizeHeadword(VocabularyWord word) => VocabularyWord.Normalize(word.Headword);
+
+    private static string NormalizeMeaning(string meaning) =>
+        string.Join(' ', meaning.Trim().ToLowerInvariant().Split((char[]?)null, StringSplitOptions.RemoveEmptyEntries));
 
     private static T[] Shuffle<T>(T[] items, Random random)
     {

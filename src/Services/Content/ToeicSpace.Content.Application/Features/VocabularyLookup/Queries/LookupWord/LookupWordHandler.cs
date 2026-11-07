@@ -2,6 +2,7 @@ using ToeicSpace.Content.Application.DTOs.VocabularyLookup;
 using ToeicSpace.Content.Application.Interfaces.Repositories;
 using ToeicSpace.Content.Application.Mappings;
 using ToeicSpace.Content.Application.Models.Enrichment;
+using ToeicSpace.Content.Application.Services;
 using ToeicSpace.Content.Application.Services.Enrichment;
 
 namespace ToeicSpace.Content.Application.Features.VocabularyLookup.Queries.LookupWord;
@@ -19,6 +20,8 @@ public sealed class LookupWordHandler(WordEnricher enricher, ILearnerLibraryRepo
         var saved = await library.FindSavedByHeadwordAsync(request.LearnerId, result.Gloss.NormalizedText, ct);
         var existing = saved.FirstOrDefault(x => result.OfficialWordId is { } official ? x.WordId == official : x.Word!.IsCustom)
             ?? saved.FirstOrDefault(x => x.Word!.IsCustom);
-        return result.ToLookupDto(existing is null ? null : new ExistingWordDto(existing.Id, existing.FolderId));
+        // A saved official word the learner edited shows the learner's own values (the shared cache is untouched).
+        return PersonalWordOverlay.Apply(
+            result.ToLookupDto(existing is null ? null : new ExistingWordDto(existing.Id, existing.FolderId)), existing);
     }
 }

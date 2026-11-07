@@ -19,9 +19,32 @@ public sealed class LearnerWordProgress
     public DateTime? LastReviewedAt { get; set; }
     public DateOnly? LastGradeDay { get; set; }
     public ReviewGrade? LastGrade { get; set; }
+    /// <summary>A wrong answer waiting to be redone ("Từ sai"), cleared by the next Good/Easy.</summary>
+    public bool MistakePending { get; set; }
+    public int MistakeCount { get; set; }
+    public DateTime? LastMistakeAt { get; set; }
     public DateTime CreatedAt { get; set; }
     public DateTime UpdatedAt { get; set; }
     public int Version { get; set; }
+
+    /// <summary>
+    /// Mistake flags of a recorded review: Forget marks the word as a pending mistake (count + 1), Good/Easy clears
+    /// it, Hard and Seen leave it as it is.
+    /// </summary>
+    public void TrackMistake(ReviewGrade grade, DateTime now)
+    {
+        switch (grade)
+        {
+            case ReviewGrade.Forget:
+                MistakePending = true;
+                MistakeCount++;
+                LastMistakeAt = now;
+                break;
+            case ReviewGrade.Good or ReviewGrade.Easy:
+                MistakePending = false;
+                break;
+        }
+    }
 
     public ScheduleState ToState() =>
         new(EaseFactor, IntervalDays, Repetitions, Lapses, DueOn, LastGradeDay, LastGrade);
