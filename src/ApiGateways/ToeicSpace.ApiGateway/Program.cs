@@ -1,3 +1,4 @@
+using ToeicSpace.BuildingBlocks.Security.Http;
 using System.Threading.RateLimiting;
 using ToeicSpace.BuildingBlocks.Security.Extensions;
 
@@ -87,7 +88,11 @@ if (!app.Environment.IsDevelopment())
     app.UseHsts();
 }
 
-app.UseSecurityHeaders();
+// News covers (Content service) are public, content-addressed images: keep their long cache headers.
+app.UseSecurityHeaders(new SecurityHeadersOptions
+{
+    ExcludedPathPrefixes = ["/swagger", "/content/api/v1/news/covers"]
+});
 
 app.UseCors();
 
