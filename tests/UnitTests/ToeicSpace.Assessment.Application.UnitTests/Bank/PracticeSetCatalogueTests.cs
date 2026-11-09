@@ -1,5 +1,6 @@
-using ToeicSpace.Assessment.Application.Practice.Queries.GetPracticeSetById;
-using ToeicSpace.Assessment.Application.Practice.Queries.GetPracticeSets;
+using ToeicSpace.Assessment.Application.Features.PracticeSets.Queries.GetPracticeSetById;
+using ToeicSpace.Assessment.Application.Features.PracticeSets.Queries.GetPracticeSets;
+
 
 namespace ToeicSpace.Assessment.Application.UnitTests.Bank;
 

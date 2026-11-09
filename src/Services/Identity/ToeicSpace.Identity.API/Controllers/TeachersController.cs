@@ -1,8 +1,8 @@
 using MediatR;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
-using ToeicSpace.Identity.Application.Features.Teachers.Queries;
-using ToeicSpace.Identity.Application.Features.Teachers.Results;
+using ToeicSpace.Identity.Application.DTOs.Teachers;
+using ToeicSpace.Identity.Application.Features.Teachers.Queries.GetTeachers;
 
 namespace ToeicSpace.Identity.API.Controllers;
 

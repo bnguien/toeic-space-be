@@ -1,7 +1,8 @@
-using ToeicSpace.Assessment.Application.Passages.Queries.GetPassages;
-using ToeicSpace.Assessment.Application.Practice.Queries.GetPracticeSets;
-using ToeicSpace.Assessment.Application.Questions.Queries.GetQuestions;
-using ToeicSpace.Assessment.Application.Tests.Queries.GetTests;
+using ToeicSpace.Assessment.Application.Features.Passages.Queries.GetPassages;
+using ToeicSpace.Assessment.Application.Features.PracticeSets.Queries.GetPracticeSets;
+using ToeicSpace.Assessment.Application.Features.Questions.Queries.GetQuestions;
+using ToeicSpace.Assessment.Application.Features.Tests.Queries.GetTests;
+
 
 namespace ToeicSpace.Assessment.Application.UnitTests.Bank;
 

@@ -147,6 +147,7 @@ public static class DependencyInjection
         services.AddSingleton<IPasswordHasher, Pbkdf2PasswordHasher>();
         services.AddSingleton<IAccessTokenIssuer, JwtAccessTokenIssuer>();
         services.AddSingleton<IRefreshTokenGenerator, RefreshTokenGenerator>();
+        services.AddSingleton<ITemporaryPasswordGenerator, TemporaryPasswordGenerator>();
         services.AddSingleton<ILoginAttemptLimiter, RedisLoginAttemptLimiter>();
         services.AddHostedService<AdminAccountBootstrapper>();
         services.AddSingleton<IOtpGenerator, CryptographicOtpGenerator>();

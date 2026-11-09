@@ -1,5 +1,6 @@
-using ToeicSpace.Assessment.Application.Passages.Queries.GetPassageById;
-using ToeicSpace.Assessment.Application.Passages.Queries.GetPassages;
+using ToeicSpace.Assessment.Application.Features.Passages.Queries.GetPassageById;
+using ToeicSpace.Assessment.Application.Features.Passages.Queries.GetPassages;
+
 
 namespace ToeicSpace.Assessment.Application.UnitTests.Bank;
 

@@ -1,6 +1,6 @@
-using ToeicSpace.Identity.Application.Extensions;
 using ToeicSpace.Identity.Application.Interfaces.Persistence;
 using ToeicSpace.Identity.Application.Interfaces.Security;
+using ToeicSpace.Identity.Application.Mappings;
 using ToeicSpace.Identity.Application.Models;
 using ToeicSpace.Identity.Domain.Entities;
 using ToeicSpace.Identity.Domain.Enums;

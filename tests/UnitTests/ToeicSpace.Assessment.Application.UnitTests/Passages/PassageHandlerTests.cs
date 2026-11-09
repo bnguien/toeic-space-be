@@ -1,4 +1,5 @@
-using ToeicSpace.Assessment.Application.Passages.Commands.UpdatePassage;
+using ToeicSpace.Assessment.Application.Features.Passages.Commands.UpdatePassage;
+
 
 namespace ToeicSpace.Assessment.Application.UnitTests.Passages;
 

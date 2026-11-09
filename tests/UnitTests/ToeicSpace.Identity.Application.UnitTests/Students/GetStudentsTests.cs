@@ -1,5 +1,5 @@
 using Microsoft.EntityFrameworkCore;
-using ToeicSpace.Identity.Application.Features.Students.Queries;
+using ToeicSpace.Identity.Application.Features.Students.Queries.GetStudents;
 using ToeicSpace.Identity.Application.UnitTests.Support;
 using ToeicSpace.Identity.Domain.Enums;
 

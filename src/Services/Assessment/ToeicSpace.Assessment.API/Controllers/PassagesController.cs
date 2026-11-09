@@ -1,10 +1,11 @@
 using Microsoft.AspNetCore.Authorization;
 using ToeicSpace.Assessment.API.Security;
-using ToeicSpace.Assessment.Application.Passages.Commands.CreatePassage;
-using ToeicSpace.Assessment.Application.Passages.Commands.DeletePassage;
-using ToeicSpace.Assessment.Application.Passages.Commands.UpdatePassage;
-using ToeicSpace.Assessment.Application.Passages.Queries.GetPassageById;
-using ToeicSpace.Assessment.Application.Passages.Queries.GetPassages;
+using ToeicSpace.Assessment.Application.DTOs.Passages;
+using ToeicSpace.Assessment.Application.Features.Passages.Commands.CreatePassage;
+using ToeicSpace.Assessment.Application.Features.Passages.Commands.DeletePassage;
+using ToeicSpace.Assessment.Application.Features.Passages.Commands.UpdatePassage;
+using ToeicSpace.Assessment.Application.Features.Passages.Queries.GetPassageById;
+using ToeicSpace.Assessment.Application.Features.Passages.Queries.GetPassages;
 
 namespace ToeicSpace.Assessment.API.Controllers;
 

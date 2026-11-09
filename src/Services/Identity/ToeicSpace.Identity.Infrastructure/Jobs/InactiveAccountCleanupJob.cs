@@ -1,5 +1,5 @@
 using MediatR;
-using ToeicSpace.Identity.Application.Features.CleanupInactiveAccounts.Commands;
+using ToeicSpace.Identity.Application.Features.Users.Commands.CleanupInactiveAccounts;
 
 namespace ToeicSpace.Identity.Infrastructure.Jobs;
 
