@@ -11,4 +11,5 @@ public sealed record GetPracticeSetsQuery(
     PracticeSetKind? Kind = null,
     int? Level = null,
     ContentStatus? Status = null,
-    string? Search = null) : IRequest<PaginatedResult<PracticeSetDto>>;
+    string? Search = null,
+    bool OwnedOnly = false) : IRequest<PaginatedResult<PracticeSetDto>>;

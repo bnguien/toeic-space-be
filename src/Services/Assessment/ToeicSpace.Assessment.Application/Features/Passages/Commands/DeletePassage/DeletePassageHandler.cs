@@ -23,6 +23,13 @@ public sealed class DeletePassageHandler : IRequestHandler<DeletePassageCommand>
         DeletePassageCommand request,
         CancellationToken cancellationToken)
     {
+        var testId = await _context.ExecutePassageUpdateAsync(request.Id,
+            () => DeleteAsync(request, cancellationToken), cancellationToken);
+        await _cacheInvalidator.InvalidateTestsAsync([testId], cancellationToken);
+    }
+
+    private async Task<Guid?> DeleteAsync(DeletePassageCommand request, CancellationToken cancellationToken)
+    {
         var passage = await _context.ToeicPassages
             .FirstOrDefaultAsync(item => item.Id == request.Id, cancellationToken)
             ?? throw AppException.NotFound(nameof(ToeicPassage), request.Id);
@@ -40,6 +47,6 @@ public sealed class DeletePassageHandler : IRequestHandler<DeletePassageCommand>
         passage.MarkAsDeleted(_timeProvider.GetUtcNow().UtcDateTime);
         await _context.SaveChangesAsync(cancellationToken);
 
-        await _cacheInvalidator.InvalidateTestsAsync([passage.TestId], cancellationToken);
+        return passage.TestId;
     }
 }

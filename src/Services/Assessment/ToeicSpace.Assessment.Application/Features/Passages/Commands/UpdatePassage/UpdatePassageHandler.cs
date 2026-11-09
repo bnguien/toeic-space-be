@@ -24,6 +24,14 @@ public sealed class UpdatePassageHandler : IRequestHandler<UpdatePassageCommand,
         UpdatePassageCommand request,
         CancellationToken cancellationToken)
     {
+        var result = await _context.ExecutePassageUpdateAsync(request.Id,
+            () => UpdateAsync(request, cancellationToken), cancellationToken, request.TestId);
+        await _cacheInvalidator.InvalidateQuestionsAsync(result.QuestionIds, [result.Passage.TestId], cancellationToken);
+        return result.Passage;
+    }
+
+    private async Task<(PassageDto Passage, List<Guid> QuestionIds)> UpdateAsync(UpdatePassageCommand request, CancellationToken cancellationToken)
+    {
         var passage = await _context.ToeicPassages
             .FirstOrDefaultAsync(item => item.Id == request.Id, cancellationToken)
             ?? throw AppException.NotFound(nameof(ToeicPassage), request.Id);
@@ -59,13 +67,14 @@ public sealed class UpdatePassageHandler : IRequestHandler<UpdatePassageCommand,
         PassageContentValidator.ApplyContent(passage, request);
         await _context.SaveChangesAsync(cancellationToken);
 
-        await _cacheInvalidator.InvalidateQuestionsAsync(questionIds, [passage.TestId], cancellationToken);
+        await PublishedPracticeSetGuard.EnsurePublishedContentRemainsValidAsync(_context, questionIds, cancellationToken);
 
-        return await _context.ToeicPassages
+        var result = await _context.ToeicPassages
             .AsNoTracking()
             .Where(item => item.Id == passage.Id)
             .Select(PassageMappingExtensions.DtoProjection)
             .FirstAsync(cancellationToken);
+        return (result, questionIds);
     }
 
     /// <summary>A request that repeats the stored values changes nothing, so it stays allowed.</summary>

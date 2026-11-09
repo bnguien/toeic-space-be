@@ -1,20 +1,25 @@
 using ToeicSpace.Assessment.Application.Common.Caching;
 using ToeicSpace.Assessment.Application.Interfaces.Persistence;
+using ToeicSpace.Assessment.Application.Interfaces.Security;
+using ToeicSpace.Assessment.Application.Services;
 
 namespace ToeicSpace.Assessment.Application.Features.PracticeSets.Commands.DeletePracticeSet;
 
 public sealed class DeletePracticeSetHandler : IRequestHandler<DeletePracticeSetCommand>
 {
     private readonly IAssessmentDbContext _context;
+    private readonly ICurrentUserService _currentUser;
     private readonly ContentCacheInvalidator _cacheInvalidator;
     private readonly TimeProvider _timeProvider;
 
     public DeletePracticeSetHandler(
         IAssessmentDbContext context,
+        ICurrentUserService currentUser,
         ContentCacheInvalidator cacheInvalidator,
         TimeProvider timeProvider)
     {
         _context = context;
+        _currentUser = currentUser;
         _cacheInvalidator = cacheInvalidator;
         _timeProvider = timeProvider;
     }
@@ -23,13 +28,20 @@ public sealed class DeletePracticeSetHandler : IRequestHandler<DeletePracticeSet
         DeletePracticeSetCommand request,
         CancellationToken cancellationToken)
     {
-        var practiceSet = await _context.ToeicPracticeSets
-            .FirstOrDefaultAsync(item => item.Id == request.Id, cancellationToken)
-            ?? throw AppException.NotFound(nameof(ToeicPracticeSet), request.Id);
+        await _context.ExecutePracticeSetUpdateAsync(request.Id, async () =>
+        {
+            var practiceSet = await _context.ToeicPracticeSets
+                .FirstOrDefaultAsync(item => item.Id == request.Id, cancellationToken)
+                ?? throw AppException.NotFound(nameof(ToeicPracticeSet), request.Id);
 
-        practiceSet.MarkAsDeleted(_timeProvider.GetUtcNow().UtcDateTime);
-        await _context.SaveChangesAsync(cancellationToken);
+            PracticeSetAuthorization.EnsureCanManage(practiceSet, _currentUser);
 
-        await _cacheInvalidator.InvalidatePracticeSetsAsync([practiceSet.Id], cancellationToken);
+            practiceSet.MarkAsDeleted(_timeProvider.GetUtcNow().UtcDateTime);
+            await _context.SaveChangesAsync(cancellationToken);
+
+            return practiceSet.Id;
+        }, cancellationToken);
+
+        await _cacheInvalidator.InvalidatePracticeSetsAsync([request.Id], cancellationToken);
     }
 }

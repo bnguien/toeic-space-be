@@ -22,4 +22,6 @@ public sealed record ContentQuestionDto(
     string? Transcript,
     string? TranscriptTranslation,
     QuestionDifficulty DifficultyLevel,
-    int OrderIndex);
+    int OrderIndex,
+    ContentStatus Status = ContentStatus.Active,
+    string? Topic = null);

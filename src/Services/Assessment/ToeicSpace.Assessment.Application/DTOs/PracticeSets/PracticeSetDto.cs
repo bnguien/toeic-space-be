@@ -1,3 +1,5 @@
+using System.Text.Json.Serialization;
+
 namespace ToeicSpace.Assessment.Application.DTOs.PracticeSets;
 
 public sealed record PracticeSetDto(
@@ -13,4 +15,5 @@ public sealed record PracticeSetDto(
     ContentStatus Status,
     int OrderIndex,
     int QuestionCount,
-    DateTime CreatedAt);
+    DateTime CreatedAt,
+    [property: JsonIgnore(Condition = JsonIgnoreCondition.WhenWritingNull)] Guid? CreatedByUserId = null);

@@ -31,6 +31,14 @@ public sealed class UpdateQuestionStatusHandler : IRequestHandler<UpdateQuestion
         UpdateQuestionStatusCommand request,
         CancellationToken cancellationToken)
     {
+        var result = await _context.ExecuteQuestionUpdateAsync(request.Id, null,
+            () => UpdateAsync(request, cancellationToken), cancellationToken);
+        await _cacheInvalidator.InvalidateQuestionsAsync([result.Id], [result.TestId], cancellationToken);
+        return result;
+    }
+
+    private async Task<QuestionDto> UpdateAsync(UpdateQuestionStatusCommand request, CancellationToken cancellationToken)
+    {
         var question = await _context.ToeicQuestions
             .FirstOrDefaultAsync(item => item.Id == request.Id, cancellationToken)
             ?? throw AppException.NotFound(nameof(ToeicQuestion), request.Id);
@@ -61,7 +69,6 @@ public sealed class UpdateQuestionStatusHandler : IRequestHandler<UpdateQuestion
         await _eventPublisher.PublishAsync(QuestionIntegrationEvents.Updated(question, updatedAt), cancellationToken);
         await _context.SaveChangesAsync(cancellationToken);
 
-        await _cacheInvalidator.InvalidateQuestionsAsync([question.Id], [question.TestId], cancellationToken);
 
         return question.ToDto();
     }

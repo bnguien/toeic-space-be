@@ -38,6 +38,14 @@ public sealed class UpdateQuestionHandler : IRequestHandler<UpdateQuestionComman
         UpdateQuestionCommand request,
         CancellationToken cancellationToken)
     {
+        var result = await _context.ExecuteQuestionUpdateAsync(request.Id, request.PassageId,
+            () => UpdateAsync(request, cancellationToken), cancellationToken, request.TestId);
+        await _cacheInvalidator.InvalidateQuestionsAsync([result.Detail.Id], [result.PreviousTestId, result.Detail.TestId], cancellationToken);
+        return result.Detail;
+    }
+
+    private async Task<(QuestionDetailDto Detail, Guid? PreviousTestId)> UpdateAsync(UpdateQuestionCommand request, CancellationToken cancellationToken)
+    {
         var question = await _context.ToeicQuestions
             .FirstOrDefaultAsync(item => item.Id == request.Id, cancellationToken)
             ?? throw AppException.NotFound(nameof(ToeicQuestion), request.Id);
@@ -88,7 +96,7 @@ public sealed class UpdateQuestionHandler : IRequestHandler<UpdateQuestionComman
         await _eventPublisher.PublishAsync(QuestionIntegrationEvents.Updated(question, updatedAt), cancellationToken);
         await _context.SaveChangesAsync(cancellationToken);
 
-        await _cacheInvalidator.InvalidateQuestionsAsync([question.Id], [previousTestId, question.TestId], cancellationToken);
+        await PublishedPracticeSetGuard.EnsurePublishedContentRemainsValidAsync(_context, [question.Id], cancellationToken);
 
         var practiceSetIds = await _context.ToeicPracticeSetItems
             .AsNoTracking()
@@ -101,7 +109,7 @@ public sealed class UpdateQuestionHandler : IRequestHandler<UpdateQuestionComman
             question.Id,
             question.Version);
 
-        return question.ToDetailDto(practiceSetIds);
+        return (question.ToDetailDto(practiceSetIds), previousTestId);
     }
 
     /// <summary>

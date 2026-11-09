@@ -2,6 +2,7 @@ using Microsoft.Extensions.Logging;
 using ToeicSpace.Assessment.Application.Common.Caching;
 using ToeicSpace.Assessment.Application.Interfaces.Persistence;
 using ToeicSpace.Assessment.Application.Messaging;
+using ToeicSpace.Assessment.Application.Services;
 using ToeicSpace.BuildingBlocks.Messaging;
 
 namespace ToeicSpace.Assessment.Application.Features.Tests.Commands.DeleteTest;
@@ -36,6 +37,14 @@ public sealed class DeleteTestHandler : IRequestHandler<DeleteTestCommand>
         DeleteTestCommand request,
         CancellationToken cancellationToken)
     {
+        var questionIds = await _context.ExecuteTestContentUpdateAsync(request.Id,
+            (questions, passages) => DeleteAsync(request, questions, passages, cancellationToken), cancellationToken);
+        await _cacheInvalidator.InvalidateQuestionsAsync(questionIds, [request.Id], cancellationToken);
+    }
+
+    private async Task<List<Guid>> DeleteAsync(DeleteTestCommand request,
+        IReadOnlyCollection<Guid> lockedQuestions, IReadOnlyCollection<Guid> lockedPassages, CancellationToken cancellationToken)
+    {
         var test = await _context.ToeicTests
             .FirstOrDefaultAsync(item => item.Id == request.Id, cancellationToken)
             ?? throw AppException.NotFound(nameof(ToeicTest), request.Id);
@@ -43,7 +52,7 @@ public sealed class DeleteTestHandler : IRequestHandler<DeleteTestCommand>
         var now = _timeProvider.GetUtcNow().UtcDateTime;
 
         var questions = await _context.ToeicQuestions
-            .Where(question => question.TestId == test.Id)
+            .Where(question => question.TestId == test.Id && lockedQuestions.Contains(question.Id))
             .ToListAsync(cancellationToken);
 
         var questionIds = questions.Select(question => question.Id).ToList();
@@ -56,7 +65,7 @@ public sealed class DeleteTestHandler : IRequestHandler<DeleteTestCommand>
             .ToHashSet();
 
         var passages = await _context.ToeicPassages
-            .Where(passage => passage.TestId == test.Id)
+            .Where(passage => passage.TestId == test.Id && lockedPassages.Contains(passage.Id))
             .ToListAsync(cancellationToken);
 
         var keptPassageIds = questions
@@ -94,12 +103,13 @@ public sealed class DeleteTestHandler : IRequestHandler<DeleteTestCommand>
         test.MarkAsDeleted(now);
         await _context.SaveChangesAsync(cancellationToken);
 
-        await _cacheInvalidator.InvalidateQuestionsAsync(questionIds, [test.Id], cancellationToken);
+        await PublishedPracticeSetGuard.EnsurePublishedContentRemainsValidAsync(_context, questionIds, cancellationToken);
 
         _logger.LogInformation(
             "Deleted test {TestId}: {DeletedCount} questions deleted, {KeptCount} kept in the bank for practice sets",
             test.Id,
             questions.Count - reusedQuestionIds.Count,
             reusedQuestionIds.Count);
+        return questionIds;
     }
 }

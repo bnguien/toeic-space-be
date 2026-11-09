@@ -18,7 +18,8 @@ public static class PracticeSetMappingExtensions
         practiceSet.Status,
         practiceSet.OrderIndex,
         practiceSet.Items.Count,
-        practiceSet.CreatedAt);
+        practiceSet.CreatedAt,
+        practiceSet.CreatedByUserId);
 
     public static PracticeSetDetailDto ToDetailDto(
         this ToeicPracticeSet practiceSet,
@@ -38,6 +39,7 @@ public static class PracticeSetMappingExtensions
             practiceSet.OrderIndex,
             items,
             practiceSet.CreatedAt,
-            practiceSet.UpdatedAt);
+            practiceSet.UpdatedAt,
+            practiceSet.CreatedByUserId);
     }
 }

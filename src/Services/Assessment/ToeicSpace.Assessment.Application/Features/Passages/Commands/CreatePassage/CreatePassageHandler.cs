@@ -19,6 +19,12 @@ public sealed class CreatePassageHandler : IRequestHandler<CreatePassageCommand,
         CreatePassageCommand request,
         CancellationToken cancellationToken)
     {
+        return await _context.ExecutePassageUpdateAsync(Guid.Empty,
+            () => CreateAsync(request, cancellationToken), cancellationToken, request.TestId);
+    }
+
+    private async Task<PassageDto> CreateAsync(CreatePassageCommand request, CancellationToken cancellationToken)
+    {
         if (request.TestId is { } testId
             && !await _context.ToeicTests.AnyAsync(test => test.Id == testId, cancellationToken))
         {

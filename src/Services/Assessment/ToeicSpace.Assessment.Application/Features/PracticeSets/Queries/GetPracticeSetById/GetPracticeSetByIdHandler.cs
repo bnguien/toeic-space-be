@@ -31,6 +31,7 @@ public sealed class GetPracticeSetByIdHandler : IRequestHandler<GetPracticeSetBy
 
         var items = await _context.LoadItemsAsync(practiceSet.Id, cancellationToken);
 
-        return practiceSet.ToDetailDto(items);
+        var result = practiceSet.ToDetailDto(items);
+        return _currentUser.CanManageContent ? result : result with { CreatedByUserId = null };
     }
 }

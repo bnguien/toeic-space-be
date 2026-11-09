@@ -11,6 +11,22 @@ public static class PublishedPracticeSetGuard
 {
     private const int MaxCodesInMessage = 5;
 
+    // The caller owns question/passage locks and has saved inside an uncommitted transaction.
+    // Reuse publishing validation without taking locks in reverse order or rejecting valid bank edits.
+    public static async Task EnsurePublishedContentRemainsValidAsync(
+        IAssessmentDbContext context, IReadOnlyCollection<Guid> questionIds, CancellationToken cancellationToken)
+    {
+        var sets = await context.ToeicPracticeSetItems.AsNoTracking()
+            .Where(item => questionIds.Contains(item.QuestionId) && item.PracticeSet.Status == ContentStatus.Active)
+            .Select(item => item.PracticeSet).Distinct().ToListAsync(cancellationToken);
+        foreach (var set in sets)
+        {
+            var ids = await context.ToeicPracticeSetItems.AsNoTracking()
+                .Where(item => item.PracticeSetId == set.Id && questionIds.Contains(item.QuestionId)).Select(item => item.QuestionId).ToListAsync(cancellationToken);
+            await PracticeSetPublishingGuard.EnsureValidAsync(context, set, ids, cancellationToken, lockContent: false);
+        }
+    }
+
     public static async Task EnsureQuestionIsNotUsedByPublishedSetsAsync(
         IAssessmentDbContext context,
         Guid questionId,

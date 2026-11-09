@@ -13,4 +13,6 @@ public sealed record CreatePracticeSetCommand(
     int? Level,
     int? TargetScore,
     int DurationMinutes,
-    int OrderIndex = 0) : IRequest<PracticeSetDetailDto>, IPracticeSetContent;
+    int OrderIndex = 0,
+    IReadOnlyList<Guid>? QuestionIds = null,
+    ContentStatus Status = ContentStatus.Draft) : IRequest<PracticeSetDetailDto>, IPracticeSetContent;

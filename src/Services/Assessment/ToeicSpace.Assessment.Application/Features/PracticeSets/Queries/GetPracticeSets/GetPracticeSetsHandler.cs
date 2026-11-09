@@ -3,6 +3,7 @@ using ToeicSpace.Assessment.Application.DTOs.PracticeSets;
 using ToeicSpace.Assessment.Application.Interfaces.Persistence;
 using ToeicSpace.Assessment.Application.Interfaces.Security;
 using ToeicSpace.Assessment.Application.Mappings;
+using ToeicSpace.Assessment.Application.Services;
 using ToeicSpace.BuildingBlocks.Pagination;
 
 namespace ToeicSpace.Assessment.Application.Features.PracticeSets.Queries.GetPracticeSets;
@@ -27,6 +28,12 @@ public sealed class GetPracticeSetsHandler : IRequestHandler<GetPracticeSetsQuer
         var query = _context.ToeicPracticeSets
             .AsNoTracking()
             .VisibleTo(_currentUser.CanManageContent);
+
+        if (request.OwnedOnly)
+        {
+            PracticeSetAuthorization.EnsureCanCreate(_currentUser);
+            query = query.Where(practiceSet => practiceSet.CreatedByUserId == _currentUser.UserId);
+        }
 
         if (_currentUser.CanManageContent && request.Status.HasValue)
         {
@@ -65,6 +72,8 @@ public sealed class GetPracticeSetsHandler : IRequestHandler<GetPracticeSetsQuer
             .Take(request.PageSize)
             .Select(PracticeSetMappingExtensions.DtoProjection)
             .ToListAsync(cancellationToken);
+
+        if (!_currentUser.CanManageContent) items = items.Select(item => item with { CreatedByUserId = null }).ToList();
 
         return new PaginatedResult<PracticeSetDto>(items, totalCount, request.Page, request.PageSize);
     }
