@@ -333,7 +333,7 @@ services:
 
   content-db:
     image: mysql:8.4
-    profiles: ["content", "full"]
+    profiles: ["content", "payment", "full"]
     environment:
       MYSQL_DATABASE: ${CONTENT_DB_NAME}
       MYSQL_USER: ${CONTENT_DB_USER}
@@ -353,7 +353,7 @@ services:
 
   content-api:
     image: toeicspace/content-api
-    profiles: ["content", "full"]
+    profiles: ["content", "payment", "full"]
     build:
       context: .
       dockerfile: src/Services/Content/ToeicSpace.Content.API/Dockerfile
@@ -364,6 +364,7 @@ services:
       Jwt__Issuer: ${JWT_ISSUER}
       Jwt__Audience: ${JWT_AUDIENCE}
       Jwt__PublicKey: ${JWT_PUBLIC_KEY}
+      ForwardedHeaders__KnownNetworks__0: ${TRUSTED_PROXY_NETWORK}
       CloudflareR2__Endpoint: ${R2_ENDPOINT}
       CloudflareR2__AccessKey: ${R2_ACCESS_KEY}
       CloudflareR2__SecretKey: ${R2_SECRET_KEY}
@@ -374,11 +375,68 @@ services:
       Gemini__InteractiveModel: ${DICT_AI_MODEL}
       Gemini__BatchModel: ${FLASHCARD_AI_MODEL}
       GoogleTranslate__ApiKey: ${GOOGLE_TRANSLATE_API_KEY}
+      Payment__BaseUrl: http://payment-api:8080/
+      InternalApi__Key: ${INTERNAL_API_KEY:-}
+      Checkout__ReservationMinutes: ${CHECKOUT_RESERVATION_MINUTES:-15}
     depends_on:
       content-db:
         condition: service_healthy
     ports:
       - "${CONTENT_API_PORT}:8080"
+    networks:
+      - backend-network
+
+  # ==================================================
+  # PAYMENT
+  # ==================================================
+
+  payment-db:
+    image: mysql:8.4
+    profiles: ["payment", "full"]
+    environment:
+      MYSQL_DATABASE: ${PAYMENT_DB_NAME}
+      MYSQL_USER: ${PAYMENT_DB_USER}
+      MYSQL_PASSWORD: ${PAYMENT_DB_PASSWORD}
+      MYSQL_ROOT_PASSWORD: ${PAYMENT_DB_ROOT_PASSWORD}
+    ports:
+      - "${PAYMENT_DB_PORT:-3310}:3306"
+    volumes:
+      - payment_db_data:/var/lib/mysql
+    healthcheck:
+      test: ["CMD-SHELL", "mysqladmin ping -h localhost -uroot -p${PAYMENT_DB_ROOT_PASSWORD}"]
+      interval: 5s
+      timeout: 5s
+      retries: 10
+    networks:
+      - backend-network
+
+  payment-api:
+    image: toeicspace/payment-api
+    profiles: ["payment", "full"]
+    build:
+      context: .
+      dockerfile: src/Services/Payment/ToeicSpace.Payment.API/Dockerfile
+    environment:
+      ASPNETCORE_ENVIRONMENT: ${ASPNETCORE_ENVIRONMENT}
+      ASPNETCORE_HTTP_PORTS: 8080
+      ConnectionStrings__PaymentDatabase: Server=payment-db;Port=3306;Database=${PAYMENT_DB_NAME};User=${PAYMENT_DB_USER};Password=${PAYMENT_DB_PASSWORD};
+      Jwt__Issuer: ${JWT_ISSUER}
+      Jwt__Audience: ${JWT_AUDIENCE}
+      Jwt__PublicKey: ${JWT_PUBLIC_KEY}
+      ForwardedHeaders__KnownNetworks__0: ${TRUSTED_PROXY_NETWORK}
+      Content__BaseUrl: http://content-api:8080/
+      InternalApi__Key: ${INTERNAL_API_KEY:-}
+      Checkout__ReservationMinutes: ${CHECKOUT_RESERVATION_MINUTES:-15}
+      SePay__Bank: ${SEPAY_BANK:-}
+      SePay__AccountNumber: ${SEPAY_ACCOUNT_NUMBER:-}
+      SePay__WebhookApiKey: ${SEPAY_WEBHOOK_API_KEY:-}
+    depends_on:
+      payment-db:
+        condition: service_healthy
+      content-api:
+        condition: service_started
+    ports:
+      - "${PAYMENT_API_PORT:-6006}:8080"
     networks:
       - backend-network
 
@@ -435,7 +493,7 @@ services:
 
   api-gateway:
     image: toeicspace/api-gateway
-    profiles: ["identity", "assessment", "classroom", "content", "full"]
+    profiles: ["identity", "assessment", "classroom", "content", "payment", "full"]
     build:
       context: .
       dockerfile: src/ApiGateways/ToeicSpace.ApiGateway/Dockerfile
@@ -449,6 +507,7 @@ services:
       ReverseProxy__Clusters__assessment-cluster__Destinations__destination1__Address: http://assessment-api:8080/
       ReverseProxy__Clusters__classroom-cluster__Destinations__destination1__Address: http://classroom-api:8080/
       ReverseProxy__Clusters__content-cluster__Destinations__destination1__Address: http://content-api:8080/
+      ReverseProxy__Clusters__payment-cluster__Destinations__destination1__Address: http://payment-api:8080/
       ForwardedHeaders__KnownNetworks__0: ${TRUSTED_PROXY_NETWORK}
 
     ports:
@@ -479,6 +538,6 @@ volumes:
   assessment_db_data:
   classroom_db_data:
   content_db_data:
-#  payment_db_data:
+  payment_db_data:
   rabbitmq_data:
   redis_data:

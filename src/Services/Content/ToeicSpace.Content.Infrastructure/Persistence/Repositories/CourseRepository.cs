@@ -11,6 +11,15 @@ public sealed class CourseRepository(ContentDbContext db) : ICourseRepository
     public Task<Course?> GetAsync(Guid id, CancellationToken ct) =>
         PersistenceExceptionTranslator.ExecuteAsync(() => db.Courses.FirstOrDefaultAsync(x => x.Id == id, ct));
 
+    public Task<Course?> GetLockedAsync(Guid id, CancellationToken ct) =>
+        PersistenceExceptionTranslator.ExecuteAsync(() => db.Courses
+            .FromSqlInterpolated($"SELECT * FROM Courses WHERE Id = {id} FOR UPDATE").SingleOrDefaultAsync(ct));
+
+    public async Task<int> OccupiedSlotsAsync(Guid id, CancellationToken ct) =>
+        await db.CourseEnrollments.CountAsync(x => x.CourseId == id, ct) +
+        await db.CourseSlotReservations.CountAsync(x => x.CourseId == id &&
+            x.Status == ToeicSpace.Content.Domain.Entities.SlotReservationStatus.Reserved, ct);
+
     public Task<bool> CodeExistsAsync(string code, Guid? excludeId, CancellationToken ct) =>
         PersistenceExceptionTranslator.ExecuteAsync(() => db.Courses.AnyAsync(x => x.Code == code &&
             (!excludeId.HasValue || x.Id != excludeId.Value), ct));

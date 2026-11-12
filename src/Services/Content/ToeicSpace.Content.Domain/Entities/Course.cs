@@ -15,6 +15,8 @@ public sealed class Course
     public CourseExamType ExamType { get; set; }
     public CourseLevel Level { get; set; }
     public int? TargetScore { get; set; }
+    public decimal Price { get; set; }
+    public int? Capacity { get; set; }
     public List<string> Skills { get; set; } = [];
     public List<string> Objectives { get; set; } = [];
     public List<string> Prerequisites { get; set; } = [];
@@ -27,6 +29,8 @@ public sealed class Course
 
     public void Validate(bool publishing = false)
     {
+        if (Price < 0 || Price > 999999999999999999m || Price != decimal.Truncate(Price) || Capacity is <= 0)
+            throw new ContentRuleException("invalid_course_pricing", "VND price must be a non-negative integer and capacity must be positive.");
         if (string.IsNullOrWhiteSpace(Code) || Code.Length > 50 ||
             string.IsNullOrWhiteSpace(Title) || Title.Length > 200 ||
             string.IsNullOrWhiteSpace(Slug) || Slug.Length > 160 ||

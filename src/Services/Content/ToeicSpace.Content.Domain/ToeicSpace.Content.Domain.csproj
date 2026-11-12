@@ -5,5 +5,6 @@
     <ImplicitUsings>enable</ImplicitUsings>
     <Nullable>enable</Nullable>
   </PropertyGroup>
+  <ItemGroup><Compile Include="../../../BuildingBlocks/SharedPricing/VndDiscount.cs" Link="Pricing/VndDiscount.cs" /></ItemGroup>
 
 </Project>
