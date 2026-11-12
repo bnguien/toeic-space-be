@@ -98,6 +98,18 @@ app.UseCors();
 
 app.UseRateLimiter();
 
+// Service-to-service endpoints are never reachable through the public reverse proxy.
+app.Use(async (context, next) =>
+{
+    if (context.Request.Path.StartsWithSegments("/content/api/v1/internal", StringComparison.OrdinalIgnoreCase) ||
+        context.Request.Path.StartsWithSegments("/payment/api/v1/internal", StringComparison.OrdinalIgnoreCase))
+    {
+        context.Response.StatusCode = StatusCodes.Status404NotFound;
+        return;
+    }
+    await next();
+});
+
 app.MapReverseProxy();
 
 app.Run();

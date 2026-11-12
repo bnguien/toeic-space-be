@@ -36,6 +36,9 @@
   </Folder>
   <Folder Name="/src/Services/Payment/">
     <Project Path="src/Services/Payment/ToeicSpace.Payment.API/ToeicSpace.Payment.API.csproj" />
+    <Project Path="src/Services/Payment/ToeicSpace.Payment.Application/ToeicSpace.Payment.Application.csproj" />
+    <Project Path="src/Services/Payment/ToeicSpace.Payment.Domain/ToeicSpace.Payment.Domain.csproj" />
+    <Project Path="src/Services/Payment/ToeicSpace.Payment.Infrastructure/ToeicSpace.Payment.Infrastructure.csproj" />
   </Folder>
   <Folder Name="/src/WebApps/">
     <Project Path="src/WebApps/ToeicSpace.Web/ToeicSpace.Web.csproj" />
@@ -47,6 +50,9 @@
   </Folder>
   <Folder Name="/tests/Services/Identity/">
     <Project Path="tests/Services/Identity/ToeicSpace.Identity.Application.Tests/ToeicSpace.Identity.Application.Tests.csproj" />
+  </Folder>
+  <Folder Name="/tests/Services/Payment/">
+    <Project Path="tests/Services/Payment/ToeicSpace.Payment.Tests/ToeicSpace.Payment.Tests.csproj" />
   </Folder>
   <Folder Name="/tests/UnitTests/">
     <Project Path="tests/UnitTests/ToeicSpace.Assessment.Application.UnitTests/ToeicSpace.Assessment.Application.UnitTests.csproj" />

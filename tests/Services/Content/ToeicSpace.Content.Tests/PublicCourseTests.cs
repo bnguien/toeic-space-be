@@ -11,6 +11,7 @@ using ToeicSpace.Content.Domain.Entities;
 using ToeicSpace.Content.Domain.Enums;
 using ToeicSpace.Content.Infrastructure.Persistence;
 using ToeicSpace.Content.Infrastructure.Persistence.Repositories;
+using ToeicSpace.Content.Infrastructure.Services;
 using Xunit;
 
 namespace ToeicSpace.Content.Tests;
@@ -22,6 +23,7 @@ public sealed class PublicCourseTests
         private readonly SqliteConnection _connection = new("DataSource=:memory:");
         public ContentDbContext Db { get; private set; } = null!;
         public PublicCourseRepository Courses => new(Db);
+        public CoursePromotionService Promotions => new(Db, TimeProvider.System);
         public FakeMediaStore Media { get; } = new();
 
         public async Task InitializeAsync()
@@ -76,7 +78,7 @@ public sealed class PublicCourseTests
         f.AddCourse("Archived", CourseStatus.Archived);
         await f.Db.SaveChangesAsync();
 
-        var result = await new BrowsePublicCoursesHandler(f.Courses, f.Media)
+        var result = await new BrowsePublicCoursesHandler(f.Courses, f.Media, f.Promotions)
             .Handle(new(null, null, null, null), default);
         Assert.Equal(1, result.TotalCount);
         Assert.Equal("Public", Assert.Single(result.Items).Title);
@@ -96,7 +98,7 @@ public sealed class PublicCourseTests
         f.AddCourse("TOEIC Different", score: 600);
         await f.Db.SaveChangesAsync();
 
-        var handler = new BrowsePublicCoursesHandler(f.Courses, f.Media);
+        var handler = new BrowsePublicCoursesHandler(f.Courses, f.Media, f.Promotions);
         var first = await handler.Handle(new(" TOEIC ", CourseExamType.ListeningReading,
             CourseLevel.Beginner, 500, 1, 1), default);
         var second = await handler.Handle(new("TOEIC", CourseExamType.ListeningReading,
@@ -117,7 +119,7 @@ public sealed class PublicCourseTests
         draft.ThumbnailKey = "secret";
         var archived = f.AddCourse("Archived", CourseStatus.Archived);
         await f.Db.SaveChangesAsync();
-        var handler = new GetPublicCourseHandler(f.Courses, f.Media);
+        var handler = new GetPublicCourseHandler(f.Courses, f.Media, f.Promotions);
         foreach (var id in new[] { Guid.NewGuid(), draft.Id, archived.Id })
             Assert.Equal(404, (await Assert.ThrowsAsync<ContentRuleException>(() =>
                 handler.Handle(new(id), default))).StatusCode);
@@ -142,7 +144,7 @@ public sealed class PublicCourseTests
             new Lesson { ModuleId = late.Id, Title = "Other", SortOrder = 1, Status = LessonStatus.Published });
         await f.Db.SaveChangesAsync();
 
-        var result = await new GetPublicCourseHandler(f.Courses, f.Media).Handle(new(course.Id), default);
+        var result = await new GetPublicCourseHandler(f.Courses, f.Media, f.Promotions).Handle(new(course.Id), default);
         Assert.Equal(new[] { "First", "Second" }, result.Modules.Select(x => x.Title));
         Assert.Equal(new[] { "First", "Later" }, result.Modules[0].Lessons.Select(x => x.Title));
         Assert.Equal("https://signed.example/1", result.ThumbnailUrl);
@@ -243,7 +245,7 @@ public sealed class PublicCourseTests
         await f.InitializeAsync();
         f.AddCourse("Hidden", CourseStatus.Draft);
         await f.Db.SaveChangesAsync();
-        var page = await new BrowsePublicCoursesHandler(f.Courses, f.Media)
+        var page = await new BrowsePublicCoursesHandler(f.Courses, f.Media, f.Promotions)
             .Handle(new("missing", null, null, null, 3, 10), default);
         Assert.Empty(page.Items);
         Assert.Equal(0, page.TotalCount);
@@ -263,7 +265,7 @@ public sealed class PublicCourseTests
         f.Db.Lessons.Add(new Lesson { ModuleId = module.Id, Title = "Locked", SortOrder = 1,
             Status = LessonStatus.Published, IsFreePreview = false, TextContent = "locked-body" });
         await f.Db.SaveChangesAsync();
-        var detail = await new GetPublicCourseHandler(f.Courses, f.Media).Handle(new(course.Id), default);
+        var detail = await new GetPublicCourseHandler(f.Courses, f.Media, f.Promotions).Handle(new(course.Id), default);
         Assert.False(Assert.Single(Assert.Single(detail.Modules).Lessons).IsFreePreview);
         Assert.DoesNotContain("locked-body", System.Text.Json.JsonSerializer.Serialize(detail));
     }

@@ -28,6 +28,9 @@ namespace ToeicSpace.Content.Infrastructure.Persistence.Migrations
                         .ValueGeneratedOnAdd()
                         .HasColumnType("char(36)");
 
+                    b.Property<int?>("Capacity")
+                        .HasColumnType("int");
+
                     b.Property<string>("Code")
                         .IsRequired()
                         .HasMaxLength(50)
@@ -57,6 +60,12 @@ namespace ToeicSpace.Content.Infrastructure.Persistence.Migrations
                     b.Property<string>("Prerequisites")
                         .IsRequired()
                         .HasColumnType("json");
+
+                    b.Property<decimal>("Price")
+                        .ValueGeneratedOnAdd()
+                        .HasPrecision(18)
+                        .HasColumnType("decimal(18,0)")
+                        .HasDefaultValue(0m);
 
                     b.Property<DateTime?>("PublishedAt")
                         .HasColumnType("datetime(6)");
@@ -108,7 +117,42 @@ namespace ToeicSpace.Content.Infrastructure.Persistence.Migrations
 
                     b.HasIndex("Status", "UpdatedAt");
 
-                    b.ToTable("Courses", (string)null);
+                    b.ToTable("Courses", null, t =>
+                        {
+                            t.HasCheckConstraint("CK_Courses_Capacity_Positive", "`Capacity` IS NULL OR `Capacity` > 0");
+
+                            t.HasCheckConstraint("CK_Courses_Price_Nonnegative", "`Price` >= 0");
+                        });
+                });
+
+            modelBuilder.Entity("ToeicSpace.Content.Domain.Entities.CourseEnrollment", b =>
+                {
+                    b.Property<Guid>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("char(36)");
+
+                    b.Property<Guid>("CourseId")
+                        .HasColumnType("char(36)");
+
+                    b.Property<DateTime>("EnrolledAt")
+                        .HasColumnType("datetime(6)");
+
+                    b.Property<string>("Status")
+                        .IsRequired()
+                        .HasMaxLength(16)
+                        .HasColumnType("varchar(16)");
+
+                    b.Property<Guid>("UserId")
+                        .HasColumnType("char(36)");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("CourseId");
+
+                    b.HasIndex("UserId", "CourseId")
+                        .IsUnique();
+
+                    b.ToTable("CourseEnrollments", (string)null);
                 });
 
             modelBuilder.Entity("ToeicSpace.Content.Domain.Entities.CourseModule", b =>
@@ -144,6 +188,91 @@ namespace ToeicSpace.Content.Infrastructure.Persistence.Migrations
                         .IsUnique();
 
                     b.ToTable("CourseModules", (string)null);
+                });
+
+            modelBuilder.Entity("ToeicSpace.Content.Domain.Entities.CoursePromotion", b =>
+                {
+                    b.Property<Guid>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("char(36)");
+
+                    b.Property<string>("CourseIds")
+                        .IsRequired()
+                        .HasColumnType("json");
+
+                    b.Property<string>("DiscountType")
+                        .IsRequired()
+                        .HasMaxLength(20)
+                        .HasColumnType("varchar(20)");
+
+                    b.Property<decimal>("DiscountValue")
+                        .HasPrecision(18, 2)
+                        .HasColumnType("decimal(18,2)");
+
+                    b.Property<DateTime>("ExpiresAt")
+                        .HasColumnType("datetime(6)");
+
+                    b.Property<bool>("IsActive")
+                        .HasColumnType("tinyint(1)");
+
+                    b.Property<decimal?>("MaximumDiscountAmount")
+                        .HasPrecision(18)
+                        .HasColumnType("decimal(18,0)");
+
+                    b.Property<string>("Name")
+                        .IsRequired()
+                        .HasMaxLength(160)
+                        .HasColumnType("varchar(160)");
+
+                    b.Property<DateTime>("StartAt")
+                        .HasColumnType("datetime(6)");
+
+                    b.Property<int?>("UsageLimit")
+                        .HasColumnType("int");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("IsActive", "StartAt", "ExpiresAt");
+
+                    b.ToTable("CoursePromotions", (string)null);
+                });
+
+            modelBuilder.Entity("ToeicSpace.Content.Domain.Entities.CourseSlotReservation", b =>
+                {
+                    b.Property<Guid>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("char(36)");
+
+                    b.Property<Guid>("CheckoutReference")
+                        .HasColumnType("char(36)");
+
+                    b.Property<DateTime?>("ConfirmedAt")
+                        .HasColumnType("datetime(6)");
+
+                    b.Property<Guid>("CourseId")
+                        .HasColumnType("char(36)");
+
+                    b.Property<DateTime>("ExpiresAt")
+                        .HasColumnType("datetime(6)");
+
+                    b.Property<string>("Status")
+                        .IsRequired()
+                        .HasMaxLength(16)
+                        .HasColumnType("varchar(16)");
+
+                    b.Property<Guid>("UserId")
+                        .HasColumnType("char(36)");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("CheckoutReference")
+                        .IsUnique();
+
+                    b.HasIndex("CourseId", "Status");
+
+                    b.HasIndex("UserId", "CourseId", "Status");
+
+                    b.ToTable("CourseSlotReservations", (string)null);
                 });
 
             modelBuilder.Entity("ToeicSpace.Content.Domain.Entities.DictationCourse", b =>
@@ -1201,6 +1330,50 @@ namespace ToeicSpace.Content.Infrastructure.Persistence.Migrations
                     b.ToTable("NewsReadings", (string)null);
                 });
 
+            modelBuilder.Entity("ToeicSpace.Content.Domain.Entities.PromotionReservation", b =>
+                {
+                    b.Property<Guid>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("char(36)");
+
+                    b.Property<Guid>("CheckoutReference")
+                        .HasColumnType("char(36)");
+
+                    b.Property<Guid>("CourseId")
+                        .HasColumnType("char(36)");
+
+                    b.Property<DateTime>("CreatedAt")
+                        .HasColumnType("datetime(6)");
+
+                    b.Property<decimal>("DiscountAmount")
+                        .HasPrecision(18)
+                        .HasColumnType("decimal(18,0)");
+
+                    b.Property<DateTime>("ExpiresAt")
+                        .HasColumnType("datetime(6)");
+
+                    b.Property<decimal>("OriginalPrice")
+                        .HasPrecision(18)
+                        .HasColumnType("decimal(18,0)");
+
+                    b.Property<Guid>("PromotionId")
+                        .HasColumnType("char(36)");
+
+                    b.Property<string>("Status")
+                        .IsRequired()
+                        .HasMaxLength(16)
+                        .HasColumnType("varchar(16)");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("CheckoutReference")
+                        .IsUnique();
+
+                    b.HasIndex("PromotionId", "Status");
+
+                    b.ToTable("PromotionReservations", (string)null);
+                });
+
             modelBuilder.Entity("ToeicSpace.Content.Domain.Entities.ReelBackground", b =>
                 {
                     b.Property<Guid>("Id")
@@ -2089,6 +2262,15 @@ namespace ToeicSpace.Content.Infrastructure.Persistence.Migrations
                     b.ToTable("WordReviewLogs", (string)null);
                 });
 
+            modelBuilder.Entity("ToeicSpace.Content.Domain.Entities.CourseEnrollment", b =>
+                {
+                    b.HasOne("ToeicSpace.Content.Domain.Entities.Course", null)
+                        .WithMany()
+                        .HasForeignKey("CourseId")
+                        .OnDelete(DeleteBehavior.Restrict)
+                        .IsRequired();
+                });
+
             modelBuilder.Entity("ToeicSpace.Content.Domain.Entities.CourseModule", b =>
                 {
                     b.HasOne("ToeicSpace.Content.Domain.Entities.Course", "Course")
@@ -2098,6 +2280,15 @@ namespace ToeicSpace.Content.Infrastructure.Persistence.Migrations
                         .IsRequired();
 
                     b.Navigation("Course");
+                });
+
+            modelBuilder.Entity("ToeicSpace.Content.Domain.Entities.CourseSlotReservation", b =>
+                {
+                    b.HasOne("ToeicSpace.Content.Domain.Entities.Course", null)
+                        .WithMany()
+                        .HasForeignKey("CourseId")
+                        .OnDelete(DeleteBehavior.Restrict)
+                        .IsRequired();
                 });
 
             modelBuilder.Entity("ToeicSpace.Content.Domain.Entities.DictationItem", b =>
@@ -2184,6 +2375,15 @@ namespace ToeicSpace.Content.Infrastructure.Persistence.Migrations
                         .IsRequired();
 
                     b.Navigation("Article");
+                });
+
+            modelBuilder.Entity("ToeicSpace.Content.Domain.Entities.PromotionReservation", b =>
+                {
+                    b.HasOne("ToeicSpace.Content.Domain.Entities.CoursePromotion", null)
+                        .WithMany()
+                        .HasForeignKey("PromotionId")
+                        .OnDelete(DeleteBehavior.Restrict)
+                        .IsRequired();
                 });
 
             modelBuilder.Entity("ToeicSpace.Content.Domain.Entities.SavedWord", b =>

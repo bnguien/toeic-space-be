@@ -1,9 +1,12 @@
 using ToeicSpace.Content.Domain.Enums;
+using ToeicSpace.Content.Application.Interfaces.Services;
 
 namespace ToeicSpace.Content.Application.DTOs.Courses;
 
 public sealed record PublicCourseSummaryDto(Guid Id, string Title, string Slug, string? ShortDescription,
-    string? ThumbnailUrl, CourseExamType ExamType, CourseLevel Level, int? TargetScore);
+    string? ThumbnailUrl, CourseExamType ExamType, CourseLevel Level, int? TargetScore,
+    decimal Price = 0, int? Capacity = null, string Currency = "VND", int? RemainingSeats = null,
+    PromotionPrice? Promotion = null);
 
 public sealed record PublicLessonSummaryDto(Guid Id, string Title, string? Description,
     int? DurationSeconds, int SortOrder, bool IsFreePreview);
@@ -14,7 +17,9 @@ public sealed record PublicModuleDto(Guid Id, string Title, string? Description,
 public sealed record PublicCourseDetailDto(Guid Id, string Title, string Slug, string? ThumbnailUrl,
     string? ShortDescription, string? Description, CourseExamType ExamType, CourseLevel Level,
     int? TargetScore, IReadOnlyList<string> Skills, IReadOnlyList<string> Objectives,
-    IReadOnlyList<string> Prerequisites, IReadOnlyList<PublicModuleDto> Modules);
+    IReadOnlyList<string> Prerequisites, IReadOnlyList<PublicModuleDto> Modules,
+    decimal Price = 0, int? Capacity = null, string Currency = "VND", int? RemainingSeats = null,
+    PromotionPrice? Promotion = null);
 
 public sealed record PublicVideoDto(Guid Id, string FileName, string ContentType, long FileSize,
     int? DurationSeconds, int SortOrder, string Url);
