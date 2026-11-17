@@ -5,7 +5,7 @@ namespace ToeicSpace.Assessment.Application.Analytics.Queries.GetAnalyticsEvents
 public sealed record AttemptEventRow(
     Guid Id,
     Guid UserId,
-    Guid TestId,
+    Guid? TestId,
     AttemptMode Mode,
     AttemptStatus Status,
     DateTime StartTime,
@@ -21,7 +21,7 @@ public sealed record AnswerEventRow(
     Guid Id,
     Guid AttemptId,
     Guid UserId,
-    Guid TestId,
+    Guid? TestId,
     AttemptMode Mode,
     DateTime StartTime,
     Guid QuestionId,

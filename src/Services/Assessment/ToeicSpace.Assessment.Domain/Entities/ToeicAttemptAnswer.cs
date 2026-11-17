@@ -11,6 +11,10 @@ public class ToeicAttemptAnswer : BaseAuditableEntity
 
     public Guid QuestionId { get; set; }
 
+    public Guid? SnapshotQuestionId { get; set; }
+    public long Revision { get; set; }
+    public Guid? LastMutationId { get; set; }
+
     public ToeicQuestion Question { get; set; } = null!;
 
     public AnswerOption? UserAnswer { get; set; }

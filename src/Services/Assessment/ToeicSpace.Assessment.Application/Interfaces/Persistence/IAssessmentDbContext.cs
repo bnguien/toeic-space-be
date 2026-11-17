@@ -15,6 +15,13 @@ public interface IAssessmentDbContext
     DbSet<ToeicAttempt> ToeicAttempts { get; }
 
     DbSet<ToeicAttemptAnswer> ToeicAttemptAnswers { get; }
+    DbSet<ToeicAttemptSnapshot> ToeicAttemptSnapshots { get; }
+    DbSet<ToeicAttemptQuestion> ToeicAttemptQuestions { get; }
+    DbSet<PracticeAttemptState> PracticeAttemptStates { get; }
+
+    Task<T> ExecuteAttemptUpdateAsync<T>(Guid userId, Guid setId, Func<Task<T>> update, CancellationToken cancellationToken);
+    Task LockAttemptSetAsync(Guid setId, CancellationToken cancellationToken);
+    Task<T> ExecuteAttemptReadAsync<T>(Func<Task<T>> read, CancellationToken cancellationToken);
 
     Task<T> ExecutePracticeSetUpdateAsync<T>(
         Guid practiceSetId,

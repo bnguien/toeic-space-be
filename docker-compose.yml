@@ -289,6 +289,11 @@ services:
       ASPNETCORE_ENVIRONMENT: ${ASPNETCORE_ENVIRONMENT}
       ASPNETCORE_HTTP_PORTS: 8080
       DOTNET_gcServer: "0"
+      CloudflareR2__Endpoint: ${R2_ENDPOINT}
+      CloudflareR2__AccessKey: ${R2_ACCESS_KEY}
+      CloudflareR2__SecretKey: ${R2_SECRET_KEY}
+      CloudflareR2__BucketName: ${R2_BUCKET_NAME}
+      PracticeMedia__AllowedOrigins__0: ${PRACTICE_MEDIA_ALLOWED_ORIGIN:-https://chill-zone.studychill.net}
 
       ConnectionStrings__AssessmentDatabase: >-
         Server=assessment-db;
@@ -327,6 +332,31 @@ services:
       - backend-network
 
   
+  # Manual EF migrations run only when explicitly requested. Normal API startup never migrates.
+  migrations:
+    image: mcr.microsoft.com/dotnet/sdk:10.0
+    profiles: ["tools"]
+    working_dir: /work
+    entrypoint: ["bash", "/source/scripts/docker-migrate.sh"]
+    command: ["Assessment"]
+    environment:
+      ASPNETCORE_ENVIRONMENT: ${ASPNETCORE_ENVIRONMENT}
+      DOTNET_CLI_TELEMETRY_OPTOUT: "1"
+      DOTNET_NOLOGO: "1"
+      DOTNET_gcServer: "0"
+      ConnectionStrings__AssessmentDatabase: >-
+        Server=assessment-db;Port=3306;Database=${ASSESSMENT_DB_NAME};User=${ASSESSMENT_DB_USER};Password=${ASSESSMENT_DB_PASSWORD};
+      ConnectionStrings__IdentityDatabase: >-
+        Server=identity-db;Port=3306;Database=${IDENTITY_DB_NAME};User=${IDENTITY_DB_USER};Password=${IDENTITY_DB_PASSWORD};
+      ConnectionStrings__ClassroomDatabase: >-
+        Server=classroom-db;Port=3306;Database=${CLASSROOM_DB_NAME};User=${CLASSROOM_DB_USER};Password=${CLASSROOM_DB_PASSWORD};
+      ConnectionStrings__ContentDatabase: >-
+        Server=content-db;Port=3306;Database=${CONTENT_DB_NAME};User=${CONTENT_DB_USER};Password=${CONTENT_DB_PASSWORD};
+    volumes:
+      - .:/source:ro
+    networks:
+      - backend-network
+
   # ==================================================
   # CONTENT
   # ==================================================

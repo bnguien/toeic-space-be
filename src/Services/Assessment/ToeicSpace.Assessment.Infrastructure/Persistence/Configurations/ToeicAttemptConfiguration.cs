@@ -8,7 +8,8 @@ public sealed class ToeicAttemptConfiguration : IEntityTypeConfiguration<ToeicAt
 {
     public void Configure(EntityTypeBuilder<ToeicAttempt> builder)
     {
-        builder.ToTable("ToeicAttempts");
+        builder.ToTable("ToeicAttempts", t => t.HasCheckConstraint("CK_Attempt_Source",
+            "(`TestId` IS NULL) <> (`PracticeSetId` IS NULL)"));
         builder.HasKey(x => x.Id);
 
         builder.Property(x => x.Status)
@@ -29,6 +30,11 @@ public sealed class ToeicAttemptConfiguration : IEntityTypeConfiguration<ToeicAt
         builder.HasIndex(x => x.UserId);
         builder.HasIndex(x => x.TestId);
         builder.HasIndex(x => new { x.UserId, x.TestId });
+        builder.HasOne<ToeicPracticeSet>().WithMany().HasForeignKey(x => x.PracticeSetId).OnDelete(DeleteBehavior.Restrict);
+        builder.Property<Guid?>("ActivePracticeSetId").HasColumnType("char(36)")
+            .HasComputedColumnSql("CASE WHEN `Status` = 'InProgress' THEN `PracticeSetId` ELSE NULL END", stored: true);
+        builder.HasIndex("UserId", "ActivePracticeSetId").IsUnique();
+        builder.HasIndex(x => new { x.Status, x.LastActivityAt, x.PracticeSetId });
 
         builder.HasMany(x => x.Answers)
             .WithOne(x => x.Attempt)

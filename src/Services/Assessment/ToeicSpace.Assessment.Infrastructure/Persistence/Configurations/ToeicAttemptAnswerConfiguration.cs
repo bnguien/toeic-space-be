@@ -21,6 +21,10 @@ public sealed class ToeicAttemptAnswerConfiguration : IEntityTypeConfiguration<T
 
         builder.HasIndex(x => new { x.AttemptId, x.QuestionId });
         builder.HasIndex(x => x.QuestionId);
+        builder.HasIndex(x => new { x.AttemptId, x.SnapshotQuestionId }).IsUnique();
+        builder.HasOne<ToeicAttemptQuestion>().WithMany()
+            .HasForeignKey(x => new { x.AttemptId, x.SnapshotQuestionId })
+            .HasPrincipalKey(x => new { x.AttemptId, x.Id }).OnDelete(DeleteBehavior.Cascade);
 
         builder.HasOne(x => x.Question)
             .WithMany()

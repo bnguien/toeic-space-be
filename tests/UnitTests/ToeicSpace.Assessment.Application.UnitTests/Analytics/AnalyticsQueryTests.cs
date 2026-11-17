@@ -7,6 +7,46 @@ namespace ToeicSpace.Assessment.Application.UnitTests.Analytics;
 /// <summary>Whitelisted metrics, small-group suppression and the shape of the rows.</summary>
 public class AnalyticsQueryTests
 {
+    [Theory]
+    [InlineData("attempt_count", 5.0)]
+    [InlineData("accuracy", 1.0)]
+    public async Task TestGroupingAndFiltering_PreservePracticeAttemptsWithoutATest(string metric, double expectedValue)
+    {
+        using var database = new TestDatabase();
+        var test = database.AddTest(ContentStatus.Active);
+        var practiceSet = database.AddPracticeSet(ToeicPart.Part5);
+        var question = database.AddQuestion(test.Id, ToeicPart.Part5, 101);
+
+        foreach (var learner in AnalyticsSeed.Learners(5))
+        {
+            database.AddAttempt(learner, test.Id, answers: [(question, true)]);
+            var attempt = database.AddAttempt(learner, null, mode: AttemptMode.Practice, answers: [(question, true)]);
+            attempt.PracticeSetId = practiceSet.Id;
+        }
+
+        database.Context.SaveChanges();
+
+        var grouped = await database.QueryAsync(new QueryAnalyticsQuery(metric, By: "test"));
+
+        grouped.Rows.Should().HaveCount(2);
+        grouped.Suppressed.Should().Be(0);
+        grouped.Rows.Single(row => row["test"] is null)["value"].Should().Be(expectedValue);
+        grouped.Rows.Single(row => (string?)row["test"] == test.Id.ToString())["value"].Should().Be(expectedValue);
+        grouped.Labels.Should().ContainSingle().Which.Key.Should().Be(test.Id.ToString());
+
+        var filtered = await database.QueryAsync(new QueryAnalyticsQuery(metric, By: "test", TestId: test.Id.ToString()));
+
+        filtered.Rows.Should().ContainSingle();
+        filtered.Cell(0, "test").Should().Be(test.Id.ToString());
+        filtered.Cell(0, "value").Should().Be(expectedValue);
+
+        var practice = await database.QueryAsync(new QueryAnalyticsQuery(metric, By: "test", Mode: "Practice"));
+
+        practice.Rows.Should().ContainSingle();
+        practice.Cell(0, "test").Should().BeNull();
+        practice.Cell(0, "value").Should().Be(expectedValue);
+    }
+
     [Fact]
     public async Task GroupsWithFewerThanFiveLearners_AreSuppressed()
     {
