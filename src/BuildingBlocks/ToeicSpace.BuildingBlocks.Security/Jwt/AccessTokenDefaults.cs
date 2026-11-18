@@ -23,5 +23,13 @@ public static class AccessTokenDefaults
 
     public const string RoleClaim = "role";
 
+    public const string ScopeClaim = "scope";
+
+    /// <summary>
+    /// Scope of tokens issued to the AI assistant (SeasonedAgents). Every service refuses such a token on any
+    /// method other than GET / HEAD, so the assistant can read figures but never change data.
+    /// </summary>
+    public const string AgentReadScope = "agent.read";
+
     public static readonly TimeSpan ClockSkew = TimeSpan.FromSeconds(30);
 }

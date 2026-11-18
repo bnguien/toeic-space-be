@@ -72,6 +72,7 @@ public static class DependencyInjection
         services.AddDictation(configuration);
         services.AddVideoInfrastructure();
         services.AddGrammar(configuration);
+        services.AddAnalytics();
         return services;
     }
 
@@ -101,6 +102,12 @@ public static class DependencyInjection
         services.AddSingleton<SpeechPrewarmQueue>();
         services.AddSingleton<ISpeechPrewarmQueue>(provider => provider.GetRequiredService<SpeechPrewarmQueue>());
         services.AddHostedService<SpeechPrewarmWorker>();
+    }
+
+    /// <summary>Read-only analytics for admins and the AI data analyst: fixed aggregate queries, no writes.</summary>
+    private static void AddAnalytics(this IServiceCollection services)
+    {
+        services.AddScoped<IContentAnalyticsRepository, ContentAnalyticsRepository>();
     }
 
     /// <summary>Grammar roadmap (PBL-107): content, learning and comment repositories plus the guest attempt tickets.</summary>

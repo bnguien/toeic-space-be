@@ -5,6 +5,7 @@ using ToeicSpace.BuildingBlocks.Security.Jwt;
 using ToeicSpace.Identity.Application.Interfaces.Security;
 using ToeicSpace.Identity.Application.Models;
 using ToeicSpace.Identity.Domain.Entities;
+using ToeicSpace.Identity.Domain.Enums;
 
 namespace ToeicSpace.Identity.Infrastructure.Services.Security;
 
@@ -14,6 +15,11 @@ namespace ToeicSpace.Identity.Infrastructure.Services.Security;
 /// </summary>
 public sealed class JwtAccessTokenIssuer : IAccessTokenIssuer, IDisposable
 {
+    /// <summary>
+    /// Claim of assistant tokens naming who the assistant acts for (from X-On-Behalf-Of). Audit only.
+    /// </summary>
+    public const string ActorClaim = "act";
+
     private readonly JwtOptions _options;
     private readonly ECDsa _signingKey;
     private readonly SigningCredentials _signingCredentials;
@@ -59,6 +65,43 @@ public sealed class JwtAccessTokenIssuer : IAccessTokenIssuer, IDisposable
                 [AccessTokenDefaults.RoleClaim] = user.Role.ToString(),
                 [JwtRegisteredClaimNames.Jti] = Guid.NewGuid().ToString("N")
             }
+        });
+
+        return new IssuedAccessToken(token, expiresAt);
+    }
+
+    public IssuedAccessToken IssueForAgent(Guid subjectId, DateTimeOffset issuedAt, TimeSpan lifetime, string? actor = null)
+    {
+        if (lifetime <= TimeSpan.Zero || lifetime > TimeSpan.FromMinutes(15))
+        {
+            lifetime = TimeSpan.FromMinutes(10);
+        }
+
+        var claims = new Dictionary<string, object>
+        {
+            [AccessTokenDefaults.SubjectClaim] = subjectId.ToString(),
+            [AccessTokenDefaults.RoleClaim] = UserRole.Admin.ToString(),
+            [AccessTokenDefaults.ScopeClaim] = AccessTokenDefaults.AgentReadScope,
+            [JwtRegisteredClaimNames.Jti] = Guid.NewGuid().ToString("N")
+        };
+
+        // Audit only: services never authorize on it.
+        if (!string.IsNullOrEmpty(actor))
+        {
+            claims[ActorClaim] = actor;
+        }
+
+        var expiresAt = issuedAt.Add(lifetime);
+        var token = _tokenHandler.CreateToken(new SecurityTokenDescriptor
+        {
+            Issuer = _options.Issuer,
+            Audience = _options.Audience,
+            IssuedAt = issuedAt.UtcDateTime,
+            NotBefore = issuedAt.UtcDateTime,
+            Expires = expiresAt.UtcDateTime,
+            TokenType = AccessTokenDefaults.TokenType,
+            SigningCredentials = _signingCredentials,
+            Claims = claims
         });
 
         return new IssuedAccessToken(token, expiresAt);

@@ -34,6 +34,7 @@ public sealed class ClassroomExceptionHandler(ILogger<ClassroomExceptionHandler>
             Detail = message, Instance = context.Request.Path
         };
         problem.Extensions["code"] = code;
+        if (error is ClassRuleException { Errors: { } errors }) problem.Extensions["errors"] = errors;
         context.Response.StatusCode = status;
         context.Response.ContentType = "application/problem+json";
         await context.Response.WriteAsJsonAsync(problem, ct);

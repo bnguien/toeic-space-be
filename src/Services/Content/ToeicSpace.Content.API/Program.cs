@@ -5,6 +5,7 @@ using ToeicSpace.BuildingBlocks.Security.Http;
 using ToeicSpace.Content.API.Controllers;
 using ToeicSpace.Content.API.Middlewares;
 using ToeicSpace.Content.API.RateLimiting;
+using ToeicSpace.Content.API.Security;
 using ToeicSpace.Content.Application;
 using ToeicSpace.Content.Infrastructure;
 using Microsoft.OpenApi;
@@ -22,7 +23,10 @@ builder.Services.AddTrustedForwardedHeaders(builder.Configuration);
 builder.Services.AddToeicSpaceJwtAuthentication(builder.Configuration);
 builder.Services.AddAuthorizationBuilder()
     .SetFallbackPolicy(new AuthorizationPolicyBuilder().RequireAuthenticatedUser().Build())
-    .AddPolicy("Admin", policy => policy.RequireRole("Admin"));
+    .AddPolicy("Admin", policy => policy.RequireRole("Admin"))
+    .AddPolicy(AuthorizationPolicies.AnalyticsReader, policy => policy
+        .RequireAuthenticatedUser()
+        .RequireRole(AuthorizationPolicies.AnalyticsReaderRoles));
 builder.Services.AddVocabularyRateLimits();
 builder.Services.AddNewsRateLimits();
 builder.Services.AddDictationRateLimits();

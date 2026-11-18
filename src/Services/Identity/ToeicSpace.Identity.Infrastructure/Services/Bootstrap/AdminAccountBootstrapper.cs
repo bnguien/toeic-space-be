@@ -34,19 +34,29 @@ public sealed class AdminAccountBootstrapper : IHostedService
 
     public async Task StartAsync(CancellationToken cancellationToken)
     {
-        if (string.IsNullOrWhiteSpace(_options.Email) || string.IsNullOrEmpty(_options.Password))
+        await EnsureAdminAsync(_options.Email, _options.Password, _options.FullName, cancellationToken);
+        foreach (var account in _options.Additional)
+        {
+            await EnsureAdminAsync(account.Email, account.Password, account.FullName, cancellationToken);
+        }
+    }
+
+    private async Task EnsureAdminAsync(
+        string? configuredEmail, string? password, string fullName, CancellationToken cancellationToken)
+    {
+        if (string.IsNullOrWhiteSpace(configuredEmail) || string.IsNullOrEmpty(password))
         {
             return;
         }
 
-        if (!IsStrongPassword(_options.Password))
+        if (!IsStrongPassword(password))
         {
             throw new InvalidOperationException(
                 $"BootstrapAdmin:Password must have at least {MinimumPasswordLength} characters " +
                 "and contain at least three of: lowercase, uppercase, digits, symbols.");
         }
 
-        var email = _options.Email.Trim().ToLowerInvariant();
+        var email = configuredEmail.Trim().ToLowerInvariant();
 
         await using var scope = _scopeFactory.CreateAsyncScope();
         var userRepository = scope.ServiceProvider.GetRequiredService<IUserRepository>();
@@ -54,7 +64,7 @@ public sealed class AdminAccountBootstrapper : IHostedService
 
         if (await userRepository.EmailExistsAsync(email, cancellationToken))
         {
-            _logger.LogInformation("Bootstrap administrator already exists; nothing to create");
+            _logger.LogInformation("Bootstrap administrator {Email} already exists; nothing to create", email);
             return;
         }
 
@@ -62,9 +72,9 @@ public sealed class AdminAccountBootstrapper : IHostedService
         var admin = new User
         {
             Id = Guid.NewGuid(),
-            FullName = _options.FullName.Trim(),
+            FullName = fullName.Trim(),
             Email = email,
-            PasswordHash = passwordHasher.Hash(_options.Password),
+            PasswordHash = passwordHasher.Hash(password),
             EmailVerifiedAt = now,
             Role = UserRole.Admin,
             Status = UserStatus.Active,
