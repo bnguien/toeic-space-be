@@ -480,6 +480,10 @@ services:
       Jwt__Issuer: ${JWT_ISSUER}
       Jwt__Audience: ${JWT_AUDIENCE}
       Jwt__PublicKey: ${JWT_PUBLIC_KEY}
+      GoogleMeet__ClientId: ${GOOGLE_MEET_CLIENT_ID}
+      GoogleMeet__ClientSecret: ${GOOGLE_MEET_CLIENT_SECRET}
+      GoogleMeet__RedirectUri: ${GOOGLE_MEET_REDIRECT_URI}
+      GoogleMeet__EncryptionKey: ${GOOGLE_MEET_ENCRYPTION_KEY}
     depends_on:
       classroom-db:
         condition: service_healthy

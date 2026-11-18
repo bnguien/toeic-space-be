@@ -4,6 +4,9 @@ using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using ToeicSpace.BuildingBlocks.Security.Jwt;
 using ToeicSpace.Classroom.Application.Features.Classes.Commands.AssignTeacher;
+using ToeicSpace.Classroom.Application.Features.Classes.Commands.SetDefaultRoom;
+using ToeicSpace.Classroom.Application.Features.Classes.Queries.GetRoomHistory;
+using ToeicSpace.Classroom.Application.DTOs.Facilities;
 using ToeicSpace.Classroom.Application.Features.Classes.Commands.ChangeClassStatus;
 using ToeicSpace.Classroom.Application.Features.Classes.Commands.CreateClass;
 using ToeicSpace.Classroom.Application.Features.Classes.Commands.DeleteClass;
@@ -16,6 +19,8 @@ using ToeicSpace.Classroom.Application.Features.Classes.Queries.GetClassById;
 using ToeicSpace.Classroom.Application.Features.Classes.Queries.GetClasses;
 using ToeicSpace.Classroom.Application.Features.Classes.Queries.GetDeletedClasses;
 using ToeicSpace.Classroom.Application.Features.Classes.Queries.GetMyClasses;
+using ToeicSpace.Classroom.Application.Features.Enrollments.Queries.GetTeacherClassStudents;
+using ToeicSpace.Classroom.Application.DTOs.Enrollments;
 using ToeicSpace.Classroom.Application.DTOs.Classes;
 using ToeicSpace.Classroom.Domain.Enums;
 using ToeicSpace.Classroom.Domain.Exceptions;
@@ -52,6 +57,11 @@ public sealed class ClassesController(ISender sender) : ControllerBase
     [HttpGet("me"), Authorize(Roles = "Teacher")]
     public Task<PagedResult<ClassDto>> Mine([FromQuery] int page = 1, [FromQuery] int pageSize = 20,
         CancellationToken ct = default) => sender.Send(new GetMyClassesQuery(UserId, page, pageSize), ct);
+
+    [HttpGet("{id:guid}/students"), Authorize(Roles = "Teacher")]
+    public Task<PagedResult<ClassEnrollmentDto>> Students(Guid id, [FromQuery] int page = 1,
+        [FromQuery] int pageSize = 20, CancellationToken ct = default) =>
+        sender.Send(new GetTeacherClassStudentsQuery(id, UserId, page, pageSize), ct);
 
     [HttpGet("{id:guid}")]
     public Task<ClassDetailDto> Get(Guid id, CancellationToken ct) =>
@@ -110,4 +120,16 @@ public sealed class ClassesController(ISender sender) : ControllerBase
     [HttpDelete("{id:guid}/teacher"), Authorize(Policy = "Admin")]
     public Task<ClassDetailDto> Unassign(Guid id, CancellationToken ct) =>
         sender.Send(new UnassignTeacherCommand(id, UserId), ct);
+
+    [HttpPut("{id:guid}/default-room"), Authorize(Policy = "Admin")]
+    public Task<ClassDetailDto> SetDefaultRoom(Guid id, SetDefaultRoomCommand command, CancellationToken ct)
+    {
+        command.ClassId = id;
+        command.AdminId = UserId;
+        return sender.Send(command, ct);
+    }
+
+    [HttpGet("{id:guid}/default-room/history"), Authorize(Policy = "Admin")]
+    public Task<IReadOnlyList<ClassRoomChangeDto>> DefaultRoomHistory(Guid id, CancellationToken ct) =>
+        sender.Send(new GetRoomHistoryQuery(id), ct);
 }

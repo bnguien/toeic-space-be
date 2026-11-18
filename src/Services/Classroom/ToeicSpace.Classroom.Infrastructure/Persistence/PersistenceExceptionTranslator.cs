@@ -21,7 +21,7 @@ internal static class PersistenceExceptionTranslator
         }
         catch (DbUpdateException ex) when (ex.InnerException is MySqlException { Number: 1062 })
         {
-            throw new ClassRuleException("unique_constraint", "Class code or current teacher conflicts with an existing record.", 409, ex);
+            throw new ClassRuleException("unique_constraint", "A unique field conflicts with an existing record.", 409, ex);
         }
         catch (DbUpdateException ex) when (ex.InnerException is MySqlException { Number: 1451 })
         {
