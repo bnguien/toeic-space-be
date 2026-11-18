@@ -3,6 +3,7 @@ using ToeicSpace.Assessment.API.Security;
 using ToeicSpace.Assessment.Application.Analytics.Queries.GetAnalyticsCatalog;
 using ToeicSpace.Assessment.Application.Analytics.Queries.GetAnalyticsEvents;
 using ToeicSpace.Assessment.Application.Analytics.Queries.QueryAnalytics;
+using ToeicSpace.Assessment.Application.Dtos;
 
 namespace ToeicSpace.Assessment.API.Controllers;
 

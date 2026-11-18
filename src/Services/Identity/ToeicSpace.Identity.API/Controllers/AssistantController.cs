@@ -8,7 +8,7 @@ using Microsoft.Extensions.Caching.Memory;
 using ToeicSpace.BuildingBlocks.Security.Jwt;
 using ToeicSpace.Identity.API.Assistant;
 using ToeicSpace.Identity.API.Security;
-using ToeicSpace.Identity.Application.Features.Profile.Queries;
+using ToeicSpace.Identity.Application.Features.Profiles.Queries.GetProfile;
 
 namespace ToeicSpace.Identity.API.Controllers;
 
