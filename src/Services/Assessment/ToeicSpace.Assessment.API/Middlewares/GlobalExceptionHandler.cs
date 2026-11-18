@@ -1,5 +1,6 @@
 using Microsoft.AspNetCore.Diagnostics;
 using Microsoft.EntityFrameworkCore;
+using ToeicSpace.Assessment.Application.Attempts;
 using ToeicSpace.Assessment.Domain.Exceptions;
 
 namespace ToeicSpace.Assessment.API.Middlewares;
@@ -69,6 +70,15 @@ public class GlobalExceptionHandler : IExceptionHandler
         if (exception.ValidationErrors is not null)
         {
             problemDetails.Extensions["errors"] = exception.ValidationErrors;
+        }
+
+        if (exception is PracticeMediaException mediaException)
+        {
+            problemDetails.Extensions["reason"] = mediaException.Reason;
+            if (mediaException.SourceReference is { } sourceReference)
+            {
+                problemDetails.Extensions["sourceReference"] = sourceReference;
+            }
         }
 
         context.Response.StatusCode = statusCode;

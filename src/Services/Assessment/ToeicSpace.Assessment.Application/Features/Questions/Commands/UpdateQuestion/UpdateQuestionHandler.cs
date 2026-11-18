@@ -132,7 +132,9 @@ public sealed class UpdateQuestionHandler : IRequestHandler<UpdateQuestionComman
         CancellationToken cancellationToken)
     {
         var usedInAttempts = await _context.ToeicAttemptAnswers
-            .AnyAsync(answer => answer.QuestionId == questionId, cancellationToken);
+            .AnyAsync(answer => answer.QuestionId == questionId && (answer.SnapshotQuestionId == null
+                || answer.Attempt.Mode != AttemptMode.Practice || answer.Attempt.PracticeSetId == null
+                || answer.Attempt.Snapshot == null || answer.Attempt.Snapshot.SchemaVersion != 1), cancellationToken);
 
         if (usedInAttempts)
         {

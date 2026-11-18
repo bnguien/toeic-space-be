@@ -8,6 +8,34 @@ namespace ToeicSpace.Assessment.Application.UnitTests.Analytics;
 public class AnalyticsEventsTests
 {
     [Theory]
+    [InlineData("attempt")]
+    [InlineData("answer")]
+    public async Task Events_PreserveNullableTestIds(string type)
+    {
+        using var database = new TestDatabase();
+        var test = database.AddTest(ContentStatus.Active);
+        var practiceSet = database.AddPracticeSet(ToeicPart.Part5);
+        var question = database.AddQuestion(test.Id, ToeicPart.Part5, 101);
+        var learner = Guid.NewGuid();
+        var fullTest = database.AddAttempt(learner, test.Id, answers: [(question, true)]);
+        var practice = database.AddAttempt(learner, null, mode: AttemptMode.Practice, answers: [(question, false)]);
+        practice.PracticeSetId = practiceSet.Id;
+        database.Context.SaveChanges();
+
+        var result = await database.EventsAsync(new GetAnalyticsEventsQuery(type));
+
+        result.Rows.Should().HaveCount(2);
+        var pseudonymizer = AnalyticsSeed.Pseudonymizer();
+        result.Rows.Single(row => row.Attempt == pseudonymizer.Attempt(fullTest.Id)).TestId.Should().Be(test.Id);
+        var practiceEvent = result.Rows.Single(row => row.Attempt == pseudonymizer.Attempt(practice.Id));
+        practiceEvent.TestId.Should().BeNull();
+        practiceEvent.Mode.Should().Be(AttemptMode.Practice);
+
+        var json = JsonSerializer.SerializeToElement(practiceEvent, new JsonSerializerOptions(JsonSerializerDefaults.Web));
+        json.GetProperty("testId").ValueKind.Should().Be(JsonValueKind.Null);
+    }
+
+    [Theory]
     [InlineData(null)]
     [InlineData("")]
     [InlineData("too-short-key")]

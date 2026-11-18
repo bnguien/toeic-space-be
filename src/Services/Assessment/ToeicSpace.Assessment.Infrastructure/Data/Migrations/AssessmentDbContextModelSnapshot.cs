@@ -22,11 +22,32 @@ namespace ToeicSpace.Assessment.Infrastructure.Data.Migrations
 
             MySqlModelBuilderExtensions.AutoIncrementColumns(modelBuilder);
 
+            modelBuilder.Entity("ToeicSpace.Assessment.Domain.Entities.PracticeAttemptState", b =>
+                {
+                    b.Property<Guid>("UserId")
+                        .HasColumnType("char(36)");
+
+                    b.Property<Guid>("PracticeSetId")
+                        .HasColumnType("char(36)");
+
+                    b.Property<long>("Generation")
+                        .HasColumnType("bigint");
+
+                    b.HasKey("UserId", "PracticeSetId");
+
+                    b.ToTable("PracticeAttemptStates", (string)null);
+                });
+
             modelBuilder.Entity("ToeicSpace.Assessment.Domain.Entities.ToeicAttempt", b =>
                 {
                     b.Property<Guid>("Id")
                         .ValueGeneratedOnAdd()
                         .HasColumnType("char(36)");
+
+                    b.Property<Guid?>("ActivePracticeSetId")
+                        .ValueGeneratedOnAddOrUpdate()
+                        .HasColumnType("char(36)")
+                        .HasComputedColumnSql("CASE WHEN `Status` = 'InProgress' THEN `PracticeSetId` ELSE NULL END", true);
 
                     b.Property<DateTime>("CreatedAt")
                         .HasColumnType("datetime(6)");
@@ -35,6 +56,9 @@ namespace ToeicSpace.Assessment.Infrastructure.Data.Migrations
                         .HasColumnType("int");
 
                     b.Property<DateTime?>("EndTime")
+                        .HasColumnType("datetime(6)");
+
+                    b.Property<DateTime?>("LastActivityAt")
                         .HasColumnType("datetime(6)");
 
                     b.Property<int>("ListeningScore")
@@ -46,6 +70,9 @@ namespace ToeicSpace.Assessment.Infrastructure.Data.Migrations
                         .HasMaxLength(32)
                         .HasColumnType("varchar(32)")
                         .HasDefaultValue("FullTest");
+
+                    b.Property<Guid?>("PracticeSetId")
+                        .HasColumnType("char(36)");
 
                     b.Property<int>("ReadingScore")
                         .HasColumnType("int");
@@ -60,7 +87,7 @@ namespace ToeicSpace.Assessment.Infrastructure.Data.Migrations
                         .HasColumnType("varchar(32)")
                         .HasDefaultValue("InProgress");
 
-                    b.Property<Guid>("TestId")
+                    b.Property<Guid?>("TestId")
                         .HasColumnType("char(36)");
 
                     b.Property<int>("TotalCorrect")
@@ -82,13 +109,23 @@ namespace ToeicSpace.Assessment.Infrastructure.Data.Migrations
 
                     b.HasKey("Id");
 
+                    b.HasIndex("PracticeSetId");
+
                     b.HasIndex("TestId");
 
                     b.HasIndex("UserId");
 
+                    b.HasIndex("UserId", "ActivePracticeSetId")
+                        .IsUnique();
+
                     b.HasIndex("UserId", "TestId");
 
-                    b.ToTable("ToeicAttempts", (string)null);
+                    b.HasIndex("Status", "LastActivityAt", "PracticeSetId");
+
+                    b.ToTable("ToeicAttempts", null, t =>
+                        {
+                            t.HasCheckConstraint("CK_Attempt_Source", "(`TestId` IS NULL) <> (`PracticeSetId` IS NULL)");
+                        });
                 });
 
             modelBuilder.Entity("ToeicSpace.Assessment.Domain.Entities.ToeicAttemptAnswer", b =>
@@ -111,7 +148,16 @@ namespace ToeicSpace.Assessment.Infrastructure.Data.Migrations
                     b.Property<bool>("IsCorrect")
                         .HasColumnType("tinyint(1)");
 
+                    b.Property<Guid?>("LastMutationId")
+                        .HasColumnType("char(36)");
+
                     b.Property<Guid>("QuestionId")
+                        .HasColumnType("char(36)");
+
+                    b.Property<long>("Revision")
+                        .HasColumnType("bigint");
+
+                    b.Property<Guid?>("SnapshotQuestionId")
                         .HasColumnType("char(36)");
 
                     b.Property<int>("TimeSpentSeconds")
@@ -130,7 +176,60 @@ namespace ToeicSpace.Assessment.Infrastructure.Data.Migrations
 
                     b.HasIndex("AttemptId", "QuestionId");
 
+                    b.HasIndex("AttemptId", "SnapshotQuestionId")
+                        .IsUnique();
+
                     b.ToTable("ToeicAttemptAnswers", (string)null);
+                });
+
+            modelBuilder.Entity("ToeicSpace.Assessment.Domain.Entities.ToeicAttemptQuestion", b =>
+                {
+                    b.Property<Guid>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("char(36)");
+
+                    b.Property<Guid>("AttemptId")
+                        .HasColumnType("char(36)");
+
+                    b.Property<int>("OrderIndex")
+                        .HasColumnType("int");
+
+                    b.Property<string>("Payload")
+                        .IsRequired()
+                        .HasColumnType("longtext");
+
+                    b.Property<Guid>("SourceQuestionId")
+                        .HasColumnType("char(36)");
+
+                    b.Property<int>("Version")
+                        .HasColumnType("int");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("AttemptId", "SourceQuestionId")
+                        .IsUnique();
+
+                    b.ToTable("ToeicAttemptQuestions", (string)null);
+                });
+
+            modelBuilder.Entity("ToeicSpace.Assessment.Domain.Entities.ToeicAttemptSnapshot", b =>
+                {
+                    b.Property<Guid>("AttemptId")
+                        .HasColumnType("char(36)");
+
+                    b.Property<DateTime>("CapturedAt")
+                        .HasColumnType("datetime(6)");
+
+                    b.Property<string>("Payload")
+                        .IsRequired()
+                        .HasColumnType("longtext");
+
+                    b.Property<int>("SchemaVersion")
+                        .HasColumnType("int");
+
+                    b.HasKey("AttemptId");
+
+                    b.ToTable("ToeicAttemptSnapshots", (string)null);
                 });
 
             modelBuilder.Entity("ToeicSpace.Assessment.Domain.Entities.ToeicPassage", b =>
@@ -528,11 +627,15 @@ namespace ToeicSpace.Assessment.Infrastructure.Data.Migrations
 
             modelBuilder.Entity("ToeicSpace.Assessment.Domain.Entities.ToeicAttempt", b =>
                 {
+                    b.HasOne("ToeicSpace.Assessment.Domain.Entities.ToeicPracticeSet", null)
+                        .WithMany()
+                        .HasForeignKey("PracticeSetId")
+                        .OnDelete(DeleteBehavior.Restrict);
+
                     b.HasOne("ToeicSpace.Assessment.Domain.Entities.ToeicTest", "Test")
                         .WithMany("Attempts")
                         .HasForeignKey("TestId")
-                        .OnDelete(DeleteBehavior.Restrict)
-                        .IsRequired();
+                        .OnDelete(DeleteBehavior.Restrict);
 
                     b.Navigation("Test");
                 });
@@ -551,9 +654,35 @@ namespace ToeicSpace.Assessment.Infrastructure.Data.Migrations
                         .OnDelete(DeleteBehavior.Restrict)
                         .IsRequired();
 
+                    b.HasOne("ToeicSpace.Assessment.Domain.Entities.ToeicAttemptQuestion", null)
+                        .WithMany()
+                        .HasForeignKey("AttemptId", "SnapshotQuestionId")
+                        .HasPrincipalKey("AttemptId", "Id")
+                        .OnDelete(DeleteBehavior.Cascade);
+
                     b.Navigation("Attempt");
 
                     b.Navigation("Question");
+                });
+
+            modelBuilder.Entity("ToeicSpace.Assessment.Domain.Entities.ToeicAttemptQuestion", b =>
+                {
+                    b.HasOne("ToeicSpace.Assessment.Domain.Entities.ToeicAttempt", null)
+                        .WithMany()
+                        .HasForeignKey("AttemptId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+                });
+
+            modelBuilder.Entity("ToeicSpace.Assessment.Domain.Entities.ToeicAttemptSnapshot", b =>
+                {
+                    b.HasOne("ToeicSpace.Assessment.Domain.Entities.ToeicAttempt", "Attempt")
+                        .WithOne("Snapshot")
+                        .HasForeignKey("ToeicSpace.Assessment.Domain.Entities.ToeicAttemptSnapshot", "AttemptId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+
+                    b.Navigation("Attempt");
                 });
 
             modelBuilder.Entity("ToeicSpace.Assessment.Domain.Entities.ToeicPassage", b =>
@@ -605,6 +734,8 @@ namespace ToeicSpace.Assessment.Infrastructure.Data.Migrations
             modelBuilder.Entity("ToeicSpace.Assessment.Domain.Entities.ToeicAttempt", b =>
                 {
                     b.Navigation("Answers");
+
+                    b.Navigation("Snapshot");
                 });
 
             modelBuilder.Entity("ToeicSpace.Assessment.Domain.Entities.ToeicPassage", b =>

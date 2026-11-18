@@ -81,7 +81,7 @@ public sealed record AnalyticsEventsDto(
 public sealed record AnalyticsEventDto(
     string Learner,
     string Attempt,
-    Guid TestId,
+    Guid? TestId,
     AttemptMode Mode,
     DateTime StartedAt,
     AttemptStatus? Status = null,

@@ -4,7 +4,7 @@ namespace ToeicSpace.Assessment.Application.Analytics.Queries.QueryAnalytics;
 
 public sealed record AttemptFact(
     Guid UserId,
-    Guid TestId,
+    Guid? TestId,
     DateTime StartTime,
     AttemptStatus Status,
     AttemptMode Mode,
@@ -17,7 +17,7 @@ public sealed record AttemptFact(
 public sealed record AnswerPartial(
     Guid UserId,
     DateTime Day,
-    Guid TestId,
+    Guid? TestId,
     AttemptMode Mode,
     ToeicPart Part,
     QuestionDifficulty Difficulty,

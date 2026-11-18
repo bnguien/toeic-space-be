@@ -1,0 +1,2 @@
+# The Docker migration entrypoint must keep LF on Windows checkouts.
+scripts/docker-migrate.sh text eol=lf

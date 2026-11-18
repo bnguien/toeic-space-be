@@ -1,6 +1,7 @@
 <Project Sdk="Microsoft.NET.Sdk">
 
   <ItemGroup>
+    <ProjectReference Include="../../../BuildingBlocks/ToeicSpace.BuildingBlocks.Storage/ToeicSpace.BuildingBlocks.Storage.csproj" />
     <ProjectReference Include="..\ToeicSpace.Assessment.Application\ToeicSpace.Assessment.Application.csproj" />
     <ProjectReference Include="..\ToeicSpace.Assessment.Domain\ToeicSpace.Assessment.Domain.csproj" />
     <ProjectReference Include="..\..\..\BuildingBlocks\ToeicSpace.BuildingBlocks\ToeicSpace.BuildingBlocks.csproj" />

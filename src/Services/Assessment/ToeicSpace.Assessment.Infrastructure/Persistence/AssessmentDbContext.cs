@@ -25,6 +25,60 @@ public class AssessmentDbContext : DbContext, IAssessmentDbContext
     public DbSet<ToeicAttempt> ToeicAttempts => Set<ToeicAttempt>();
 
     public DbSet<ToeicAttemptAnswer> ToeicAttemptAnswers => Set<ToeicAttemptAnswer>();
+    public DbSet<ToeicAttemptSnapshot> ToeicAttemptSnapshots => Set<ToeicAttemptSnapshot>();
+    public DbSet<ToeicAttemptQuestion> ToeicAttemptQuestions => Set<ToeicAttemptQuestion>();
+    public DbSet<PracticeAttemptState> PracticeAttemptStates => Set<PracticeAttemptState>();
+
+    // All lifecycle mutations (including autosave) lock the same per-user/set fence first.
+    // Content writers do not acquire this fence: their existing Set -> Questions -> Passages order is preserved.
+    public Task<T> ExecuteAttemptUpdateAsync<T>(Guid userId, Guid setId, Func<Task<T>> update, CancellationToken ct)
+        => ExecuteContentUpdateAsync(async () =>
+        {
+            await Database.ExecuteSqlInterpolatedAsync($"INSERT IGNORE INTO PracticeAttemptStates (UserId, PracticeSetId, Generation) VALUES ({userId}, {setId}, 0)", ct);
+            await PracticeAttemptStates.FromSqlInterpolated($"SELECT * FROM PracticeAttemptStates WHERE UserId = {userId} AND PracticeSetId = {setId} FOR UPDATE")
+                .AsNoTracking().ToListAsync(ct);
+        }, update, ct);
+
+    public async Task LockAttemptSetAsync(Guid setId, CancellationToken ct)
+    {
+        if (Database.IsRelational())
+            await ToeicPracticeSets.FromSqlInterpolated($"SELECT * FROM ToeicPracticeSets WHERE Id = {setId} FOR UPDATE")
+                .IgnoreQueryFilters().AsNoTracking().ToListAsync(ct);
+    }
+
+    public async Task<T> ExecuteAttemptReadAsync<T>(Func<Task<T>> read, CancellationToken ct)
+    {
+        if (!Database.IsRelational()) return await read();
+        // MVCC gives Get a complete committed snapshot even if Discard commits between its queries.
+        // Unlike lifecycle mutations this never creates/touches a fence or updates activity.
+        return await Database.CreateExecutionStrategy().ExecuteAsync(async () =>
+        {
+            ChangeTracker.Clear();
+            await using var transaction = await Database.BeginTransactionAsync(System.Data.IsolationLevel.RepeatableRead, ct);
+            var result = await read();
+            await transaction.CommitAsync(ct);
+            return result;
+        });
+    }
+
+    private void EnsureSnapshotsUnchanged()
+    {
+        if (ChangeTracker.Entries().Any(e => e.State == EntityState.Modified &&
+            (e.Entity is ToeicAttemptSnapshot || e.Entity is ToeicAttemptQuestion)))
+            throw new InvalidOperationException("Attempt snapshots are immutable.");
+    }
+
+    public override int SaveChanges(bool acceptAllChangesOnSuccess)
+    {
+        EnsureSnapshotsUnchanged();
+        return base.SaveChanges(acceptAllChangesOnSuccess);
+    }
+
+    public override Task<int> SaveChangesAsync(bool acceptAllChangesOnSuccess, CancellationToken cancellationToken = default)
+    {
+        EnsureSnapshotsUnchanged();
+        return base.SaveChangesAsync(acceptAllChangesOnSuccess, cancellationToken);
+    }
 
     public DbSet<OutboxMessage> OutboxMessages => Set<OutboxMessage>();
 

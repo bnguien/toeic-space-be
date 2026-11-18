@@ -16,7 +16,7 @@ internal static class AnalyticsSeed
     public static ToeicAttempt AddAttempt(
         this TestDatabase database,
         Guid userId,
-        Guid testId,
+        Guid? testId,
         DateTime? start = null,
         AttemptStatus status = AttemptStatus.Completed,
         int score = 500,

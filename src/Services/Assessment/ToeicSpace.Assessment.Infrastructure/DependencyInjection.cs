@@ -28,6 +28,9 @@ public static class DependencyInjection
                 "or in appsettings.json.");
 
         services.TryAddSingleton(TimeProvider.System);
+        services.AddScoped<ToeicSpace.Assessment.Application.Attempts.IAttemptMediaStore,
+            ToeicSpace.Assessment.Infrastructure.Services.Attempts.RetainedAttemptMediaStore>();
+        services.AddHostedService<ToeicSpace.Assessment.Infrastructure.Services.Attempts.PracticeAttemptCleanupWorker>();
         services.AddScoped<AuditableEntityInterceptor>();
 
         services.AddDbContext<AssessmentDbContext>((serviceProvider, options) =>

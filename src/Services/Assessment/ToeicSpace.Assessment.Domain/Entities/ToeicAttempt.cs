@@ -7,9 +7,13 @@ public class ToeicAttempt : BaseAuditableEntity
 {
     public Guid UserId { get; set; }
 
-    public Guid TestId { get; set; }
+    public Guid? TestId { get; set; }
 
-    public ToeicTest Test { get; set; } = null!;
+    public ToeicTest? Test { get; set; }
+
+    public Guid? PracticeSetId { get; set; }
+    public DateTime? LastActivityAt { get; set; }
+    public ToeicAttemptSnapshot? Snapshot { get; set; }
 
     public DateTime StartTime { get; set; }
 
