@@ -1,12 +1,13 @@
 using ToeicSpace.BuildingBlocks.Messaging;
 using ToeicSpace.BuildingBlocks.Messaging.Events;
+using ToeicSpace.Identity.Application.Interfaces.Persistence;
 using ToeicSpace.Identity.Domain.Entities;
 using ToeicSpace.Identity.Domain.Enums;
 using ToeicSpace.Identity.Infrastructure.Messaging.Outbox;
 
 namespace ToeicSpace.Identity.Infrastructure.Persistence;
 
-public class IdentityDbContext : DbContext
+public class IdentityDbContext : DbContext, IIdentityDbContext
 {
     public IdentityDbContext(
         DbContextOptions<IdentityDbContext> options)

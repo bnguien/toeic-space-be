@@ -36,6 +36,10 @@ public static class DependencyInjection
                 connectionString,
                 new MySqlServerVersion(new Version(8, 4, 0))));
 
+        // Read-only access for the analytics queries; writes keep going through the repositories.
+        services.AddScoped<IIdentityDbContext>(serviceProvider =>
+            serviceProvider.GetRequiredService<IdentityDbContext>());
+
         services.AddHangfire(hangfire => hangfire
             .SetDataCompatibilityLevel(CompatibilityLevel.Version_180)
             .UseSimpleAssemblyNameTypeSerializer()

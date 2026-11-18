@@ -27,6 +27,7 @@ public static class DependencyInjection
         services.AddScoped<IStudentReadRepository, StudentReadRepository>();
         services.AddScoped<IEnrollmentRepository, EnrollmentRepository>();
         services.AddScoped<IEnrollmentImportReader, EnrollmentImportReader>();
+        services.AddScoped<IClassroomAnalyticsReader, ClassroomAnalyticsReader>();
         services.AddSingleton(TimeProvider.System);
         services.AddSingleton(_ => TimeZoneInfo.FindSystemTimeZoneById(
             config["Classroom:TimeZoneId"] ?? "Asia/Ho_Chi_Minh"));

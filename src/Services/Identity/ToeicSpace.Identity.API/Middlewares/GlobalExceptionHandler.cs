@@ -129,6 +129,9 @@ public class GlobalExceptionHandler : IExceptionHandler
             ErrorType.TooManyRequests =>
                 StatusCodes.Status429TooManyRequests,
 
+            ErrorType.ServiceUnavailable =>
+                StatusCodes.Status503ServiceUnavailable,
+
             _ =>
                 StatusCodes.Status500InternalServerError
         };
@@ -143,6 +146,7 @@ public class GlobalExceptionHandler : IExceptionHandler
             ErrorType.NotFound => "Not Found",
             ErrorType.Conflict => "Conflict",
             ErrorType.TooManyRequests => "Too Many Requests",
+            ErrorType.ServiceUnavailable => "Service Unavailable",
             _ => "Internal Server Error"
         };
 }

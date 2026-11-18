@@ -3,6 +3,7 @@ using Microsoft.AspNetCore.Authorization;
 using Microsoft.OpenApi;
 using ToeicSpace.BuildingBlocks.Security.Extensions;
 using ToeicSpace.Classroom.API.Middlewares;
+using ToeicSpace.Classroom.API.Security;
 using ToeicSpace.Classroom.Application;
 using ToeicSpace.Classroom.Infrastructure;
 
@@ -17,7 +18,10 @@ builder.Services.AddToeicSpaceJwtAuthentication(builder.Configuration);
 builder.Services.AddAuthorizationBuilder()
     .SetFallbackPolicy(new AuthorizationPolicyBuilder().RequireAuthenticatedUser().Build())
     .AddPolicy("Admin", p => p.RequireRole("Admin"))
-    .AddPolicy("AdminOrTeacher", p => p.RequireRole("Admin", "Teacher"));
+    .AddPolicy("AdminOrTeacher", p => p.RequireRole("Admin", "Teacher"))
+    .AddPolicy(AuthorizationPolicies.AnalyticsReader, p => p
+        .RequireAuthenticatedUser()
+        .RequireRole(AuthorizationPolicies.AnalyticsReaderRoles));
 builder.Services.AddControllers().AddJsonOptions(o => o.JsonSerializerOptions.Converters.Add(new JsonStringEnumConverter()));
 builder.Services.AddEndpointsApiExplorer();
 builder.Services.AddSwaggerGen(options =>

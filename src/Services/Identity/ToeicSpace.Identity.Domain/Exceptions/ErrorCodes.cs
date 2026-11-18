@@ -33,4 +33,8 @@ public static class ErrorCodes
 
     // Validation
     public const string ValidationError = "VALIDATION_ERROR";
+
+    // Analytics
+    public const string AnalyticsTimeout = "analytics_timeout";
+    public const string AnalyticsRangeTooLarge = "analytics_range_too_large";
 }

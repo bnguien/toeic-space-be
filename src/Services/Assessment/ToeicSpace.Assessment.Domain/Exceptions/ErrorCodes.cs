@@ -18,4 +18,8 @@ public static class ErrorCodes
     public const string TestNotPublishable = "test_not_publishable";
     public const string PracticeSetNotPublishable = "practice_set_not_publishable";
     public const string AnswerKeyForbidden = "answer_key_forbidden";
+
+    public const string AnalyticsUnavailable = "analytics_unavailable";
+    public const string AnalyticsTimeout = "analytics_timeout";
+    public const string AnalyticsRangeTooLarge = "analytics_range_too_large";
 }

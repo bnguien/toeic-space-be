@@ -13,4 +13,18 @@ public sealed class BootstrapAdminOptions
     public string? Password { get; init; }
 
     public string FullName { get; init; } = "Administrator";
+
+    /// <summary>
+    /// More administrators created the same way (BootstrapAdmin:Additional:0:Email …), e.g. a tester's account.
+    /// </summary>
+    public List<BootstrapAccount> Additional { get; init; } = [];
+}
+
+public sealed class BootstrapAccount
+{
+    public string? Email { get; init; }
+
+    public string? Password { get; init; }
+
+    public string FullName { get; init; } = "Administrator";
 }

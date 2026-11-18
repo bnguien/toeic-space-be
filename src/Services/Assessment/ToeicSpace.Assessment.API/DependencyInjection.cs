@@ -78,7 +78,10 @@ public static class DependencyInjection
                 .Build())
             .AddPolicy(AuthorizationPolicies.ContentManager, policy => policy
                 .RequireAuthenticatedUser()
-                .RequireRole(AuthorizationPolicies.ContentManagerRoles));
+                .RequireRole(AuthorizationPolicies.ContentManagerRoles))
+            .AddPolicy(AuthorizationPolicies.AnalyticsReader, policy => policy
+                .RequireAuthenticatedUser()
+                .RequireRole(AuthorizationPolicies.AnalyticsReaderRoles));
     }
 
     /// <summary>
