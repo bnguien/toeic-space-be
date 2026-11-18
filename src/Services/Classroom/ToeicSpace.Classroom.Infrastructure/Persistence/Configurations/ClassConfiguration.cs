@@ -19,6 +19,8 @@ public sealed class ClassConfiguration : IEntityTypeConfiguration<Class>
         b.Property(x => x.Version).IsConcurrencyToken();
         b.HasIndex(x => new { x.Status, x.UpdatedAt });
         b.HasIndex(x => x.StartDate);
+        b.HasOne<Room>().WithMany().HasForeignKey(x => x.DefaultRoomId).OnDelete(DeleteBehavior.Restrict);
+        b.HasIndex(x => x.DefaultRoomId);
     }
 }
 

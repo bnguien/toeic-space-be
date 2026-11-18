@@ -13,6 +13,7 @@ public sealed class Class
     public ClassStatus? ArchivedFromStatus { get; set; }
     public DateOnly? StartDate { get; set; }
     public DateOnly? EndDate { get; set; }
+    public Guid? DefaultRoomId { get; set; }
     public DateTime CreatedAt { get; set; }
     public Guid CreatedBy { get; set; }
     public DateTime UpdatedAt { get; set; }
@@ -31,7 +32,8 @@ public sealed class Class
     public static void ValidateMetadata(string code, string name, string? description, DateOnly? start, DateOnly? end)
     {
         if (string.IsNullOrWhiteSpace(code) || code.Length > 50 || string.IsNullOrWhiteSpace(name) || name.Length > 200)
-            throw new ClassRuleException("invalid_class", "Code and name are required and must fit their length limits.");
+            throw new ClassRuleException("invalid_class",
+                "Code and name are required and must fit their length limits.");
         if (description?.Length > 2000)
             throw new ClassRuleException("invalid_description", "Description must be at most 2000 characters.");
         if (start is not null && end is not null && start > end)

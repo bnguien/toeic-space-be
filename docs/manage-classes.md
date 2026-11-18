@@ -75,6 +75,26 @@ For bulk import, upload a UTF-8 CSV or .xlsx file (first worksheet) with a heade
 
 For UI multi-selection, use the JSON `/bulk` endpoint instead of creating a file. It returns `{ totalCount, enrolledCount, failedCount, items: [{ index, studentId, enrollmentId, code, message }] }`, where `index` is the zero-based position in the submitted `studentIds` array. One item can succeed while others fail (e.g. `already_enrolled`, `student_not_synchronized`); an invalid Class state rejects the entire request.
 
+## Student schedule conflict warnings
+
+Preview before saving a schedule, session (including makeup sessions), or enrollment. Preview is read-only and informational: teacher/room overlap still returns `409 schedule_conflict`, while overlapping student sessions never block a permitted save. A preview can become stale before save; clients must not submit conflict counts as authoritative. Only active enrollments in non-deleted classes and non-cancelled sessions count. Adjacent sessions do not overlap.
+
+| Method | Route (through `/classroom`) | Role | Preview body |
+|---|---|---|---|
+| POST | `/api/v1/classes/{classId}/schedules/conflicts/preview` | Admin | Same `ScheduleInput` as create |
+| POST | `/api/v1/classes/{classId}/schedules/{id}/conflicts/preview` | Admin | Same `{ input, expectedVersion }` as update |
+| POST | `/api/v1/classes/{classId}/schedules/generate/conflicts/preview` | Admin | Same `GenerateSessionsInput` as generate |
+| POST | `/api/v1/class-sessions/conflicts/preview` | Admin/Teacher | Same `SessionInput` as create |
+| POST | `/api/v1/class-sessions/{id}/conflicts/preview` | Admin/Teacher | Same `SessionEdit` as update; unchanged time returns no new warnings |
+| POST | `/api/v1/classes/{classId}/enrollments/conflicts/preview` | Admin | `{ "studentIds": ["..."] }` (1–1,000 IDs; use a single ID for individual enrollment) |
+| GET | `/api/v1/students/me/schedule-conflicts?from=...&to=...` | Student | Explicit UTC range, at most 366 days; **not** called by ordinary Calendar reads |
+
+The default response is `{ "affectedStudentCount": 17, "conflictCount": 23, "details": null }`. Admins can request paginated details with `?detailsPage=1&detailsPageSize=20` (1–100); Teachers receive summary only. Students can request details only for their own conflicts on the explicit `/students/me/schedule-conflicts` route. Each detail identifies the student, two sessions/classes and the overlap start/end; IDs of proposed new sessions are provisional and may differ after saving. `conflictCount` counts unique student–session pairs; `affectedStudentCount` counts each student once. No conflict state is persisted: cancellation, withdrawal and rescheduling are reflected on the next explicit preview; the Calendar continues to display its sessions without running conflict detection. Classroom currently has no student self-enrollment endpoint; Admin enrollment preview is used before confirmation. For Frontend, show Back to Edit / Save Anyway on a nonzero summary; call the existing save endpoint for Save Anyway.
+
+### Planned: Student Schedule Conflict Notifications
+
+After successful schedule/enrollment changes, asynchronously notify affected students of newly introduced conflicts with their classes, sessions and overlapping time ranges, preferably using the existing outbox/events and Hangfire. Deduplicate conflicts; handle resolution after cancellation, rescheduling or withdrawal. Future in-app notices should support read/unread, Calendar links and student-level authorization; consider email/push separately. Never generate notifications from Calendar views. **Status: Planned — Not implemented in this task.**
+
 ## API reference
 
 Routes below are within Classroom (`/classroom` through the gateway). Responses use JSON; errors use ProblemDetails with a `code` extension.

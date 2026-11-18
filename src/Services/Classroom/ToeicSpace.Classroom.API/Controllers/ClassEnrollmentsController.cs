@@ -9,6 +9,8 @@ using ToeicSpace.Classroom.Application.Features.Enrollments.Commands.BulkEnrollS
 using ToeicSpace.Classroom.Application.Features.Enrollments.Commands.ImportStudents;
 using ToeicSpace.Classroom.Application.Features.Enrollments.Commands.WithdrawStudent;
 using ToeicSpace.Classroom.Application.Features.Enrollments.Queries.GetClassEnrollments;
+using ToeicSpace.Classroom.Application.Features.StudentConflicts.Queries;
+using ToeicSpace.Classroom.Application.DTOs.Scheduling;
 using ToeicSpace.Classroom.Application.Interfaces.Services;
 using ToeicSpace.Classroom.Domain.Enums;
 using ToeicSpace.Classroom.Domain.Exceptions;
@@ -37,6 +39,12 @@ public sealed class ClassEnrollmentsController(ISender sender, IEnrollmentImport
         var result = await sender.Send(command, ct);
         return StatusCode(StatusCodes.Status201Created, result);
     }
+
+    [HttpPost("conflicts/preview")]
+    public Task<StudentConflictPreview> PreviewEnroll(Guid classId, EnrollmentConflictRequest body,
+        [FromQuery] int? detailsPage, [FromQuery] int detailsPageSize = 20, CancellationToken ct = default) =>
+        sender.Send(new PreviewEnrollmentQuery(classId, body.StudentIds,
+            detailsPage is { } page ? new ConflictDetailsRequest(page, detailsPageSize) : null), ct);
 
     [HttpPost("bulk")]
     public Task<BulkEnrollStudentsResult> Bulk(Guid classId, BulkEnrollStudentsCommand command, CancellationToken ct)
@@ -74,4 +82,6 @@ public sealed class ClassEnrollmentsController(ISender sender, IEnrollmentImport
     [HttpPost("{enrollmentId:guid}/withdraw")]
     public Task<ClassEnrollmentDto> Withdraw(Guid classId, Guid enrollmentId, CancellationToken ct) =>
         sender.Send(new WithdrawStudentCommand(classId, enrollmentId, AdminId), ct);
+
+    public sealed record EnrollmentConflictRequest(IReadOnlyList<Guid> StudentIds);
 }

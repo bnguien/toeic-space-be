@@ -16,4 +16,5 @@ public sealed record ClassDto(
     Guid UpdatedBy,
     Guid? TeacherId,
     ClassStatus? ArchivedFromStatus,
-    string? TeacherName = null);
+    string? TeacherName = null,
+    Guid? DefaultRoomId = null);

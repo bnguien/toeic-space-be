@@ -22,6 +22,127 @@ namespace ToeicSpace.Classroom.Infrastructure.Persistence.Migrations
 
             MySqlModelBuilderExtensions.AutoIncrementColumns(modelBuilder);
 
+            modelBuilder.Entity("ToeicSpace.Classroom.Domain.Entities.AttendanceAudit", b =>
+                {
+                    b.Property<Guid>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("char(36)");
+
+                    b.Property<string>("Action")
+                        .IsRequired()
+                        .HasMaxLength(16)
+                        .HasColumnType("varchar(16)");
+
+                    b.Property<Guid>("ClassSessionId")
+                        .HasColumnType("char(36)");
+
+                    b.Property<DateTime>("ModifiedAt")
+                        .HasColumnType("datetime(6)");
+
+                    b.Property<Guid>("ModifiedBy")
+                        .HasColumnType("char(36)");
+
+                    b.Property<string>("NewStatus")
+                        .HasMaxLength(16)
+                        .HasColumnType("varchar(16)");
+
+                    b.Property<string>("Note")
+                        .HasMaxLength(1000)
+                        .HasColumnType("varchar(1000)");
+
+                    b.Property<string>("PreviousStatus")
+                        .HasMaxLength(16)
+                        .HasColumnType("varchar(16)");
+
+                    b.Property<Guid>("StudentId")
+                        .HasColumnType("char(36)");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("ClassSessionId", "StudentId", "ModifiedAt");
+
+                    b.ToTable("AttendanceAudit");
+                });
+
+            modelBuilder.Entity("ToeicSpace.Classroom.Domain.Entities.AttendanceRecord", b =>
+                {
+                    b.Property<Guid>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("char(36)");
+
+                    b.Property<Guid>("ClassSessionId")
+                        .HasColumnType("char(36)");
+
+                    b.Property<string>("Note")
+                        .HasMaxLength(1000)
+                        .HasColumnType("varchar(1000)");
+
+                    b.Property<DateTime>("RecordedAt")
+                        .HasColumnType("datetime(6)");
+
+                    b.Property<Guid>("RecordedBy")
+                        .HasColumnType("char(36)");
+
+                    b.Property<string>("Status")
+                        .IsRequired()
+                        .HasMaxLength(16)
+                        .HasColumnType("varchar(16)");
+
+                    b.Property<Guid>("StudentId")
+                        .HasColumnType("char(36)");
+
+                    b.Property<DateTime>("UpdatedAt")
+                        .HasColumnType("datetime(6)");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("StudentId");
+
+                    b.HasIndex("ClassSessionId", "StudentId")
+                        .IsUnique();
+
+                    b.ToTable("AttendanceRecord");
+                });
+
+            modelBuilder.Entity("ToeicSpace.Classroom.Domain.Entities.Center", b =>
+                {
+                    b.Property<Guid>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("char(36)");
+
+                    b.Property<string>("Address")
+                        .IsRequired()
+                        .HasMaxLength(500)
+                        .HasColumnType("varchar(500)");
+
+                    b.Property<DateTime>("CreatedAt")
+                        .HasColumnType("datetime(6)");
+
+                    b.Property<string>("Name")
+                        .IsRequired()
+                        .HasMaxLength(200)
+                        .HasColumnType("varchar(200)");
+
+                    b.Property<string>("Status")
+                        .IsRequired()
+                        .HasMaxLength(16)
+                        .HasColumnType("varchar(16)");
+
+                    b.Property<string>("TimeZoneId")
+                        .IsRequired()
+                        .HasMaxLength(100)
+                        .HasColumnType("varchar(100)");
+
+                    b.Property<DateTime>("UpdatedAt")
+                        .HasColumnType("datetime(6)");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("Status", "Name");
+
+                    b.ToTable("Centers", (string)null);
+                });
+
             modelBuilder.Entity("ToeicSpace.Classroom.Domain.Entities.Class", b =>
                 {
                     b.Property<Guid>("Id")
@@ -41,6 +162,9 @@ namespace ToeicSpace.Classroom.Infrastructure.Persistence.Migrations
                         .HasColumnType("datetime(6)");
 
                     b.Property<Guid>("CreatedBy")
+                        .HasColumnType("char(36)");
+
+                    b.Property<Guid?>("DefaultRoomId")
                         .HasColumnType("char(36)");
 
                     b.Property<string>("Description")
@@ -77,6 +201,8 @@ namespace ToeicSpace.Classroom.Infrastructure.Persistence.Migrations
 
                     b.HasIndex("Code")
                         .IsUnique();
+
+                    b.HasIndex("DefaultRoomId");
 
                     b.HasIndex("StartDate");
 
@@ -170,6 +296,401 @@ namespace ToeicSpace.Classroom.Infrastructure.Persistence.Migrations
                     b.ToTable("ClassInstructors", (string)null);
                 });
 
+            modelBuilder.Entity("ToeicSpace.Classroom.Domain.Entities.ClassRoomChange", b =>
+                {
+                    b.Property<Guid>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("char(36)");
+
+                    b.Property<DateTime>("ChangedAt")
+                        .HasColumnType("datetime(6)");
+
+                    b.Property<Guid>("ChangedBy")
+                        .HasColumnType("char(36)");
+
+                    b.Property<Guid>("ClassId")
+                        .HasColumnType("char(36)");
+
+                    b.Property<Guid?>("NewRoomId")
+                        .HasColumnType("char(36)");
+
+                    b.Property<Guid?>("PreviousRoomId")
+                        .HasColumnType("char(36)");
+
+                    b.Property<string>("Reason")
+                        .HasMaxLength(500)
+                        .HasColumnType("varchar(500)");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("NewRoomId");
+
+                    b.HasIndex("PreviousRoomId");
+
+                    b.HasIndex("ClassId", "ChangedAt");
+
+                    b.ToTable("ClassRoomChanges", (string)null);
+                });
+
+            modelBuilder.Entity("ToeicSpace.Classroom.Domain.Entities.ClassSchedule", b =>
+                {
+                    b.Property<Guid>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("char(36)");
+
+                    b.Property<Guid>("ClassId")
+                        .HasColumnType("char(36)");
+
+                    b.Property<DateTime>("CreatedAt")
+                        .HasColumnType("datetime(6)");
+
+                    b.Property<string>("DaysOfWeek")
+                        .IsRequired()
+                        .HasColumnType("json");
+
+                    b.Property<DateOnly>("EffectiveFrom")
+                        .HasColumnType("date");
+
+                    b.Property<DateOnly>("EffectiveTo")
+                        .HasColumnType("date");
+
+                    b.Property<TimeOnly>("EndTime")
+                        .HasColumnType("time(6)");
+
+                    b.Property<string>("ExcludeDates")
+                        .IsRequired()
+                        .HasColumnType("json");
+
+                    b.Property<string>("Mode")
+                        .IsRequired()
+                        .HasMaxLength(16)
+                        .HasColumnType("varchar(16)");
+
+                    b.Property<TimeOnly>("StartTime")
+                        .HasColumnType("time(6)");
+
+                    b.Property<Guid>("TeacherId")
+                        .HasColumnType("char(36)");
+
+                    b.Property<string>("TimeZoneId")
+                        .IsRequired()
+                        .HasMaxLength(100)
+                        .HasColumnType("varchar(100)");
+
+                    b.Property<DateTime>("UpdatedAt")
+                        .HasColumnType("datetime(6)");
+
+                    b.Property<int>("Version")
+                        .IsConcurrencyToken()
+                        .HasColumnType("int");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("ClassId", "EffectiveFrom", "EffectiveTo");
+
+                    b.ToTable("ClassSchedules", (string)null);
+                });
+
+            modelBuilder.Entity("ToeicSpace.Classroom.Domain.Entities.ClassScheduleAudit", b =>
+                {
+                    b.Property<Guid>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("char(36)");
+
+                    b.Property<string>("Action")
+                        .IsRequired()
+                        .HasMaxLength(24)
+                        .HasColumnType("varchar(24)");
+
+                    b.Property<Guid>("ActorId")
+                        .HasColumnType("char(36)");
+
+                    b.Property<DateTime>("ChangedAt")
+                        .HasColumnType("datetime(6)");
+
+                    b.Property<Guid>("ClassScheduleId")
+                        .HasColumnType("char(36)");
+
+                    b.Property<string>("NewValue")
+                        .IsRequired()
+                        .HasColumnType("json");
+
+                    b.Property<string>("PreviousValue")
+                        .HasColumnType("json");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("ClassScheduleId", "ChangedAt");
+
+                    b.ToTable("ClassScheduleAudits", (string)null);
+                });
+
+            modelBuilder.Entity("ToeicSpace.Classroom.Domain.Entities.ClassSession", b =>
+                {
+                    b.Property<Guid>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("char(36)");
+
+                    b.Property<string>("CancellationReason")
+                        .HasMaxLength(500)
+                        .HasColumnType("varchar(500)");
+
+                    b.Property<Guid>("ClassId")
+                        .HasColumnType("char(36)");
+
+                    b.Property<Guid?>("ClassScheduleId")
+                        .HasColumnType("char(36)");
+
+                    b.Property<DateTime?>("CompletedAt")
+                        .HasColumnType("datetime(6)");
+
+                    b.Property<DateTime>("CreatedAt")
+                        .HasColumnType("datetime(6)");
+
+                    b.Property<string>("Description")
+                        .HasMaxLength(2000)
+                        .HasColumnType("varchar(2000)");
+
+                    b.Property<DateTime>("EndAt")
+                        .HasColumnType("datetime(6)");
+
+                    b.Property<string>("Mode")
+                        .IsRequired()
+                        .HasMaxLength(16)
+                        .HasColumnType("varchar(16)");
+
+                    b.Property<bool>("ModeOverridden")
+                        .HasColumnType("tinyint(1)");
+
+                    b.Property<string>("Notes")
+                        .HasMaxLength(2000)
+                        .HasColumnType("varchar(2000)");
+
+                    b.Property<DateOnly?>("OriginalLocalDate")
+                        .HasColumnType("date");
+
+                    b.Property<Guid?>("RoomId")
+                        .HasColumnType("char(36)");
+
+                    b.Property<bool>("RoomOverridden")
+                        .HasColumnType("tinyint(1)");
+
+                    b.Property<string>("SessionType")
+                        .IsRequired()
+                        .HasMaxLength(16)
+                        .HasColumnType("varchar(16)");
+
+                    b.Property<DateTime>("StartAt")
+                        .HasColumnType("datetime(6)");
+
+                    b.Property<string>("Status")
+                        .IsRequired()
+                        .HasMaxLength(16)
+                        .HasColumnType("varchar(16)");
+
+                    b.Property<Guid>("TeacherId")
+                        .HasColumnType("char(36)");
+
+                    b.Property<bool>("TeacherOverridden")
+                        .HasColumnType("tinyint(1)");
+
+                    b.Property<bool>("TimeOverridden")
+                        .HasColumnType("tinyint(1)");
+
+                    b.Property<string>("Title")
+                        .IsRequired()
+                        .HasMaxLength(200)
+                        .HasColumnType("varchar(200)");
+
+                    b.Property<DateTime>("UpdatedAt")
+                        .HasColumnType("datetime(6)");
+
+                    b.Property<int>("Version")
+                        .IsConcurrencyToken()
+                        .HasColumnType("int");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("ClassScheduleId", "OriginalLocalDate")
+                        .IsUnique();
+
+                    b.HasIndex("ClassId", "StartAt", "Id");
+
+                    b.HasIndex("RoomId", "Status", "StartAt", "EndAt");
+
+                    b.HasIndex("TeacherId", "Status", "StartAt", "EndAt");
+
+                    b.ToTable("ClassSessions", null, t =>
+                        {
+                            t.HasCheckConstraint("CK_ClassSessions_Time", "`StartAt` < `EndAt`");
+                        });
+                });
+
+            modelBuilder.Entity("ToeicSpace.Classroom.Domain.Entities.ClassSessionAudit", b =>
+                {
+                    b.Property<Guid>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("char(36)");
+
+                    b.Property<string>("Action")
+                        .IsRequired()
+                        .HasMaxLength(40)
+                        .HasColumnType("varchar(40)");
+
+                    b.Property<Guid>("ActorId")
+                        .HasColumnType("char(36)");
+
+                    b.Property<DateTime>("ChangedAt")
+                        .HasColumnType("datetime(6)");
+
+                    b.Property<Guid>("ClassSessionId")
+                        .HasColumnType("char(36)");
+
+                    b.Property<string>("NewValue")
+                        .HasColumnType("json");
+
+                    b.Property<string>("PreviousValue")
+                        .HasColumnType("json");
+
+                    b.Property<string>("Reason")
+                        .HasMaxLength(500)
+                        .HasColumnType("varchar(500)");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("ClassSessionId", "ChangedAt");
+
+                    b.ToTable("ClassSessionAudits", (string)null);
+                });
+
+            modelBuilder.Entity("ToeicSpace.Classroom.Domain.Entities.GoogleOAuthAttempt", b =>
+                {
+                    b.Property<string>("StateHash")
+                        .HasMaxLength(64)
+                        .HasColumnType("varchar(64)");
+
+                    b.Property<DateTime>("ExpiresAt")
+                        .HasColumnType("datetime(6)");
+
+                    b.Property<Guid>("TeacherId")
+                        .HasColumnType("char(36)");
+
+                    b.HasKey("StateHash");
+
+                    b.HasIndex("ExpiresAt");
+
+                    b.ToTable("GoogleOAuthAttempts", (string)null);
+                });
+
+            modelBuilder.Entity("ToeicSpace.Classroom.Domain.Entities.Room", b =>
+                {
+                    b.Property<Guid>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("char(36)");
+
+                    b.Property<int>("Capacity")
+                        .HasColumnType("int");
+
+                    b.Property<Guid>("CenterId")
+                        .HasColumnType("char(36)");
+
+                    b.Property<DateTime>("CreatedAt")
+                        .HasColumnType("datetime(6)");
+
+                    b.Property<string>("Name")
+                        .IsRequired()
+                        .HasMaxLength(200)
+                        .HasColumnType("varchar(200)");
+
+                    b.Property<string>("Status")
+                        .IsRequired()
+                        .HasMaxLength(16)
+                        .HasColumnType("varchar(16)");
+
+                    b.Property<DateTime>("UpdatedAt")
+                        .HasColumnType("datetime(6)");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("CenterId", "Name")
+                        .IsUnique();
+
+                    b.HasIndex("CenterId", "Status");
+
+                    b.ToTable("Rooms", null, t =>
+                        {
+                            t.HasCheckConstraint("CK_Rooms_Capacity", "`Capacity` > 0");
+                        });
+                });
+
+            modelBuilder.Entity("ToeicSpace.Classroom.Domain.Entities.SchedulingResource", b =>
+                {
+                    b.Property<string>("Key")
+                        .HasMaxLength(40)
+                        .HasColumnType("varchar(40)");
+
+                    b.HasKey("Key");
+
+                    b.ToTable("SchedulingResources", (string)null);
+                });
+
+            modelBuilder.Entity("ToeicSpace.Classroom.Domain.Entities.SessionMeetProvisioning", b =>
+                {
+                    b.Property<Guid>("ClassSessionId")
+                        .HasColumnType("char(36)");
+
+                    b.Property<int>("Attempts")
+                        .HasColumnType("int");
+
+                    b.Property<Guid?>("ConnectionId")
+                        .HasColumnType("char(36)");
+
+                    b.Property<string>("ErrorCode")
+                        .HasMaxLength(64)
+                        .HasColumnType("varchar(64)");
+
+                    b.Property<Guid?>("LeaseId")
+                        .HasColumnType("char(36)");
+
+                    b.Property<DateTime?>("LeaseUntil")
+                        .HasColumnType("datetime(6)");
+
+                    b.Property<string>("MeetingUrl")
+                        .HasMaxLength(512)
+                        .HasColumnType("varchar(512)");
+
+                    b.Property<DateTime?>("NextAttemptAt")
+                        .HasColumnType("datetime(6)");
+
+                    b.Property<int>("SessionVersion")
+                        .HasColumnType("int");
+
+                    b.Property<string>("SpaceName")
+                        .HasMaxLength(128)
+                        .HasColumnType("varchar(128)");
+
+                    b.Property<string>("Status")
+                        .IsRequired()
+                        .HasMaxLength(32)
+                        .HasColumnType("varchar(32)");
+
+                    b.Property<Guid>("TeacherId")
+                        .HasColumnType("char(36)");
+
+                    b.Property<DateTime>("UpdatedAt")
+                        .HasColumnType("datetime(6)");
+
+                    b.Property<int>("Version")
+                        .IsConcurrencyToken()
+                        .HasColumnType("int");
+
+                    b.HasKey("ClassSessionId");
+
+                    b.HasIndex("Status", "NextAttemptAt");
+
+                    b.ToTable("SessionMeetProvisionings", (string)null);
+                });
+
             modelBuilder.Entity("ToeicSpace.Classroom.Domain.Entities.StudentReadModel", b =>
                 {
                     b.Property<Guid>("StudentId")
@@ -217,6 +738,38 @@ namespace ToeicSpace.Classroom.Infrastructure.Persistence.Migrations
                     b.HasIndex("IsEligible", "Name");
 
                     b.ToTable("StudentReadModels", (string)null);
+                });
+
+            modelBuilder.Entity("ToeicSpace.Classroom.Domain.Entities.TeacherGoogleConnection", b =>
+                {
+                    b.Property<Guid>("TeacherId")
+                        .HasColumnType("char(36)");
+
+                    b.Property<DateTime>("ConnectedAt")
+                        .HasColumnType("datetime(6)");
+
+                    b.Property<Guid>("ConnectionId")
+                        .HasColumnType("char(36)");
+
+                    b.Property<string>("Email")
+                        .IsRequired()
+                        .HasMaxLength(320)
+                        .HasColumnType("varchar(320)");
+
+                    b.Property<string>("EncryptedRefreshToken")
+                        .IsRequired()
+                        .HasColumnType("text");
+
+                    b.Property<DateTime?>("RevokedAt")
+                        .HasColumnType("datetime(6)");
+
+                    b.Property<int>("Version")
+                        .IsConcurrencyToken()
+                        .HasColumnType("int");
+
+                    b.HasKey("TeacherId");
+
+                    b.ToTable("TeacherGoogleConnections", (string)null);
                 });
 
             modelBuilder.Entity("ToeicSpace.Classroom.Domain.Entities.TeacherReadModel", b =>
@@ -269,6 +822,38 @@ namespace ToeicSpace.Classroom.Infrastructure.Persistence.Migrations
                     b.ToTable("TeacherReadModels", (string)null);
                 });
 
+            modelBuilder.Entity("ToeicSpace.Classroom.Domain.Entities.AttendanceAudit", b =>
+                {
+                    b.HasOne("ToeicSpace.Classroom.Domain.Entities.ClassSession", null)
+                        .WithMany()
+                        .HasForeignKey("ClassSessionId")
+                        .OnDelete(DeleteBehavior.Restrict)
+                        .IsRequired();
+                });
+
+            modelBuilder.Entity("ToeicSpace.Classroom.Domain.Entities.AttendanceRecord", b =>
+                {
+                    b.HasOne("ToeicSpace.Classroom.Domain.Entities.ClassSession", null)
+                        .WithMany()
+                        .HasForeignKey("ClassSessionId")
+                        .OnDelete(DeleteBehavior.Restrict)
+                        .IsRequired();
+
+                    b.HasOne("ToeicSpace.Classroom.Domain.Entities.StudentReadModel", null)
+                        .WithMany()
+                        .HasForeignKey("StudentId")
+                        .OnDelete(DeleteBehavior.Restrict)
+                        .IsRequired();
+                });
+
+            modelBuilder.Entity("ToeicSpace.Classroom.Domain.Entities.Class", b =>
+                {
+                    b.HasOne("ToeicSpace.Classroom.Domain.Entities.Room", null)
+                        .WithMany()
+                        .HasForeignKey("DefaultRoomId")
+                        .OnDelete(DeleteBehavior.Restrict);
+                });
+
             modelBuilder.Entity("ToeicSpace.Classroom.Domain.Entities.ClassEnrollment", b =>
                 {
                     b.HasOne("ToeicSpace.Classroom.Domain.Entities.Class", "Class")
@@ -289,6 +874,100 @@ namespace ToeicSpace.Classroom.Infrastructure.Persistence.Migrations
                         .IsRequired();
 
                     b.Navigation("Class");
+                });
+
+            modelBuilder.Entity("ToeicSpace.Classroom.Domain.Entities.ClassRoomChange", b =>
+                {
+                    b.HasOne("ToeicSpace.Classroom.Domain.Entities.Class", null)
+                        .WithMany()
+                        .HasForeignKey("ClassId")
+                        .OnDelete(DeleteBehavior.Restrict)
+                        .IsRequired();
+
+                    b.HasOne("ToeicSpace.Classroom.Domain.Entities.Room", null)
+                        .WithMany()
+                        .HasForeignKey("NewRoomId")
+                        .OnDelete(DeleteBehavior.Restrict);
+
+                    b.HasOne("ToeicSpace.Classroom.Domain.Entities.Room", null)
+                        .WithMany()
+                        .HasForeignKey("PreviousRoomId")
+                        .OnDelete(DeleteBehavior.Restrict);
+                });
+
+            modelBuilder.Entity("ToeicSpace.Classroom.Domain.Entities.ClassSchedule", b =>
+                {
+                    b.HasOne("ToeicSpace.Classroom.Domain.Entities.Class", null)
+                        .WithMany()
+                        .HasForeignKey("ClassId")
+                        .OnDelete(DeleteBehavior.Restrict)
+                        .IsRequired();
+                });
+
+            modelBuilder.Entity("ToeicSpace.Classroom.Domain.Entities.ClassScheduleAudit", b =>
+                {
+                    b.HasOne("ToeicSpace.Classroom.Domain.Entities.ClassSchedule", null)
+                        .WithMany()
+                        .HasForeignKey("ClassScheduleId")
+                        .OnDelete(DeleteBehavior.Restrict)
+                        .IsRequired();
+                });
+
+            modelBuilder.Entity("ToeicSpace.Classroom.Domain.Entities.ClassSession", b =>
+                {
+                    b.HasOne("ToeicSpace.Classroom.Domain.Entities.Class", null)
+                        .WithMany()
+                        .HasForeignKey("ClassId")
+                        .OnDelete(DeleteBehavior.Restrict)
+                        .IsRequired();
+
+                    b.HasOne("ToeicSpace.Classroom.Domain.Entities.ClassSchedule", null)
+                        .WithMany()
+                        .HasForeignKey("ClassScheduleId")
+                        .OnDelete(DeleteBehavior.Restrict);
+
+                    b.HasOne("ToeicSpace.Classroom.Domain.Entities.Room", null)
+                        .WithMany()
+                        .HasForeignKey("RoomId")
+                        .OnDelete(DeleteBehavior.Restrict);
+                });
+
+            modelBuilder.Entity("ToeicSpace.Classroom.Domain.Entities.ClassSessionAudit", b =>
+                {
+                    b.HasOne("ToeicSpace.Classroom.Domain.Entities.ClassSession", null)
+                        .WithMany()
+                        .HasForeignKey("ClassSessionId")
+                        .OnDelete(DeleteBehavior.Restrict)
+                        .IsRequired();
+                });
+
+            modelBuilder.Entity("ToeicSpace.Classroom.Domain.Entities.Room", b =>
+                {
+                    b.HasOne("ToeicSpace.Classroom.Domain.Entities.Center", "Center")
+                        .WithMany()
+                        .HasForeignKey("CenterId")
+                        .OnDelete(DeleteBehavior.Restrict)
+                        .IsRequired();
+
+                    b.Navigation("Center");
+                });
+
+            modelBuilder.Entity("ToeicSpace.Classroom.Domain.Entities.SessionMeetProvisioning", b =>
+                {
+                    b.HasOne("ToeicSpace.Classroom.Domain.Entities.ClassSession", null)
+                        .WithMany()
+                        .HasForeignKey("ClassSessionId")
+                        .OnDelete(DeleteBehavior.Restrict)
+                        .IsRequired();
+                });
+
+            modelBuilder.Entity("ToeicSpace.Classroom.Domain.Entities.TeacherGoogleConnection", b =>
+                {
+                    b.HasOne("ToeicSpace.Classroom.Domain.Entities.TeacherReadModel", null)
+                        .WithMany()
+                        .HasForeignKey("TeacherId")
+                        .OnDelete(DeleteBehavior.Restrict)
+                        .IsRequired();
                 });
 
             modelBuilder.Entity("ToeicSpace.Classroom.Domain.Entities.Class", b =>
