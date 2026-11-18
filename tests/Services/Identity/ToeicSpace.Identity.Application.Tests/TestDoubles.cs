@@ -1,5 +1,6 @@
-using ToeicSpace.Identity.Application.Interfaces.Caching;
 using ToeicSpace.BuildingBlocks.Messaging;
+using ToeicSpace.Identity.Application.DTOs.Users;
+using ToeicSpace.Identity.Application.Interfaces.Caching;
 using ToeicSpace.Identity.Application.Interfaces.Persistence;
 using ToeicSpace.Identity.Application.Interfaces.Security;
 using ToeicSpace.Identity.Application.Models;
@@ -95,6 +96,44 @@ internal sealed class FakeUserRepository : IUserRepository
         Users.RemoveAll(users.Contains);
         return Task.CompletedTask;
     }
+
+    public Task<bool> PhoneExistsForOtherUserAsync(
+        string phone,
+        Guid userId,
+        CancellationToken cancellationToken)
+        => Task.FromResult(Users.Any(user => user.Phone == phone && user.Id != userId));
+
+    // User management is tested against SQLite in ToeicSpace.Identity.Application.UnitTests.
+    public Task<(IReadOnlyList<ManagedUserResult> Items, int TotalCount)> SearchAsync(
+        UserSearchCriteria criteria,
+        CancellationToken cancellationToken)
+        => throw new NotSupportedException();
+
+    public Task<UserCounts> GetCountsAsync(
+        UserRole? role,
+        DateTime createdSinceUtc,
+        CancellationToken cancellationToken)
+        => throw new NotSupportedException();
+
+    public Task<IReadOnlyList<DateTime>> GetCreationTimesAsync(
+        UserRole? role,
+        DateTime sinceUtc,
+        CancellationToken cancellationToken)
+        => throw new NotSupportedException();
+
+    public Task<IReadOnlyList<SignIn>> GetSignInsAsync(
+        UserRole? role,
+        DateTime sinceUtc,
+        CancellationToken cancellationToken)
+        => throw new NotSupportedException();
+
+    public Task<int> CountEffectiveAdministratorsAsync(CancellationToken cancellationToken)
+        => throw new NotSupportedException();
+
+    public Task<T> ExecuteInSerializableTransactionAsync<T>(
+        Func<CancellationToken, Task<T>> operation,
+        CancellationToken cancellationToken)
+        => operation(cancellationToken);
 
     public Task SaveChangesAsync(CancellationToken cancellationToken)
     {

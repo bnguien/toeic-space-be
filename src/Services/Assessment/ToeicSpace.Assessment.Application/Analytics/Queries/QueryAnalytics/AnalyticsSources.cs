@@ -1,4 +1,4 @@
-using ToeicSpace.Assessment.Application.Data;
+using ToeicSpace.Assessment.Application.Interfaces.Persistence;
 
 namespace ToeicSpace.Assessment.Application.Analytics.Queries.QueryAnalytics;
 

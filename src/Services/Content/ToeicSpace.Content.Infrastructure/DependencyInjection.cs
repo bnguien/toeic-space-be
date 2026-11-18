@@ -34,6 +34,15 @@ public static class DependencyInjection
         services.AddDbContext<ContentDbContext>(options => options.UseMySql(connection,
             new MySqlServerVersion(new Version(8, 4, 0))));
         services.AddScoped<ICourseRepository, CourseRepository>();
+        services.AddScoped<ICourseEnrollmentService, CourseEnrollmentService>();
+        services.AddScoped<ICoursePromotionService, CoursePromotionService>();
+        services.AddHttpClient("PaymentStatus", http =>
+        {
+            var url = configuration["Payment:BaseUrl"];
+            if (!string.IsNullOrWhiteSpace(url)) http.BaseAddress = new Uri(url.EndsWith('/') ? url : url + "/");
+            http.Timeout = TimeSpan.FromSeconds(8);
+        }).RemoveAllLoggers();
+        services.AddHostedService<OrphanReservationCleanup>();
         services.AddScoped<IPublicCourseRepository, PublicCourseRepository>();
         services.AddScoped<ICourseModuleRepository, CourseModuleRepository>();
         services.AddScoped<ILessonRepository, LessonRepository>();

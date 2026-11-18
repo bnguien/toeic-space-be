@@ -8,6 +8,7 @@ using ToeicSpace.Content.Application.Features.Courses.Commands.CreateCourse;
 using ToeicSpace.Content.Application.Features.Courses.Commands.PublishCourse;
 using ToeicSpace.Content.Application.Features.Courses.Commands.RestoreCourse;
 using ToeicSpace.Content.Application.Features.Courses.Commands.UpdateCourse;
+using ToeicSpace.Content.Application.Features.Courses.Commands.UpdateCoursePricing;
 using ToeicSpace.Content.Application.Features.Courses.Queries.GetCourseById;
 using ToeicSpace.Content.Application.Features.Courses.Queries.GetCourses;
 using ToeicSpace.BuildingBlocks.Security.Jwt;
@@ -48,6 +49,12 @@ public sealed class CoursesController(ISender sender) : ControllerBase
         command.AdminId = AdminId;
         return sender.Send(command, ct);
     }
+
+    [HttpPut("{id:guid}/pricing")]
+    public Task<CourseDto> UpdatePricing(Guid id, [FromBody] CoursePricingRequest body, CancellationToken ct) =>
+        sender.Send(new UpdateCoursePricingCommand(id, body.Price, body.Capacity), ct);
+
+    public sealed record CoursePricingRequest(decimal Price, int? Capacity);
 
     [HttpPost("{id:guid}/publish")]
     public Task<CourseDto> Publish(Guid id, CancellationToken ct) => sender.Send(new PublishCourseCommand(id), ct);

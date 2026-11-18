@@ -106,6 +106,9 @@ Each profile starts the selected application service together with its required 
 
 Classroom class management, API contracts and migration setup are documented in [Manage Classes](docs/manage-classes.md).
 
+Course enrollment, Payment service setup and SePay webhook deployment are documented in
+[Course purchases](docs/course-purchases.md).
+
 ### Run all services
 
 To start the complete local microservices environment:

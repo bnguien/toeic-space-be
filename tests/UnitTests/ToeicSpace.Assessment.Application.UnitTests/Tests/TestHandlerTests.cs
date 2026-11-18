@@ -1,6 +1,7 @@
-using ToeicSpace.Assessment.Application.Tests.Commands.DeleteTest;
-using ToeicSpace.Assessment.Application.Tests.Commands.UpdateTestStatus;
-using ToeicSpace.Assessment.Application.Tests.Queries.GetFullTest;
+using ToeicSpace.Assessment.Application.Features.Tests.Commands.DeleteTest;
+using ToeicSpace.Assessment.Application.Features.Tests.Commands.UpdateTestStatus;
+using ToeicSpace.Assessment.Application.Features.Tests.Queries.GetFullTest;
+
 
 namespace ToeicSpace.Assessment.Application.UnitTests.Tests;
 

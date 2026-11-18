@@ -6,6 +6,7 @@ namespace ToeicSpace.Content.Application.Interfaces.Repositories;
 
 public interface IPublicCourseRepository
 {
+    Task<IReadOnlyDictionary<Guid, int>> GetRemainingSeatsAsync(IReadOnlyCollection<Guid> courseIds, CancellationToken ct);
     Task<PagedResult<Course>> BrowseAsync(string? search, CourseExamType? examType, CourseLevel? level,
         int? targetScore, int page, int pageSize, CancellationToken ct);
     Task<Course?> GetPublishedAsync(Guid id, CancellationToken ct);

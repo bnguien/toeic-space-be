@@ -1,4 +1,4 @@
-using ToeicSpace.Assessment.Application.Dtos;
+using ToeicSpace.Assessment.Application.DTOs.Content;
 using ToeicSpace.Assessment.Domain.Rules;
 
 namespace ToeicSpace.Assessment.Application.Common.Content;

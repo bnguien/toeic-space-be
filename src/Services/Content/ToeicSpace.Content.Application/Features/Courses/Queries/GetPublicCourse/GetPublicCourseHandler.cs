@@ -6,13 +6,16 @@ using ToeicSpace.Content.Domain.Exceptions;
 
 namespace ToeicSpace.Content.Application.Features.Courses.Queries.GetPublicCourse;
 
-public sealed class GetPublicCourseHandler(IPublicCourseRepository courses, ILessonMediaStore media)
+public sealed class GetPublicCourseHandler(IPublicCourseRepository courses, ILessonMediaStore media,
+    ICoursePromotionService promotions)
     : IRequestHandler<GetPublicCourseQuery, PublicCourseDetailDto>
 {
     public async Task<PublicCourseDetailDto> Handle(GetPublicCourseQuery request, CancellationToken ct)
     {
         var course = await courses.GetPublishedAsync(request.Id, ct) ?? throw ContentRuleException.NotFound();
         var modules = await courses.GetCurriculumAsync(course.Id, ct);
+        var remaining = await courses.GetRemainingSeatsAsync(course.Capacity.HasValue ? [course.Id] : [], ct);
+        var prices = await promotions.PricesAsync([course.Id], ct);
         var thumbnailUrl = course.ThumbnailKey is null ? null
             : await media.PresignReadAsync(course.ThumbnailKey, TimeSpan.FromMinutes(5), ct);
         return new PublicCourseDetailDto(course.Id, course.Title, course.Slug, thumbnailUrl,
@@ -22,6 +25,8 @@ public sealed class GetPublicCourseHandler(IPublicCourseRepository courses, ILes
                 module.Lessons.Where(x => x.Status == LessonStatus.Published)
                     .OrderBy(x => x.SortOrder).ThenBy(x => x.Id)
                     .Select(x => new PublicLessonSummaryDto(x.Id, x.Title, x.Description, x.DurationSeconds,
-                        x.SortOrder, x.IsFreePreview)).ToArray())).ToArray());
+                        x.SortOrder, x.IsFreePreview)).ToArray())).ToArray(), course.Price, course.Capacity, "VND",
+            course.Capacity.HasValue ? remaining.GetValueOrDefault(course.Id, course.Capacity.Value) : null,
+            prices.GetValueOrDefault(course.Id));
     }
 }

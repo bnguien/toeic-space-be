@@ -1,6 +1,6 @@
 using Microsoft.Data.Sqlite;
 using Microsoft.EntityFrameworkCore;
-using ToeicSpace.Identity.Application.Features.Teachers.Queries;
+using ToeicSpace.Identity.Application.Features.Teachers.Queries.GetTeachers;
 using ToeicSpace.Identity.Domain.Entities;
 using ToeicSpace.Identity.Domain.Enums;
 using ToeicSpace.Identity.Infrastructure.Persistence;

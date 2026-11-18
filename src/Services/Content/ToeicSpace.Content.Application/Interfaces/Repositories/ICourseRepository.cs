@@ -7,6 +7,8 @@ namespace ToeicSpace.Content.Application.Interfaces.Repositories;
 public interface ICourseRepository
 {
     Task<Course?> GetAsync(Guid id, CancellationToken ct);
+    Task<Course?> GetLockedAsync(Guid id, CancellationToken ct);
+    Task<int> OccupiedSlotsAsync(Guid id, CancellationToken ct);
     Task<bool> CodeExistsAsync(string code, Guid? excludeId, CancellationToken ct);
     Task<bool> SlugExistsAsync(string slug, Guid? excludeId, CancellationToken ct);
     Task<PagedResult<Course>> SearchAsync(string? search, CourseStatus? status, CourseLevel? level,

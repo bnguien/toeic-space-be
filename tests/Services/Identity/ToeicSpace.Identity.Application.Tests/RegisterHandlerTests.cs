@@ -1,5 +1,5 @@
 using Microsoft.Extensions.Logging.Abstractions;
-using ToeicSpace.Identity.Application.Features.Register.Commands;
+using ToeicSpace.Identity.Application.Features.Registration.Commands.Register;
 using ToeicSpace.Identity.Application.Messaging.Events;
 using ToeicSpace.Identity.Domain.Entities;
 using ToeicSpace.Identity.Domain.Enums;

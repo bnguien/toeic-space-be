@@ -10,7 +10,11 @@ public sealed class CourseConfiguration : IEntityTypeConfiguration<Course>
 {
     public void Configure(EntityTypeBuilder<Course> b)
     {
-        b.ToTable("Courses");
+        b.ToTable("Courses", table =>
+        {
+            table.HasCheckConstraint("CK_Courses_Capacity_Positive", "`Capacity` IS NULL OR `Capacity` > 0");
+            table.HasCheckConstraint("CK_Courses_Price_Nonnegative", "`Price` >= 0");
+        });
         b.HasKey(x => x.Id);
         b.Property(x => x.Code).HasMaxLength(50).IsRequired();
         b.HasIndex(x => x.Code).IsUnique();
@@ -23,6 +27,7 @@ public sealed class CourseConfiguration : IEntityTypeConfiguration<Course>
         b.Property(x => x.ExamType).HasConversion<string>().HasMaxLength(32).IsRequired();
         b.Property(x => x.Level).HasConversion<string>().HasMaxLength(32).IsRequired();
         b.Property(x => x.Status).HasConversion<string>().HasMaxLength(24).IsRequired();
+        b.Property(x => x.Price).HasPrecision(18, 0).HasDefaultValue(0m).IsRequired();
         b.Property(x => x.Version).IsConcurrencyToken();
         foreach (var property in new[] { b.Property(x => x.Skills), b.Property(x => x.Objectives), b.Property(x => x.Prerequisites) })
         {

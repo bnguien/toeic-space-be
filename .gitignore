@@ -32,6 +32,17 @@ coverage.*
 *.snupkg
 packages/
 
+# Node test tooling
+node_modules/
+/package.json
+/package-lock.json
+/scripts/run-classroom-api-newman.mjs
+/tests/api/classroom/
+/tests/Services/Classroom/ToeicSpace.Classroom.Tests/ClassSchedulingTests.cs
+/tests/Services/Classroom/ToeicSpace.Classroom.Tests/ClassroomDemoSeederTests.cs
+/tests/Services/Classroom/ToeicSpace.Classroom.Tests/FacilityManagementTests.cs
+/tests/Services/Classroom/ToeicSpace.Classroom.Tests/SchedulingMySqlConcurrencyTests.cs
+
 # Docker local data
 docker-data/
 mysql-data/
@@ -60,3 +71,6 @@ scripts/__pycache__/
 /data/videos/
 /data/dictation/
 /data/grammar/
+
+# Local attendance testing artifacts
+/testing/

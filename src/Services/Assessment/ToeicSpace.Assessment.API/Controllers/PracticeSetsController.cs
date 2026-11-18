@@ -1,14 +1,15 @@
 using Microsoft.AspNetCore.Authorization;
 using ToeicSpace.Assessment.API.Contracts;
 using ToeicSpace.Assessment.API.Security;
-using ToeicSpace.Assessment.Application.Practice.Commands.CreatePracticeSet;
-using ToeicSpace.Assessment.Application.Practice.Commands.DeletePracticeSet;
-using ToeicSpace.Assessment.Application.Practice.Commands.ReplacePracticeSetItems;
-using ToeicSpace.Assessment.Application.Practice.Commands.UpdatePracticeSet;
-using ToeicSpace.Assessment.Application.Practice.Commands.UpdatePracticeSetStatus;
-using ToeicSpace.Assessment.Application.Practice.Queries.GetPracticeSetById;
-using ToeicSpace.Assessment.Application.Practice.Queries.GetPracticeSetContent;
-using ToeicSpace.Assessment.Application.Practice.Queries.GetPracticeSets;
+using ToeicSpace.Assessment.Application.DTOs.PracticeSets;
+using ToeicSpace.Assessment.Application.Features.PracticeSets.Commands.CreatePracticeSet;
+using ToeicSpace.Assessment.Application.Features.PracticeSets.Commands.DeletePracticeSet;
+using ToeicSpace.Assessment.Application.Features.PracticeSets.Commands.ReplacePracticeSetItems;
+using ToeicSpace.Assessment.Application.Features.PracticeSets.Commands.UpdatePracticeSet;
+using ToeicSpace.Assessment.Application.Features.PracticeSets.Commands.UpdatePracticeSetStatus;
+using ToeicSpace.Assessment.Application.Features.PracticeSets.Queries.GetPracticeSetById;
+using ToeicSpace.Assessment.Application.Features.PracticeSets.Queries.GetPracticeSetContent;
+using ToeicSpace.Assessment.Application.Features.PracticeSets.Queries.GetPracticeSets;
 
 namespace ToeicSpace.Assessment.API.Controllers;
 

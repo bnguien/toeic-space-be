@@ -1,5 +1,6 @@
-using ToeicSpace.Assessment.Application.Questions.Queries.GetQuestionById;
-using ToeicSpace.Assessment.Application.Questions.Queries.GetQuestions;
+using ToeicSpace.Assessment.Application.Features.Questions.Queries.GetQuestionById;
+using ToeicSpace.Assessment.Application.Features.Questions.Queries.GetQuestions;
+
 
 namespace ToeicSpace.Assessment.Application.UnitTests.Bank;
 

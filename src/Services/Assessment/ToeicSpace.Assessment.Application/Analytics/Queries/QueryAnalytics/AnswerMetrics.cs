@@ -1,5 +1,5 @@
 using ToeicSpace.Assessment.Application.Analytics.Common;
-using ToeicSpace.Assessment.Application.Data;
+using ToeicSpace.Assessment.Application.Interfaces.Persistence;
 using static ToeicSpace.Assessment.Application.Analytics.Common.AnalyticsCatalog;
 
 namespace ToeicSpace.Assessment.Application.Analytics.Queries.QueryAnalytics;

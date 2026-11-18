@@ -6,6 +6,10 @@ namespace ToeicSpace.Content.Infrastructure.Persistence;
 public sealed class ContentDbContext(DbContextOptions<ContentDbContext> options) : DbContext(options)
 {
     public DbSet<Course> Courses => Set<Course>();
+    public DbSet<CoursePromotion> CoursePromotions => Set<CoursePromotion>();
+    public DbSet<PromotionReservation> PromotionReservations => Set<PromotionReservation>();
+    public DbSet<CourseEnrollment> CourseEnrollments => Set<CourseEnrollment>();
+    public DbSet<CourseSlotReservation> CourseSlotReservations => Set<CourseSlotReservation>();
     public DbSet<CourseModule> CourseModules => Set<CourseModule>();
     public DbSet<Lesson> Lessons => Set<Lesson>();
     public DbSet<LessonVideo> LessonVideos => Set<LessonVideo>();

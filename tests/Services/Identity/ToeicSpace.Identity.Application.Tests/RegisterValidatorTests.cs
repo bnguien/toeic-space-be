@@ -1,4 +1,5 @@
-using ToeicSpace.Identity.Application.Features.Register.Commands;
+using ToeicSpace.Identity.Application.Features.Registration.Commands.Register;
+
 
 namespace ToeicSpace.Identity.Application.Tests;
 

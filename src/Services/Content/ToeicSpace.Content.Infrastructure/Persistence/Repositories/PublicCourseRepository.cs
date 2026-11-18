@@ -8,6 +8,22 @@ namespace ToeicSpace.Content.Infrastructure.Persistence.Repositories;
 
 public sealed class PublicCourseRepository(ContentDbContext db) : IPublicCourseRepository
 {
+    public async Task<IReadOnlyDictionary<Guid, int>> GetRemainingSeatsAsync(IReadOnlyCollection<Guid> courseIds, CancellationToken ct)
+    {
+        if (courseIds.Count == 0) return new Dictionary<Guid, int>();
+        var courses = await db.Courses.AsNoTracking().Where(x => courseIds.Contains(x.Id) && x.Capacity != null)
+            .Select(x => new { x.Id, x.Capacity }).ToListAsync(ct);
+        var ids = courses.Select(x => x.Id).ToArray();
+        var enrolled = await db.CourseEnrollments.AsNoTracking().Where(x => ids.Contains(x.CourseId))
+            .GroupBy(x => x.CourseId).Select(x => new { CourseId = x.Key, Count = x.Count() }).ToListAsync(ct);
+        var reserved = await db.CourseSlotReservations.AsNoTracking().Where(x => ids.Contains(x.CourseId) &&
+                x.Status == SlotReservationStatus.Reserved)
+            .GroupBy(x => x.CourseId).Select(x => new { CourseId = x.Key, Count = x.Count() }).ToListAsync(ct);
+        var enrollmentCounts = enrolled.ToDictionary(x => x.CourseId, x => x.Count);
+        var reservationCounts = reserved.ToDictionary(x => x.CourseId, x => x.Count);
+        return courses.ToDictionary(x => x.Id, x => Math.Max(0, x.Capacity!.Value -
+            enrollmentCounts.GetValueOrDefault(x.Id) - reservationCounts.GetValueOrDefault(x.Id)));
+    }
     public Task<PagedResult<Course>> BrowseAsync(string? search, CourseExamType? examType, CourseLevel? level,
         int? targetScore, int page, int pageSize, CancellationToken ct) =>
         PersistenceExceptionTranslator.ExecuteAsync(async () =>

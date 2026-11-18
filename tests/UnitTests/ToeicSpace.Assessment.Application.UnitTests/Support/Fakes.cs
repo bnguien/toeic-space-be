@@ -1,6 +1,6 @@
 using System.Collections.Concurrent;
-using ToeicSpace.Assessment.Application.Data;
 using ToeicSpace.Assessment.Application.Interfaces.Caching;
+using ToeicSpace.Assessment.Application.Interfaces.Persistence;
 using ToeicSpace.Assessment.Application.Interfaces.Security;
 using ToeicSpace.BuildingBlocks.Messaging;
 

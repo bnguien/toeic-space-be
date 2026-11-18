@@ -1,4 +1,5 @@
-using ToeicSpace.Assessment.Application.Bank.Queries.GetBankOverview;
+using ToeicSpace.Assessment.Application.Features.Bank.Queries.GetBankOverview;
+
 
 namespace ToeicSpace.Assessment.Application.UnitTests.Bank;
 

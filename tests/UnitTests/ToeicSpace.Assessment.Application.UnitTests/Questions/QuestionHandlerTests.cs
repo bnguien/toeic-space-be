@@ -1,7 +1,7 @@
-using ToeicSpace.Assessment.Application.Questions.Commands.CreateQuestion;
-using ToeicSpace.Assessment.Application.Questions.Commands.DeleteQuestion;
-using ToeicSpace.Assessment.Application.Questions.Commands.UpdateQuestion;
-using ToeicSpace.Assessment.Application.Questions.Commands.UpdateQuestionStatus;
+using ToeicSpace.Assessment.Application.Features.Questions.Commands.CreateQuestion;
+using ToeicSpace.Assessment.Application.Features.Questions.Commands.DeleteQuestion;
+using ToeicSpace.Assessment.Application.Features.Questions.Commands.UpdateQuestion;
+using ToeicSpace.Assessment.Application.Features.Questions.Commands.UpdateQuestionStatus;
 using ToeicSpace.BuildingBlocks.Messaging.Events;
 
 namespace ToeicSpace.Assessment.Application.UnitTests.Questions;
