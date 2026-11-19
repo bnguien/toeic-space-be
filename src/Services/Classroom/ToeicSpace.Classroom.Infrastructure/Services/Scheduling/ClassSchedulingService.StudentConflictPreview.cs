@@ -101,8 +101,7 @@ public sealed partial class ClassSchedulingService
         await ValidateScheduleForClassAsync(input, cls, ct);
         var schedule = new ClassSchedule { ClassId = cls.Id };
         Copy(schedule, input, Now);
-        var candidates = Dates(schedule, input.EffectiveFrom, input.EffectiveTo)
-            .Select(date => Generated(schedule, cls, date, Now)).Where(x => x.StartAt > Now).ToArray();
+        var candidates = UpcomingSessions(schedule, cls, Now);
         if (candidates.Length == 0) return NoConflicts(details);
         await ValidatePreviewCandidatesAsync(candidates, cls, ct);
         await CheckConflictsAsync(candidates, new HashSet<Guid>(), ct);
@@ -145,14 +144,18 @@ public sealed partial class ClassSchedulingService
         var existing = await db.ClassSessions.AsNoTracking().Where(x => x.ClassScheduleId == id)
             .OrderBy(x => x.OriginalLocalDate).ToListAsync(ct);
         var updatable = existing.Where(x => x.Status == SessionStatus.Scheduled && x.StartAt > Now).ToArray();
-        var horizon = updatable.Where(x => x.OriginalLocalDate.HasValue).Select(x => x.OriginalLocalDate!.Value).ToArray();
-        var desired = horizon.Length == 0 ? new HashSet<DateOnly>() :
-            Dates(schedule, horizon.Min(), horizon.Max()).ToHashSet();
+        var desired = Dates(schedule, schedule.EffectiveFrom, schedule.EffectiveTo).ToHashSet();
         var candidates = new List<ClassSession>();
         var timeChanges = new List<ClassSession>();
+        var replaced = new HashSet<Guid>();
         foreach (var session in updatable)
         {
-            if (!session.OriginalLocalDate.HasValue || !desired.Contains(session.OriginalLocalDate.Value)) continue;
+            if (!session.OriginalLocalDate.HasValue || !desired.Contains(session.OriginalLocalDate.Value))
+            {
+                if (!session.TimeOverridden && !session.RoomOverridden && !session.TeacherOverridden && !session.ModeOverridden)
+                    replaced.Add(session.Id);
+                continue;
+            }
             var generated = Generated(schedule, cls, session.OriginalLocalDate.Value, Now);
             if (!session.ModeOverridden && session.Mode != generated.Mode && session.RoomOverridden) continue;
             var changed = new ClassSession
@@ -161,41 +164,27 @@ public sealed partial class ClassSchedulingService
                 StartAt = session.TimeOverridden ? session.StartAt : generated.StartAt,
                 EndAt = session.TimeOverridden ? session.EndAt : generated.EndAt,
                 Mode = session.ModeOverridden ? session.Mode : generated.Mode,
-                RoomId = session.ModeOverridden ? session.RoomId : generated.RoomId,
+                RoomId = session.RoomOverridden ? session.RoomId : generated.RoomId,
                 Title = session.Title, Description = session.Description, Notes = session.Notes,
                 SessionType = session.SessionType
             };
             if (changed.Mode == SessionMode.Online) changed.RoomId = null;
             else if (!session.RoomOverridden) changed.RoomId = cls.DefaultRoomId;
+            replaced.Add(session.Id);
             candidates.Add(changed);
             if (changed.StartAt != session.StartAt || changed.EndAt != session.EndAt) timeChanges.Add(changed);
         }
         var existingDates = existing.Where(x => x.OriginalLocalDate.HasValue)
             .Select(x => x.OriginalLocalDate!.Value).ToHashSet();
-        if (horizon.Length > 0)
+        foreach (var date in desired.Except(existingDates))
         {
-            foreach (var date in desired.Except(existingDates))
-            {
-                var session = Generated(schedule, cls, date, Now);
-                if (session.StartAt <= Now) continue;
-                candidates.Add(session);
-                timeChanges.Add(session);
-            }
-        }
-        else
-        {
-            // No sessions will be changed by this save, but expose potential future occurrences
-            // so Admin can inspect the revised recurrence before an explicit generate operation.
-            foreach (var date in Dates(schedule, schedule.EffectiveFrom, schedule.EffectiveTo).Except(existingDates))
-            {
-                var session = Generated(schedule, cls, date, Now);
-                if (session.StartAt <= Now) continue;
-                candidates.Add(session);
-                timeChanges.Add(session);
-            }
+            var session = Generated(schedule, cls, date, Now);
+            if (session.StartAt <= Now) continue;
+            candidates.Add(session);
+            timeChanges.Add(session);
         }
         await ValidatePreviewCandidatesAsync(candidates, cls, ct);
-        await CheckConflictsAsync(candidates, updatable.Select(x => x.Id).ToHashSet(), ct);
+        await CheckConflictsAsync(candidates, replaced, ct);
         return await StudentConflicts.PreviewAsync(timeChanges.Select(Proposed).ToArray(), null, details, ct);
     }
 }

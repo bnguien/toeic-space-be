@@ -219,14 +219,14 @@ public sealed class StudentConflictPreviewTests
         var earlier = await service.CreateScheduleAsync(input with { StartTime = new TimeOnly(8, 0),
             EndTime = new TimeOnly(9, 0) }, Guid.NewGuid(), default);
         Assert.Equal(0, (await service.GenerateSessionsAsync(cls.Id, new(date, date, null), null, default)).ConflictCount);
-        Assert.Single((await service.GenerateAsync(cls.Id, new(date, date, null), Guid.NewGuid(), default)).Affected);
+        Assert.Empty((await service.GenerateAsync(cls.Id, new(date, date, null), Guid.NewGuid(), default)).Affected);
 
         var later = await service.CreateScheduleAsync(input with { StartTime = new TimeOnly(10, 0),
             EndTime = new TimeOnly(11, 0) }, Guid.NewGuid(), default);
         var generation = await service.GenerateSessionsAsync(cls.Id, new(date, date, null), null, default);
-        Assert.Equal(1, generation.ConflictCount);
-        Assert.Single(await db.ClassSessions.Where(x => x.ClassId == cls.Id).ToListAsync());
-        Assert.Single((await service.GenerateAsync(cls.Id, new(date, date, null), Guid.NewGuid(), default)).Affected);
+        Assert.Equal(0, generation.ConflictCount);
+        Assert.Equal(2, await db.ClassSessions.CountAsync(x => x.ClassId == cls.Id));
+        Assert.Empty((await service.GenerateAsync(cls.Id, new(date, date, null), Guid.NewGuid(), default)).Affected);
 
         var update = await service.UpdateScheduleAsync(earlier.Id, input, earlier.Version, null, default);
         Assert.Equal(1, update.ConflictCount);
