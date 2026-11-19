@@ -29,7 +29,8 @@ public class AssessmentDbContext : DbContext, IAssessmentDbContext
     public DbSet<ToeicAttemptQuestion> ToeicAttemptQuestions => Set<ToeicAttemptQuestion>();
     public DbSet<PracticeAttemptState> PracticeAttemptStates => Set<PracticeAttemptState>();
 
-    // All lifecycle mutations (including autosave) lock the same per-user/set fence first.
+    // All lifecycle mutations (including autosave) lock the same per-user/source fence first.
+    // The fence key is the attempt's source: a practice set ID or a test ID (the column keeps its original name).
     // Content writers do not acquire this fence: their existing Set -> Questions -> Passages order is preserved.
     public Task<T> ExecuteAttemptUpdateAsync<T>(Guid userId, Guid setId, Func<Task<T>> update, CancellationToken ct)
         => ExecuteContentUpdateAsync(async () =>
@@ -43,6 +44,13 @@ public class AssessmentDbContext : DbContext, IAssessmentDbContext
     {
         if (Database.IsRelational())
             await ToeicPracticeSets.FromSqlInterpolated($"SELECT * FROM ToeicPracticeSets WHERE Id = {setId} FOR UPDATE")
+                .IgnoreQueryFilters().AsNoTracking().ToListAsync(ct);
+    }
+
+    public async Task LockAttemptTestAsync(Guid testId, CancellationToken ct)
+    {
+        if (Database.IsRelational())
+            await ToeicTests.FromSqlInterpolated($"SELECT * FROM ToeicTests WHERE Id = {testId} FOR UPDATE")
                 .IgnoreQueryFilters().AsNoTracking().ToListAsync(ct);
     }
 

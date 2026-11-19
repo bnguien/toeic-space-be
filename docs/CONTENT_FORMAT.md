@@ -26,8 +26,9 @@ Dữ liệu Assessment được nhập từ Studychill (hai nguồn gốc: **dau
 | `QuestionDetailDto`, `ContentQuestionDto` | `transcript` | `transcriptTranslation` |
 
 - Học viên làm bài (`/tests/{id}/full` không có đáp án): **không** nhận bản dịch, lời giải, transcript. Bản dịch Part 6 chứa luôn câu cần điền nên cũng bị ẩn.
-- Content manager và phần luyện tập có đáp án: nhận đủ hai trường.
-- Cache key có tiền tố `assessment:content:v2`; khi đổi hình dạng payload thì tăng version.
+- Học viên xem trước bộ luyện tập (`/practice-sets/{id}/content`): cũng bị ẩn như trên (`includesAnswers: false`); đáp án chỉ mở qua lượt làm bài (xem [`practice-exam-flow.md`](practice-exam-flow.md)).
+- Content manager: nhận đủ hai trường.
+- Cache key có tiền tố `assessment:content:v3`; khi đổi hình dạng hoặc quy tắc lọc của payload thì tăng version.
 
 ## 3. Ghi dữ liệu
 

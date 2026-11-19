@@ -142,7 +142,8 @@ def run():
     check(all("createdByUserId" not in item for item in public_list["items"]), "anonymous list omits all owner IDs")
     content = call(STUDENT, "GET", path + "/content")
     preview = content["parts"][0]["standaloneQuestions"]
-    check(content["includesAnswers"] and all(q.get("correctAnswer") and q.get("explanation") for q in preview), "Student receives answers and explanations")
+    check(not content["includesAnswers"] and not any(q.get("correctAnswer") or q.get("explanation") for q in preview),
+          "Student preview hides answers and explanations")
     check(all(q.get("status") == "Active" for q in preview), "content question payload retains status")
     call(TEACHER, "PATCH", path + "/status", json={"status": "Archived"})
     call(STUDENT, "GET", path, 404)

@@ -27,4 +27,11 @@ public class ToeicAttemptAnswer : BaseAuditableEntity
     public bool IsCorrect { get; set; }
 
     public int TimeSpentSeconds { get; set; }
+
+    public bool IsFlagged { get; set; }
+
+    /// <summary>
+    /// Set when a practice learner checks the question: the answer is graded and locked from then on.
+    /// </summary>
+    public DateTime? CheckedAt { get; set; }
 }

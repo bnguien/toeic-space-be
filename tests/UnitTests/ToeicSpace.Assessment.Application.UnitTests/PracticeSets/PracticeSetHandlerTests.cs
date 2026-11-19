@@ -64,7 +64,7 @@ public class PracticeSetHandlerTests
     }
 
     [Fact]
-    public async Task Content_ForLearner_ShouldIncludeAnswersAndSkipInactiveQuestions()
+    public async Task Content_ForLearner_ShouldHideAnswersAndSkipInactiveQuestions()
     {
         using var database = new TestDatabase();
         var practiceSet = database.AddPracticeSet(ToeicPart.Part3, ContentStatus.Active);
@@ -80,8 +80,12 @@ public class PracticeSetHandlerTests
         var result = await handler.Handle(new GetPracticeSetContentQuery(practiceSet.Id), CancellationToken.None);
 
         result.QuestionCount.Should().Be(1);
-        result.IncludesAnswers.Should().BeTrue();
-        result.Parts.Single().Passages.Single().Questions.Single().CorrectAnswer.Should().Be(AnswerOption.B);
+        result.IncludesAnswers.Should().BeFalse();
+        var question = result.Parts.Single().Passages.Single().Questions.Single();
+        question.CorrectAnswer.Should().BeNull();
+        question.Explanation.Should().BeNull();
+        question.Transcript.Should().BeNull();
+        result.Parts.Single().Passages.Single().Content.Should().BeNull("a Part 3 passage is the script");
         database.Cache.Keys.Should().Contain(ContentCacheKeys.PracticeSet(practiceSet.Id, canManageContent: false));
     }
 }

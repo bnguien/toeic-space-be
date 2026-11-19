@@ -159,7 +159,10 @@ def main():
     expect(sets["totalCount"] > 0 and all(s["status"] == "Active" for s in sets["items"]), "anonymous users only see Active sets")
     practice_set = next(s for s in sets["items"] if s["kind"] == "Level")
     content = check("practice content", LEARNER.get(f"{BASE_URL}/practice-sets/{practice_set['id']}/content"), 200)
-    expect(content["includesAnswers"] and content["questionCount"] == practice_set["questionCount"], "practice content includes answers for feedback")
+    expect(not content["includesAnswers"] and content["questionCount"] == practice_set["questionCount"]
+           and all("correctAnswer" not in q and "explanation" not in q for part in content["parts"]
+                   for p in part["passages"] for q in p["questions"]),
+           "learner practice preview hides answers (revealed through attempts only)")
 
     # ---- Question bank (content managers) -----------------------------------------------------
     check("learner cannot open the question bank", LEARNER.get(f"{BASE_URL}/questions"), 403)

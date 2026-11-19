@@ -75,17 +75,23 @@ public class PracticeSetReviewRegressionTests
     }
 
     [Fact]
-    public async Task Preview_PreservesAnswersAndQuestionStatus_ForAuthenticatedPolicy()
+    public async Task Preview_KeepsAnswersForManagers_AndHidesThemFromLearners()
     {
         using var db = new TestDatabase();
         var set = db.AddPracticeSet(ToeicPart.Part5);
         var question = db.AddQuestion(null, ToeicPart.Part5, null);
         db.AddPracticeSetItems(set.Id, question.Id);
-        var result = await new GetPracticeSetContentHandler(db.Context, FakeCurrentUser.Learner(), db.Cache)
+        var managed = await new GetPracticeSetContentHandler(db.Context, FakeCurrentUser.ContentManager(), db.Cache)
             .Handle(new(set.Id), default);
-        result.IncludesAnswers.Should().BeTrue();
-        var content = result.Parts.Single().StandaloneQuestions.Single();
+        managed.IncludesAnswers.Should().BeTrue();
+        var content = managed.Parts.Single().StandaloneQuestions.Single();
         content.CorrectAnswer.Should().Be(question.CorrectAnswer);
         content.Status.Should().Be(question.Status);
+
+        var learner = await new GetPracticeSetContentHandler(db.Context, FakeCurrentUser.Learner(), db.Cache)
+            .Handle(new(set.Id), default);
+        learner.IncludesAnswers.Should().BeFalse();
+        learner.Parts.Single().StandaloneQuestions.Single().CorrectAnswer.Should().BeNull();
+        learner.Parts.Single().StandaloneQuestions.Single().Explanation.Should().BeNull();
     }
 }

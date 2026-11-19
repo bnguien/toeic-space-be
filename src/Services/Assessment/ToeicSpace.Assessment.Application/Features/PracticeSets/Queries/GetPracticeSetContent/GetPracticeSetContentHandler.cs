@@ -1,6 +1,7 @@
 using ToeicSpace.Assessment.Application.Common.Caching;
 using ToeicSpace.Assessment.Application.Common.Content;
 using ToeicSpace.Assessment.Application.Common.Querying;
+using ToeicSpace.Assessment.Application.DTOs.Content;
 using ToeicSpace.Assessment.Application.DTOs.PracticeSets;
 using ToeicSpace.Assessment.Application.Interfaces.Caching;
 using ToeicSpace.Assessment.Application.Interfaces.Persistence;
@@ -58,13 +59,21 @@ public sealed class GetPracticeSetContentHandler : IRequestHandler<GetPracticeSe
             itemQuery = itemQuery.Where(item => item.Question.Status == ContentStatus.Active);
         }
 
-        var questions = await itemQuery
+        IReadOnlyList<ContentQuestionDto> questions = await itemQuery
             .OrderBy(item => item.OrderIndex)
             .Select(item => item.Question)
             .Select(ContentProjections.Question)
             .ToListAsync(cancellationToken);
 
-        var passages = await _context.LoadPassagesAsync(questions, cancellationToken);
+        IReadOnlyList<ContentPassageDto> passages = await _context.LoadPassagesAsync(questions, cancellationToken);
+
+        // Learners practise through attempts, where answers are revealed per checked question.
+        // The preview must not hand them the answer key, explanations, scripts or translations up front.
+        if (!canManageContent)
+        {
+            questions = questions.Select(question => question.WithoutAnswers()).ToList();
+            passages = passages.Select(passage => passage.WithoutAnswers()).ToList();
+        }
 
         var result = new PracticeSetContentDto(
             practiceSet.Id,
@@ -77,7 +86,7 @@ public sealed class GetPracticeSetContentHandler : IRequestHandler<GetPracticeSe
             practiceSet.TargetScore,
             practiceSet.DurationMinutes,
             questions.Count,
-            IncludesAnswers: true,
+            IncludesAnswers: canManageContent,
             ContentPartsBuilder.Build(passages, questions));
 
         await _cache.SetAsync(cacheKey, result, cancellationToken);
