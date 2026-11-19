@@ -21,6 +21,7 @@ public interface IAssessmentDbContext
 
     Task<T> ExecuteAttemptUpdateAsync<T>(Guid userId, Guid setId, Func<Task<T>> update, CancellationToken cancellationToken);
     Task LockAttemptSetAsync(Guid setId, CancellationToken cancellationToken);
+    Task LockAttemptTestAsync(Guid testId, CancellationToken cancellationToken);
     Task<T> ExecuteAttemptReadAsync<T>(Func<Task<T>> read, CancellationToken cancellationToken);
 
     Task<T> ExecutePracticeSetUpdateAsync<T>(

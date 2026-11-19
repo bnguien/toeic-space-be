@@ -2,7 +2,7 @@ using System.Net;
 using System.Net.Http.Headers;
 using System.Security.Cryptography;
 using System.Text;
-using ToeicSpace.Assessment.Application.Attempts;
+using ToeicSpace.Assessment.Application.Common.Exceptions;
 
 namespace ToeicSpace.Assessment.Infrastructure.Services.Attempts;
 

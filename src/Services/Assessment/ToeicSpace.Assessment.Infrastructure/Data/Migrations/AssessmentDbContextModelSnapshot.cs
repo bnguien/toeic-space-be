@@ -49,7 +49,15 @@ namespace ToeicSpace.Assessment.Infrastructure.Data.Migrations
                         .HasColumnType("char(36)")
                         .HasComputedColumnSql("CASE WHEN `Status` = 'InProgress' THEN `PracticeSetId` ELSE NULL END", true);
 
+                    b.Property<Guid?>("ActiveTestId")
+                        .ValueGeneratedOnAddOrUpdate()
+                        .HasColumnType("char(36)")
+                        .HasComputedColumnSql("CASE WHEN `Status` = 'InProgress' THEN `TestId` ELSE NULL END", true);
+
                     b.Property<DateTime>("CreatedAt")
+                        .HasColumnType("datetime(6)");
+
+                    b.Property<DateTime?>("Deadline")
                         .HasColumnType("datetime(6)");
 
                     b.Property<int>("DurationSeconds")
@@ -60,6 +68,9 @@ namespace ToeicSpace.Assessment.Infrastructure.Data.Migrations
 
                     b.Property<DateTime?>("LastActivityAt")
                         .HasColumnType("datetime(6)");
+
+                    b.Property<int?>("ListeningCorrect")
+                        .HasColumnType("int");
 
                     b.Property<int>("ListeningScore")
                         .HasColumnType("int");
@@ -74,8 +85,15 @@ namespace ToeicSpace.Assessment.Infrastructure.Data.Migrations
                     b.Property<Guid?>("PracticeSetId")
                         .HasColumnType("char(36)");
 
+                    b.Property<int?>("ReadingCorrect")
+                        .HasColumnType("int");
+
                     b.Property<int>("ReadingScore")
                         .HasColumnType("int");
+
+                    b.Property<string>("SelectedParts")
+                        .HasMaxLength(20)
+                        .HasColumnType("varchar(20)");
 
                     b.Property<DateTime>("StartTime")
                         .HasColumnType("datetime(6)");
@@ -89,6 +107,16 @@ namespace ToeicSpace.Assessment.Infrastructure.Data.Migrations
 
                     b.Property<Guid?>("TestId")
                         .HasColumnType("char(36)");
+
+                    b.Property<int?>("TimeLimitSeconds")
+                        .HasColumnType("int");
+
+                    b.Property<string>("Title")
+                        .IsRequired()
+                        .ValueGeneratedOnAdd()
+                        .HasMaxLength(200)
+                        .HasColumnType("varchar(200)")
+                        .HasDefaultValue("");
 
                     b.Property<int>("TotalCorrect")
                         .HasColumnType("int");
@@ -118,9 +146,16 @@ namespace ToeicSpace.Assessment.Infrastructure.Data.Migrations
                     b.HasIndex("UserId", "ActivePracticeSetId")
                         .IsUnique();
 
+                    b.HasIndex("UserId", "ActiveTestId")
+                        .IsUnique();
+
+                    b.HasIndex("UserId", "StartTime");
+
                     b.HasIndex("UserId", "TestId");
 
                     b.HasIndex("Status", "LastActivityAt", "PracticeSetId");
+
+                    b.HasIndex("Status", "Mode", "Deadline");
 
                     b.ToTable("ToeicAttempts", null, t =>
                         {
@@ -137,6 +172,9 @@ namespace ToeicSpace.Assessment.Infrastructure.Data.Migrations
                     b.Property<Guid>("AttemptId")
                         .HasColumnType("char(36)");
 
+                    b.Property<DateTime?>("CheckedAt")
+                        .HasColumnType("datetime(6)");
+
                     b.Property<string>("CorrectAnswer")
                         .IsRequired()
                         .HasMaxLength(1)
@@ -147,6 +185,11 @@ namespace ToeicSpace.Assessment.Infrastructure.Data.Migrations
 
                     b.Property<bool>("IsCorrect")
                         .HasColumnType("tinyint(1)");
+
+                    b.Property<bool>("IsFlagged")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("tinyint(1)")
+                        .HasDefaultValue(false);
 
                     b.Property<Guid?>("LastMutationId")
                         .HasColumnType("char(36)");

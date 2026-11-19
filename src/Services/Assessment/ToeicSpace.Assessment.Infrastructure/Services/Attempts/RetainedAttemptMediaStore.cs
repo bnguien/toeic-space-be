@@ -6,7 +6,8 @@ using Amazon.Runtime;
 using Amazon.S3;
 using Amazon.S3.Model;
 using Microsoft.Extensions.Logging;
-using ToeicSpace.Assessment.Application.Attempts;
+using ToeicSpace.Assessment.Application.Common.Exceptions;
+using ToeicSpace.Assessment.Application.Interfaces.Storage;
 using ToeicSpace.Assessment.Application.Interfaces.Caching;
 using ToeicSpace.Assessment.Domain.Exceptions;
 
@@ -45,7 +46,7 @@ public sealed class RetainedAttemptMediaStore(IConfiguration config,
         using var http = new HttpClient(handler) { Timeout = Timeout.InfiniteTimeSpan };
         http.DefaultRequestHeaders.UserAgent.ParseAdd("ToeicSpace-Assessment/1.0");
         using var budget = CancellationTokenSource.CreateLinkedTokenSource(ct);
-        budget.CancelAfter(TimeSpan.FromSeconds(75));
+        budget.CancelAfter(BudgetFor(sources.Length));
         var watch = Stopwatch.StartNew();
         try
         {
@@ -202,6 +203,14 @@ public sealed class RetainedAttemptMediaStore(IConfiguration config,
         catch (AmazonS3Exception ex) when (ex.StatusCode == HttpStatusCode.NotFound)
         { throw AppException.NotFound("Media unavailable."); }
     }
+
+    /// <summary>
+    /// Total time allowed for one preparation. Small collections keep the original 75-second budget; a full test
+    /// (about 100–150 files, 16 in parallel) gets one extra second per file beyond 50, capped at 4 minutes.
+    /// Each transfer keeps its own 30-second deadline, so the request is always bounded.
+    /// </summary>
+    public static TimeSpan BudgetFor(int sourceCount)
+        => TimeSpan.FromSeconds(Math.Clamp(75 + Math.Max(0, sourceCount - 50), 75, 240));
 
     private static bool IsHash(string? hash) => hash is { Length: 64 } && hash.All(char.IsAsciiHexDigit);
 

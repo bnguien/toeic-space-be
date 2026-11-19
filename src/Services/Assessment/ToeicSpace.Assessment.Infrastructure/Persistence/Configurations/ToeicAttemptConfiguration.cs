@@ -36,6 +36,23 @@ public sealed class ToeicAttemptConfiguration : IEntityTypeConfiguration<ToeicAt
         builder.HasIndex("UserId", "ActivePracticeSetId").IsUnique();
         builder.HasIndex(x => new { x.Status, x.LastActivityAt, x.PracticeSetId });
 
+        builder.Property(x => x.Title)
+            .HasMaxLength(200)
+            .HasDefaultValue(string.Empty)
+            .IsRequired();
+
+        builder.Property(x => x.SelectedParts)
+            .HasMaxLength(20);
+
+        // One in-progress attempt per learner and test, mirroring ActivePracticeSetId.
+        builder.Property<Guid?>("ActiveTestId").HasColumnType("char(36)")
+            .HasComputedColumnSql("CASE WHEN `Status` = 'InProgress' THEN `TestId` ELSE NULL END", stored: true);
+        builder.HasIndex("UserId", "ActiveTestId").IsUnique();
+
+        // History (newest first) and the auto-submit scan of timed attempts.
+        builder.HasIndex(x => new { x.UserId, x.StartTime });
+        builder.HasIndex(x => new { x.Status, x.Mode, x.Deadline });
+
         builder.HasMany(x => x.Answers)
             .WithOne(x => x.Attempt)
             .HasForeignKey(x => x.AttemptId)

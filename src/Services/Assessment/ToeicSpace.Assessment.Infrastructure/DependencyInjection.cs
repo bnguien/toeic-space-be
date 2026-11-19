@@ -3,11 +3,13 @@ using Microsoft.Extensions.DependencyInjection.Extensions;
 using ToeicSpace.Assessment.Application.Interfaces.Caching;
 using ToeicSpace.Assessment.Application.Interfaces.Persistence;
 using ToeicSpace.Assessment.Application.Interfaces.Security;
+using ToeicSpace.Assessment.Application.Interfaces.Storage;
 using ToeicSpace.Assessment.Infrastructure.Messaging.Outbox;
 using ToeicSpace.Assessment.Infrastructure.Persistence;
 using ToeicSpace.Assessment.Infrastructure.Persistence.Interceptors;
 using ToeicSpace.Assessment.Infrastructure.Persistence.Search;
 using ToeicSpace.Assessment.Infrastructure.Services.Analytics;
+using ToeicSpace.Assessment.Infrastructure.Services.Attempts;
 using ToeicSpace.Assessment.Infrastructure.Services.Caching;
 using ToeicSpace.BuildingBlocks.Messaging;
 using ToeicSpace.BuildingBlocks.Messaging.MassTransit;
@@ -28,9 +30,8 @@ public static class DependencyInjection
                 "or in appsettings.json.");
 
         services.TryAddSingleton(TimeProvider.System);
-        services.AddScoped<ToeicSpace.Assessment.Application.Attempts.IAttemptMediaStore,
-            ToeicSpace.Assessment.Infrastructure.Services.Attempts.RetainedAttemptMediaStore>();
-        services.AddHostedService<ToeicSpace.Assessment.Infrastructure.Services.Attempts.PracticeAttemptCleanupWorker>();
+        services.AddScoped<IAttemptMediaStore, RetainedAttemptMediaStore>();
+        services.AddHostedService<PracticeAttemptCleanupWorker>();
         services.AddScoped<AuditableEntityInterceptor>();
 
         services.AddDbContext<AssessmentDbContext>((serviceProvider, options) =>

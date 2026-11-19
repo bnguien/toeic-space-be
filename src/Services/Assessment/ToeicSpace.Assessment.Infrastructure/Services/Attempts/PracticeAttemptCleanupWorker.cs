@@ -2,10 +2,12 @@ using System.Diagnostics;
 using MediatR;
 using Microsoft.Extensions.Hosting;
 using Microsoft.Extensions.Logging;
-using ToeicSpace.Assessment.Application.Attempts;
+using ToeicSpace.Assessment.Application.Features.Attempts.Commands.CleanupAttempts;
+using ToeicSpace.Assessment.Application.Models.Attempts;
 
 namespace ToeicSpace.Assessment.Infrastructure.Services.Attempts;
 
+// Every minute: auto-submits timed tests past their deadline, then deletes expired practice attempts.
 public sealed class PracticeAttemptCleanupWorker(IServiceScopeFactory scopes, TimeProvider clock,
     ILogger<PracticeAttemptCleanupWorker> logger) : BackgroundService
 {
@@ -17,12 +19,12 @@ public sealed class PracticeAttemptCleanupWorker(IServiceScopeFactory scopes, Ti
             var watch = Stopwatch.StartNew();
             try
             {
-                int deleted;
+                AttemptCleanupResult result;
                 do
                 {
                     await using var scope = scopes.CreateAsyncScope();
-                    deleted = await scope.ServiceProvider.GetRequiredService<ISender>().Send(new CleanupPracticeAttempts(), stoppingToken);
-                } while (deleted == 100 && !stoppingToken.IsCancellationRequested);
+                    result = await scope.ServiceProvider.GetRequiredService<ISender>().Send(new CleanupAttemptsCommand(), stoppingToken);
+                } while (result.HasMore && !stoppingToken.IsCancellationRequested);
                 logger.LogInformation("Practice cleanup cycle succeeded in {ElapsedMs}ms", watch.ElapsedMilliseconds);
             }
             catch (Exception ex) when (ex is not OperationCanceledException)

@@ -1,5 +1,5 @@
 using Microsoft.AspNetCore.Authorization;
-using ToeicSpace.Assessment.Application.Attempts;
+using ToeicSpace.Assessment.Application.Interfaces.Storage;
 
 namespace ToeicSpace.Assessment.API.Controllers;
 

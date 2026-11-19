@@ -178,3 +178,10 @@ fresh-baseline retry, missing preconditions, and cached Preview access after unp
 The opt-in `ConcurrentQuestionLists_WithSameBaseline_RejectTheStaleWriter` MySQL test
 overlaps two independent contexts using the same baseline and verifies only the first
 writer's list commits. The local API smoke script also checks missing/stale baselines.
+
+## Learner preview without answers (18 November 2026)
+
+Superseding the 3 November decision: `GET /{id}/content` now strips the answer key, explanations, transcripts,
+translations and listening scripts for callers that cannot manage content (`includesAnswers: false`). Learners get
+answers only through attempts, per checked question or after submission (see `practice-exam-flow.md`). Content
+managers keep the full preview. The content cache prefix moved to `assessment:content:v3`.

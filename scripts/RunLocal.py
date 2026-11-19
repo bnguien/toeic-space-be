@@ -100,6 +100,8 @@ def settings_for(service: str, env: dict[str, str], *, db_from_env: bool) -> dic
             "RabbitMQ__Username": pick("RABBITMQ_USER"),
             "RabbitMQ__Password": pick("RABBITMQ_PASSWORD"),
         }
+    if service == "assessment":  # same default as docker-compose.yml; practice attempts cannot preserve media without it
+        out["PracticeMedia__AllowedOrigins__0"] = pick("PRACTICE_MEDIA_ALLOWED_ORIGIN", "https://chill-zone.studychill.net")
     if service in ("identity", "content"):
         out |= {
             "CloudflareR2__Endpoint": pick("R2_ENDPOINT"),

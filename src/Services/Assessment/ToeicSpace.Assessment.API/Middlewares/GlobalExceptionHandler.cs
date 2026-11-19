@@ -1,6 +1,6 @@
 using Microsoft.AspNetCore.Diagnostics;
 using Microsoft.EntityFrameworkCore;
-using ToeicSpace.Assessment.Application.Attempts;
+using ToeicSpace.Assessment.Application.Common.Exceptions;
 using ToeicSpace.Assessment.Domain.Exceptions;
 
 namespace ToeicSpace.Assessment.API.Middlewares;

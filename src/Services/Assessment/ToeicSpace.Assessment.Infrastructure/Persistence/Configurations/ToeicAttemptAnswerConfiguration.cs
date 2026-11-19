@@ -19,6 +19,9 @@ public sealed class ToeicAttemptAnswerConfiguration : IEntityTypeConfiguration<T
             .HasMaxLength(1)
             .IsRequired();
 
+        builder.Property(x => x.IsFlagged)
+            .HasDefaultValue(false);
+
         builder.HasIndex(x => new { x.AttemptId, x.QuestionId });
         builder.HasIndex(x => x.QuestionId);
         builder.HasIndex(x => new { x.AttemptId, x.SnapshotQuestionId }).IsUnique();
