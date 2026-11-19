@@ -49,6 +49,23 @@ Server lọc theo `Part` trong truy vấn SQL: client chỉ nhận câu hỏi c�
 
 **Giới hạn phiên:** tối đa 5 phiên hoạt động/tài khoản; phiên cũ nhất bị thu hồi. Đổi vai trò hoặc khoá tài khoản có hiệu lực chậm nhất ở lần refresh kế tiếp (≤ 10 phút).
 
+### 2.1. Client native (app mobile)
+
+App native không dùng được cookie `__Secure-*`: cờ `Secure` chặn cookie qua HTTP khi dev, và app tự lưu token trong storage mã hoá. Request có header `X-Client-Type: mobile` dùng body thay cho cookie:
+
+| Endpoint | Trình duyệt | `X-Client-Type: mobile` |
+|---|---|---|
+| `POST /identity/api/auth/login` | Refresh token trong cookie | Body có thêm `refreshToken`, `refreshTokenExpiresAt`; không đặt cookie |
+| `POST /identity/api/auth/refresh` | Đọc cookie | Đọc `{ "refreshToken": "..." }` trong body; response như login |
+| `POST /identity/api/auth/logout` | Đọc và xoá cookie | Đọc `refreshToken` trong body |
+| `POST /identity/api/v1/auth/password-reset/verify` | Đặt cookie `__Secure-ts_pr` | Body có thêm `resetToken`; không đặt cookie |
+| `POST /identity/api/v1/auth/password-reset/confirm` | Đọc cookie | Đọc `resetToken` trong body |
+| `PUT /identity/api/v1/auth/change-password` | Xoá cookie refresh và reset | Không đụng cookie |
+
+- Header `X-CSRF-Protection: 1` vẫn bắt buộc ở các endpoint như cũ.
+- Ở chế độ native, server **không bao giờ đọc hay ghi cookie**. Một script trong trình duyệt tự gắn header cũng không đổi được cookie `HttpOnly` thành token đọc được.
+- Xoay vòng, phát hiện dùng lại và giới hạn 5 phiên áp dụng giống hệt trình duyệt.
+
 ---
 
 ## 3. Các lớp bảo vệ

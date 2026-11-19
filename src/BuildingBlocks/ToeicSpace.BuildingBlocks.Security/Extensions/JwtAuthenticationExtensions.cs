@@ -1,6 +1,7 @@
 using System.Security.Cryptography;
 using Microsoft.AspNetCore.Authentication;
 using Microsoft.AspNetCore.Authentication.JwtBearer;
+using Microsoft.AspNetCore.Http;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.IdentityModel.Tokens;
@@ -63,6 +64,24 @@ public static class JwtAuthenticationExtensions
                     ClockSkew = AccessTokenDefaults.ClockSkew,
                     NameClaimType = AccessTokenDefaults.SubjectClaim,
                     RoleClaimType = AccessTokenDefaults.RoleClaim
+                };
+
+                options.Events = new JwtBearerEvents
+                {
+                    // AI assistant tokens (scope agent.read) may only read.
+                    OnTokenValidated = context =>
+                    {
+                        var scope = context.Principal?.FindFirst(AccessTokenDefaults.ScopeClaim)?.Value;
+                        var method = context.HttpContext.Request.Method;
+                        if (scope == AccessTokenDefaults.AgentReadScope
+                            && !HttpMethods.IsGet(method)
+                            && !HttpMethods.IsHead(method))
+                        {
+                            context.Fail("Assistant tokens are read-only.");
+                        }
+
+                        return Task.CompletedTask;
+                    }
                 };
             });
     }

@@ -1,3 +1,4 @@
+using ToeicSpace.BuildingBlocks.Security.Http;
 using System.Threading.RateLimiting;
 using ToeicSpace.BuildingBlocks.Security.Extensions;
 
@@ -87,11 +88,27 @@ if (!app.Environment.IsDevelopment())
     app.UseHsts();
 }
 
-app.UseSecurityHeaders();
+// News covers (Content service) are public, content-addressed images: keep their long cache headers.
+app.UseSecurityHeaders(new SecurityHeadersOptions
+{
+    ExcludedPathPrefixes = ["/swagger", "/content/api/v1/news/covers"]
+});
 
 app.UseCors();
 
 app.UseRateLimiter();
+
+// Service-to-service endpoints are never reachable through the public reverse proxy.
+app.Use(async (context, next) =>
+{
+    if (context.Request.Path.StartsWithSegments("/content/api/v1/internal", StringComparison.OrdinalIgnoreCase) ||
+        context.Request.Path.StartsWithSegments("/payment/api/v1/internal", StringComparison.OrdinalIgnoreCase))
+    {
+        context.Response.StatusCode = StatusCodes.Status404NotFound;
+        return;
+    }
+    await next();
+});
 
 app.MapReverseProxy();
 

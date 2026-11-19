@@ -18,4 +18,21 @@ public static class ErrorCodes
     public const string TestNotPublishable = "test_not_publishable";
     public const string PracticeSetNotPublishable = "practice_set_not_publishable";
     public const string AnswerKeyForbidden = "answer_key_forbidden";
+
+    public const string AttemptUnavailable = "attempt_unavailable";
+    public const string AttemptNotActive = "attempt_not_active";
+    public const string AttemptNotCompleted = "attempt_not_completed";
+    public const string AttemptTimeUp = "attempt_time_up";
+    public const string AnswerLocked = "answer_locked";
+    public const string AnswerRevisionConflict = "answer_revision_conflict";
+    public const string MutationConflict = "mutation_conflict";
+    public const string CheckNotAllowed = "check_not_allowed";
+    public const string NothingToPractice = "nothing_to_practice";
+    public const string StaleStartGeneration = "stale_start_generation";
+    public const string LegacyAttemptUnsupported = "legacy_attempt_unsupported";
+    public const string MediaPreservationFailed = "media_preservation_failed";
+
+    public const string AnalyticsUnavailable = "analytics_unavailable";
+    public const string AnalyticsTimeout = "analytics_timeout";
+    public const string AnalyticsRangeTooLarge = "analytics_range_too_large";
 }

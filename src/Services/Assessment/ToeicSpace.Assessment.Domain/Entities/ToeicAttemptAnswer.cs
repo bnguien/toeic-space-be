@@ -11,6 +11,10 @@ public class ToeicAttemptAnswer : BaseAuditableEntity
 
     public Guid QuestionId { get; set; }
 
+    public Guid? SnapshotQuestionId { get; set; }
+    public long Revision { get; set; }
+    public Guid? LastMutationId { get; set; }
+
     public ToeicQuestion Question { get; set; } = null!;
 
     public AnswerOption? UserAnswer { get; set; }
@@ -23,4 +27,11 @@ public class ToeicAttemptAnswer : BaseAuditableEntity
     public bool IsCorrect { get; set; }
 
     public int TimeSpentSeconds { get; set; }
+
+    public bool IsFlagged { get; set; }
+
+    /// <summary>
+    /// Set when a practice learner checks the question: the answer is graded and locked from then on.
+    /// </summary>
+    public DateTime? CheckedAt { get; set; }
 }

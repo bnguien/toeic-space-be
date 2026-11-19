@@ -1,6 +1,6 @@
 using Microsoft.Extensions.Logging.Abstractions;
-using ToeicSpace.Identity.Application.Features.ResendVerification.Commands;
-using ToeicSpace.Identity.Application.Features.VerifyEmail.Commands;
+using ToeicSpace.Identity.Application.Features.Registration.Commands.ResendVerification;
+using ToeicSpace.Identity.Application.Features.Registration.Commands.VerifyEmail;
 using ToeicSpace.Identity.Application.Interfaces.Security;
 using ToeicSpace.Identity.Application.Messaging.Events;
 using ToeicSpace.Identity.Application.Models;

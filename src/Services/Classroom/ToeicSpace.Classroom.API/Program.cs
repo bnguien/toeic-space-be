@@ -1,39 +1,77 @@
-var builder = WebApplication.CreateBuilder(args);
+using System.Text.Json.Serialization;
+using Hangfire;
+using Microsoft.AspNetCore.Authorization;
+using Microsoft.OpenApi;
+using ToeicSpace.BuildingBlocks.Security.Extensions;
+using ToeicSpace.Classroom.API.Middlewares;
+using ToeicSpace.Classroom.API.Security;
+using ToeicSpace.Classroom.Application;
+using ToeicSpace.Classroom.Infrastructure;
+using ToeicSpace.Classroom.Infrastructure.Persistence;
+using ToeicSpace.Classroom.Infrastructure.Persistence.Seeding;
+using Microsoft.EntityFrameworkCore;
 
-// Add services to the container.
-// Learn more about configuring OpenAPI at https://aka.ms/aspnet/openapi
-
-var app = builder.Build();
-
-// Configure the HTTP request pipeline.
-if (app.Environment.IsDevelopment())
+var seedClassroomDemo = args.Contains("--seed-classroom-demo", StringComparer.Ordinal);
+var builder = WebApplication.CreateBuilder(args.Where(x => x != "--seed-classroom-demo").ToArray());
+builder.Services.AddInfrastructureServices(builder.Configuration, !seedClassroomDemo);
+builder.Services.AddApplicationServices();
+if (!seedClassroomDemo)
 {
+    builder.Services.AddExceptionHandler<ClassroomExceptionHandler>();
+    builder.Services.AddProblemDetails();
+    builder.Services.AddKestrelHardening();
+    builder.Services.AddTrustedForwardedHeaders(builder.Configuration);
+    builder.Services.AddToeicSpaceJwtAuthentication(builder.Configuration);
+    builder.Services.AddAuthorizationBuilder()
+        .SetFallbackPolicy(new AuthorizationPolicyBuilder().RequireAuthenticatedUser().Build())
+        .AddPolicy("Admin", p => p.RequireRole("Admin"))
+        .AddPolicy("AdminOrTeacher", p => p.RequireRole("Admin", "Teacher"))
+        .AddPolicy(AuthorizationPolicies.AnalyticsReader, p => p
+            .RequireAuthenticatedUser()
+            .RequireRole(AuthorizationPolicies.AnalyticsReaderRoles));
+    builder.Services.AddControllers().AddJsonOptions(o => o.JsonSerializerOptions.Converters.Add(new JsonStringEnumConverter()));
+    builder.Services.AddEndpointsApiExplorer();
+    builder.Services.AddSwaggerGen(options =>
+    {
+        options.AddSecurityDefinition("Bearer", new OpenApiSecurityScheme
+        {
+            Type = SecuritySchemeType.Http,
+            Scheme = "bearer",
+            BearerFormat = "JWT",
+            Description = "Identity access token."
+        });
+        options.AddSecurityRequirement(document => new OpenApiSecurityRequirement
+        {
+            [new OpenApiSecuritySchemeReference("Bearer", document)] = []
+        });
+    });
 }
-
-app.UseHttpsRedirection();
-
-var summaries = new[]
+var app = builder.Build();
+if (seedClassroomDemo)
 {
-    "Freezing", "Bracing", "Chilly", "Cool", "Mild", "Warm", "Balmy", "Hot", "Sweltering", "Scorching"
-};
+    if (!app.Environment.IsDevelopment() && !app.Environment.IsEnvironment("Testing"))
+        throw new InvalidOperationException("--seed-classroom-demo is permitted only in Development or Testing.");
 
-app.MapGet("/weatherforecast", () =>
-{
-    var forecast =  Enumerable.Range(1, 5).Select(index =>
-        new WeatherForecast
-        (
-            DateOnly.FromDateTime(DateTime.Now.AddDays(index)),
-            Random.Shared.Next(-20, 55),
-            summaries[Random.Shared.Next(summaries.Length)]
-        ))
-        .ToArray();
-    return forecast;
-})
-.WithName("GetWeatherForecast");
-
+    await using var scope = app.Services.CreateAsyncScope();
+    var db = scope.ServiceProvider.GetRequiredService<ClassroomDbContext>();
+    await db.Database.MigrateAsync();
+    var report = await scope.ServiceProvider.GetRequiredService<ClassroomDemoSeeder>().SeedAsync();
+    Console.WriteLine($"Classroom demo seed complete: {report.Centers} centers, {report.Rooms} rooms, " +
+        $"{report.Classes} classes, {report.Enrollments} active enrollments, {report.Schedules} schedules, " +
+        $"{report.Sessions} sessions. Created primary demo records: {report.CreatedPrimaryRecords}; reused records: {report.ReusedRecords}; " +
+        $"existing recurring occurrences skipped: {report.SkippedOccurrences}.");
+    return;
+}
+app.Services.GetRequiredService<Hangfire.IRecurringJobManager>().AddOrUpdate<
+    ToeicSpace.Classroom.Infrastructure.Services.GoogleMeet.GoogleMeetProvisioningJob>(
+    "classroom-google-meet-reconcile", x => x.ScanAsync(CancellationToken.None), "*/1 * * * *");
+app.UseForwardedHeaders();
+app.UseSecurityHeaders();
+app.UseExceptionHandler();
+if (app.Environment.IsDevelopment()) { app.UseSwagger(); app.UseSwaggerUI(); }
+app.UseAuthentication();
+app.UseAuthorization();
+app.MapControllers();
 app.Run();
 
-record WeatherForecast(DateOnly Date, int TemperatureC, string? Summary)
-{
-    public int TemperatureF => 32 + (int)(TemperatureC / 0.5556);
-}
+public partial class Program;

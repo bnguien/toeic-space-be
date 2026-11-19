@@ -3,7 +3,7 @@ namespace ToeicSpace.Assessment.Application.Common.Caching;
 public static class ContentCacheKeys
 {
     // Bump the version when the cached payload shape changes, so old entries are never served.
-    private const string Prefix = "assessment:content:v2";
+    private const string Prefix = "assessment:content:v3";
 
     public static string FullTest(
         Guid testId,

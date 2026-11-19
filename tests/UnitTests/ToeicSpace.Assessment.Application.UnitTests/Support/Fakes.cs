@@ -1,6 +1,6 @@
 using System.Collections.Concurrent;
-using ToeicSpace.Assessment.Application.Data;
 using ToeicSpace.Assessment.Application.Interfaces.Caching;
+using ToeicSpace.Assessment.Application.Interfaces.Persistence;
 using ToeicSpace.Assessment.Application.Interfaces.Security;
 using ToeicSpace.BuildingBlocks.Messaging;
 
@@ -8,6 +8,9 @@ namespace ToeicSpace.Assessment.Application.UnitTests.Support;
 
 public sealed class FakeCurrentUser : ICurrentUserService
 {
+    public bool IsAdmin { get; init; }
+
+    public static FakeCurrentUser Admin() => new() { UserId = Guid.NewGuid(), IsAuthenticated = true, CanManageContent = true, IsAdmin = true };
     public static FakeCurrentUser Learner() => new() { UserId = Guid.NewGuid(), IsAuthenticated = true };
 
     public static FakeCurrentUser ContentManager() => new() { UserId = Guid.NewGuid(), IsAuthenticated = true, CanManageContent = true };

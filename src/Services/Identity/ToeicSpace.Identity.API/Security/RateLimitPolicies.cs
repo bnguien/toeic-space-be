@@ -11,4 +11,9 @@ public static class RateLimitPolicies
     /// Session maintenance (refresh, sign-out, profile): 30 requests per minute per client IP.
     /// </summary>
     public const string Session = "session";
+
+    /// <summary>
+    /// The admin "Ask AI" panel (questions + polling): 120 requests per minute per signed-in user.
+    /// </summary>
+    public const string Assistant = "assistant";
 }

@@ -25,6 +25,9 @@ public sealed class CurrentUserService : ICurrentUserService
     public bool IsAuthenticated
         => _httpContextAccessor.HttpContext?.User.Identity?.IsAuthenticated == true;
 
+    public bool IsAdmin => IsAuthenticated
+        && _httpContextAccessor.HttpContext?.User.IsInRole("Admin") == true;
+
     public bool CanManageContent
     {
         get

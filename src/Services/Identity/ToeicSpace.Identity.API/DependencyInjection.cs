@@ -3,6 +3,7 @@ using Microsoft.AspNetCore.Authorization;
 using Microsoft.OpenApi;
 using ToeicSpace.BuildingBlocks.Security.Extensions;
 using ToeicSpace.BuildingBlocks.Security.Jwt;
+using ToeicSpace.Identity.API.Assistant;
 using ToeicSpace.Identity.API.Middlewares;
 using ToeicSpace.Identity.API.Security;
 using ToeicSpace.Identity.API.Services;
@@ -31,6 +32,7 @@ public static class DependencyInjection
             configuration.GetSection(RefreshCookieOptions.SectionName).Get<RefreshCookieOptions>()
             ?? new RefreshCookieOptions());
         services.AddControllers();
+        AddAssistant(services, configuration);
 
         AddSwagger(services);
         AddAuthentication(services, configuration);
@@ -73,7 +75,10 @@ public static class DependencyInjection
         services.AddAuthorizationBuilder()
             .SetFallbackPolicy(new AuthorizationPolicyBuilder()
                 .RequireAuthenticatedUser()
-                .Build());
+                .Build())
+            .AddPolicy(AuthorizationPolicies.AnalyticsReader, policy => policy
+                .RequireAuthenticatedUser()
+                .RequireRole(AuthorizationPolicies.AnalyticsReaderRoles));
     }
 
     private static void AddSwagger(IServiceCollection services)
@@ -114,10 +119,30 @@ public static class DependencyInjection
                 {
                     policy.WithOrigins(allowedOrigins)
                         .WithHeaders("Content-Type", "Authorization", RequireCsrfHeaderAttribute.HeaderName)
-                        .WithMethods("GET", "POST", "PUT")
+                        .WithMethods("GET", "POST", "PUT", "DELETE")
                         .AllowCredentials();
                 }
             }));
+    }
+
+    private static void AddAssistant(IServiceCollection services, IConfiguration configuration)
+    {
+        services.AddSingleton(
+            configuration.GetSection(AgentAccessOptions.SectionName).Get<AgentAccessOptions>()
+            ?? new AgentAccessOptions());
+        var agents = configuration.GetSection(SeasonedAgentsOptions.SectionName).Get<SeasonedAgentsOptions>()
+            ?? new SeasonedAgentsOptions();
+        services.AddSingleton(agents);
+        services.AddMemoryCache();
+        services.AddHttpClient<SeasonedAgentsClient>(client =>
+        {
+            if (Uri.TryCreate(agents.BaseUrl?.TrimEnd('/') + "/", UriKind.Absolute, out var baseUrl))
+            {
+                client.BaseAddress = baseUrl;
+            }
+
+            client.Timeout = TimeSpan.FromSeconds(30);
+        });
     }
 
     private static void AddRateLimiting(IServiceCollection services)
@@ -134,6 +159,17 @@ public static class DependencyInjection
                         PermitLimit = 5,
                         Window = TimeSpan.FromMinutes(1),
                         QueueProcessingOrder = QueueProcessingOrder.OldestFirst,
+                        QueueLimit = 0,
+                        AutoReplenishment = true
+                    }));
+
+            options.AddPolicy(RateLimitPolicies.Assistant, httpContext =>
+                RateLimitPartition.GetFixedWindowLimiter(
+                    httpContext.User.FindFirst(AccessTokenDefaults.SubjectClaim)?.Value ?? GetClientIp(httpContext),
+                    _ => new FixedWindowRateLimiterOptions
+                    {
+                        PermitLimit = 120,
+                        Window = TimeSpan.FromMinutes(1),
                         QueueLimit = 0,
                         AutoReplenishment = true
                     }));

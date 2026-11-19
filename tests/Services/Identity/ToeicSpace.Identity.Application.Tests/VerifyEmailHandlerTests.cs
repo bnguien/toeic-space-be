@@ -1,5 +1,5 @@
 using Microsoft.Extensions.Logging.Abstractions;
-using ToeicSpace.Identity.Application.Features.VerifyEmail.Commands;
+using ToeicSpace.Identity.Application.Features.Registration.Commands.VerifyEmail;
 using ToeicSpace.Identity.Application.Models;
 using ToeicSpace.Identity.Domain.Entities;
 using ToeicSpace.Identity.Domain.Enums;

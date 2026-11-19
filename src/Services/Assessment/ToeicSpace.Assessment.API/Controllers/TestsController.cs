@@ -1,14 +1,15 @@
 using Microsoft.AspNetCore.Authorization;
 using ToeicSpace.Assessment.API.Contracts;
 using ToeicSpace.Assessment.API.Security;
-using ToeicSpace.Assessment.Application.Tests.Commands.CreateTest;
-using ToeicSpace.Assessment.Application.Tests.Commands.DeleteTest;
-using ToeicSpace.Assessment.Application.Tests.Commands.UpdateTest;
-using ToeicSpace.Assessment.Application.Tests.Commands.UpdateTestStatus;
-using ToeicSpace.Assessment.Application.Tests.Queries.GetFullTest;
-using ToeicSpace.Assessment.Application.Tests.Queries.GetTestById;
-using ToeicSpace.Assessment.Application.Tests.Queries.GetTestCategories;
-using ToeicSpace.Assessment.Application.Tests.Queries.GetTests;
+using ToeicSpace.Assessment.Application.DTOs.Tests;
+using ToeicSpace.Assessment.Application.Features.Tests.Commands.CreateTest;
+using ToeicSpace.Assessment.Application.Features.Tests.Commands.DeleteTest;
+using ToeicSpace.Assessment.Application.Features.Tests.Commands.UpdateTest;
+using ToeicSpace.Assessment.Application.Features.Tests.Commands.UpdateTestStatus;
+using ToeicSpace.Assessment.Application.Features.Tests.Queries.GetFullTest;
+using ToeicSpace.Assessment.Application.Features.Tests.Queries.GetTestById;
+using ToeicSpace.Assessment.Application.Features.Tests.Queries.GetTestCategories;
+using ToeicSpace.Assessment.Application.Features.Tests.Queries.GetTests;
 
 namespace ToeicSpace.Assessment.API.Controllers;
 

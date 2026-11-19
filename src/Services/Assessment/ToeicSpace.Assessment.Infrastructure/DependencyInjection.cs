@@ -1,11 +1,15 @@
 using Microsoft.EntityFrameworkCore.Diagnostics;
 using Microsoft.Extensions.DependencyInjection.Extensions;
-using ToeicSpace.Assessment.Application.Data;
 using ToeicSpace.Assessment.Application.Interfaces.Caching;
+using ToeicSpace.Assessment.Application.Interfaces.Persistence;
+using ToeicSpace.Assessment.Application.Interfaces.Security;
+using ToeicSpace.Assessment.Application.Interfaces.Storage;
 using ToeicSpace.Assessment.Infrastructure.Messaging.Outbox;
 using ToeicSpace.Assessment.Infrastructure.Persistence;
 using ToeicSpace.Assessment.Infrastructure.Persistence.Interceptors;
 using ToeicSpace.Assessment.Infrastructure.Persistence.Search;
+using ToeicSpace.Assessment.Infrastructure.Services.Analytics;
+using ToeicSpace.Assessment.Infrastructure.Services.Attempts;
 using ToeicSpace.Assessment.Infrastructure.Services.Caching;
 using ToeicSpace.BuildingBlocks.Messaging;
 using ToeicSpace.BuildingBlocks.Messaging.MassTransit;
@@ -26,6 +30,8 @@ public static class DependencyInjection
                 "or in appsettings.json.");
 
         services.TryAddSingleton(TimeProvider.System);
+        services.AddScoped<IAttemptMediaStore, RetainedAttemptMediaStore>();
+        services.AddHostedService<PracticeAttemptCleanupWorker>();
         services.AddScoped<AuditableEntityInterceptor>();
 
         services.AddDbContext<AssessmentDbContext>((serviceProvider, options) =>
@@ -65,6 +71,7 @@ public static class DependencyInjection
         services.AddScoped<IQuestionSearch, MySqlQuestionSearch>();
 
         AddContentCache(services, configuration);
+        AddAnalytics(services, configuration);
         AddMessaging(services, configuration);
 
         return services;
@@ -99,6 +106,24 @@ public static class DependencyInjection
         });
 
         services.AddSingleton<IContentCache, DistributedContentCache>();
+    }
+
+    /// <summary>
+    /// The pseudonym key is read from configuration only (user-secrets / environment). Without it the
+    /// analytics events endpoint answers 503; nothing generates or stores a key.
+    /// </summary>
+    private static void AddAnalytics(
+        IServiceCollection services,
+        IConfiguration configuration)
+    {
+        var analyticsSection = configuration.GetSection(AnalyticsOptions.SectionName);
+
+        services.AddSingleton(new AnalyticsOptions
+        {
+            PseudonymKey = analyticsSection["PseudonymKey"]
+        });
+
+        services.AddSingleton<ILearnerPseudonymizer, HmacLearnerPseudonymizer>();
     }
 
     private static void AddMessaging(

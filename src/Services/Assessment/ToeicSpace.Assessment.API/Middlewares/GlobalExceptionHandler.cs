@@ -1,5 +1,6 @@
 using Microsoft.AspNetCore.Diagnostics;
 using Microsoft.EntityFrameworkCore;
+using ToeicSpace.Assessment.Application.Common.Exceptions;
 using ToeicSpace.Assessment.Domain.Exceptions;
 
 namespace ToeicSpace.Assessment.API.Middlewares;
@@ -71,6 +72,15 @@ public class GlobalExceptionHandler : IExceptionHandler
             problemDetails.Extensions["errors"] = exception.ValidationErrors;
         }
 
+        if (exception is PracticeMediaException mediaException)
+        {
+            problemDetails.Extensions["reason"] = mediaException.Reason;
+            if (mediaException.SourceReference is { } sourceReference)
+            {
+                problemDetails.Extensions["sourceReference"] = sourceReference;
+            }
+        }
+
         context.Response.StatusCode = statusCode;
         context.Response.ContentType = "application/problem+json";
 
@@ -106,6 +116,7 @@ public class GlobalExceptionHandler : IExceptionHandler
         ErrorType.NotFound => StatusCodes.Status404NotFound,
         ErrorType.Conflict => StatusCodes.Status409Conflict,
         ErrorType.TooManyRequests => StatusCodes.Status429TooManyRequests,
+        ErrorType.ServiceUnavailable => StatusCodes.Status503ServiceUnavailable,
         _ => StatusCodes.Status500InternalServerError
     };
 
@@ -117,6 +128,7 @@ public class GlobalExceptionHandler : IExceptionHandler
         ErrorType.NotFound => "Not Found",
         ErrorType.Conflict => "Conflict",
         ErrorType.TooManyRequests => "Too Many Requests",
+        ErrorType.ServiceUnavailable => "Service Unavailable",
         _ => "Internal Server Error"
     };
 }

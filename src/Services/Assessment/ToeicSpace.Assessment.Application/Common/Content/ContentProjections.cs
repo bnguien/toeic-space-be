@@ -1,6 +1,6 @@
 using System.Linq.Expressions;
-using ToeicSpace.Assessment.Application.Data;
-using ToeicSpace.Assessment.Application.Dtos;
+using ToeicSpace.Assessment.Application.DTOs.Content;
+using ToeicSpace.Assessment.Application.Interfaces.Persistence;
 
 namespace ToeicSpace.Assessment.Application.Common.Content;
 
@@ -24,7 +24,9 @@ public static class ContentProjections
         TranslatedText.TranscriptText(question.Transcript),
         TranslatedText.TranscriptTranslation(question.Transcript),
         question.DifficultyLevel,
-        question.OrderIndex);
+        question.OrderIndex,
+        question.Status,
+        question.Topic);
 
     public static readonly Expression<Func<ToeicPassage, ContentPassageDto>> Passage = passage => new ContentPassageDto(
         passage.Id,

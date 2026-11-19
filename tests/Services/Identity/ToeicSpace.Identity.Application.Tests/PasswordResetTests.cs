@@ -1,7 +1,9 @@
 using MediatR;
 using ToeicSpace.Identity.Application.Common.Behaviors;
-using ToeicSpace.Identity.Application.Features.ChangePassword.Commands;
-using ToeicSpace.Identity.Application.Features.PasswordReset.Commands;
+using ToeicSpace.Identity.Application.Features.Passwords.Commands.ChangePassword;
+using ToeicSpace.Identity.Application.Features.Passwords.Commands.ConfirmPasswordReset;
+using ToeicSpace.Identity.Application.Features.Passwords.Commands.RequestChangePasswordOtp;
+using ToeicSpace.Identity.Application.Features.Passwords.Commands.VerifyPasswordReset;
 using ToeicSpace.Identity.Application.Interfaces.Caching;
 using ToeicSpace.Identity.Application.Interfaces.Persistence;
 using ToeicSpace.Identity.Application.Interfaces.Security;

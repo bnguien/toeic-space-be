@@ -7,5 +7,6 @@ public enum ErrorType
     Forbidden,
     NotFound,
     Conflict,
-    TooManyRequests
+    TooManyRequests,
+    ServiceUnavailable
 }

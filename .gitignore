@@ -32,6 +32,17 @@ coverage.*
 *.snupkg
 packages/
 
+# Node test tooling
+node_modules/
+/package.json
+/package-lock.json
+/scripts/run-classroom-api-newman.mjs
+/tests/api/classroom/
+/tests/Services/Classroom/ToeicSpace.Classroom.Tests/ClassSchedulingTests.cs
+/tests/Services/Classroom/ToeicSpace.Classroom.Tests/ClassroomDemoSeederTests.cs
+/tests/Services/Classroom/ToeicSpace.Classroom.Tests/FacilityManagementTests.cs
+/tests/Services/Classroom/ToeicSpace.Classroom.Tests/SchedulingMySqlConcurrencyTests.cs
+
 # Docker local data
 docker-data/
 mysql-data/
@@ -51,3 +62,15 @@ scripts/__pycache__/
 
 # Ignore Docker tools configuration
 /docker-compose.tools.yml
+
+# News cover store of a locally run Content API (News:CoverDirectory default)
+**/App_Data/
+
+# PBL-107 game datasets pulled from Studychill: produced locally by scripts/*_data_pipeline.py, never committed
+/data/news/
+/data/videos/
+/data/dictation/
+/data/grammar/
+
+# Local attendance testing artifacts
+/testing/

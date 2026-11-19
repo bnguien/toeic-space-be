@@ -2,6 +2,9 @@
 
 > Chạy các lệnh tại thư mục gốc chứa `ToeicSpace.slnx` và `docker-compose.yml`.
 
+> Docker-only setup, required Compose profiles, environment sharing and explicit migrations
+> for PBL-28/PBL-29: see [DOCKER_SETUP.md](DOCKER_SETUP.md).
+
 ## 1. Lần đầu clone project
 
 ```bash

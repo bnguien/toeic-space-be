@@ -18,9 +18,15 @@
   </Folder>
   <Folder Name="/src/Services/Classroom/">
     <Project Path="src/Services/Classroom/ToeicSpace.Classroom.API/ToeicSpace.Classroom.API.csproj" />
+    <Project Path="src/Services/Classroom/ToeicSpace.Classroom.Application/ToeicSpace.Classroom.Application.csproj" />
+    <Project Path="src/Services/Classroom/ToeicSpace.Classroom.Domain/ToeicSpace.Classroom.Domain.csproj" />
+    <Project Path="src/Services/Classroom/ToeicSpace.Classroom.Infrastructure/ToeicSpace.Classroom.Infrastructure.csproj" />
   </Folder>
   <Folder Name="/src/Services/Content/">
     <Project Path="src/Services/Content/ToeicSpace.Content.API/ToeicSpace.Content.API.csproj" />
+    <Project Path="src/Services/Content/ToeicSpace.Content.Application/ToeicSpace.Content.Application.csproj" />
+    <Project Path="src/Services/Content/ToeicSpace.Content.Domain/ToeicSpace.Content.Domain.csproj" />
+    <Project Path="src/Services/Content/ToeicSpace.Content.Infrastructure/ToeicSpace.Content.Infrastructure.csproj" />
   </Folder>
   <Folder Name="/src/Services/Identity/">
     <Project Path="src/Services/Identity/ToeicSpace.Identity.API/ToeicSpace.Identity.API.csproj" />
@@ -30,13 +36,23 @@
   </Folder>
   <Folder Name="/src/Services/Payment/">
     <Project Path="src/Services/Payment/ToeicSpace.Payment.API/ToeicSpace.Payment.API.csproj" />
+    <Project Path="src/Services/Payment/ToeicSpace.Payment.Application/ToeicSpace.Payment.Application.csproj" />
+    <Project Path="src/Services/Payment/ToeicSpace.Payment.Domain/ToeicSpace.Payment.Domain.csproj" />
+    <Project Path="src/Services/Payment/ToeicSpace.Payment.Infrastructure/ToeicSpace.Payment.Infrastructure.csproj" />
   </Folder>
   <Folder Name="/src/WebApps/">
     <Project Path="src/WebApps/ToeicSpace.Web/ToeicSpace.Web.csproj" />
   </Folder>
   <Folder Name="/tests/" />
+  <Folder Name="/tests/Services/" />
+  <Folder Name="/tests/Services/Content/">
+    <Project Path="tests/Services/Content/ToeicSpace.Content.Tests/ToeicSpace.Content.Tests.csproj" />
+  </Folder>
   <Folder Name="/tests/Services/Identity/">
     <Project Path="tests/Services/Identity/ToeicSpace.Identity.Application.Tests/ToeicSpace.Identity.Application.Tests.csproj" />
+  </Folder>
+  <Folder Name="/tests/Services/Payment/">
+    <Project Path="tests/Services/Payment/ToeicSpace.Payment.Tests/ToeicSpace.Payment.Tests.csproj" />
   </Folder>
   <Folder Name="/tests/UnitTests/">
     <Project Path="tests/UnitTests/ToeicSpace.Assessment.Application.UnitTests/ToeicSpace.Assessment.Application.UnitTests.csproj" />
