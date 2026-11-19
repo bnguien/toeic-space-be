@@ -59,12 +59,23 @@ public sealed partial class ClassSchedulingService
         Copy(schedule, input, now);
         if (input.Mode == SessionMode.Offline)
             await ValidateSessionAsync(Generated(schedule, cls, input.EffectiveFrom, now), cls, ct);
+        var sessions = UpcomingSessions(schedule, cls, now);
+        await LockResourcesAsync(sessions, ct);
+        await ValidatePreviewCandidatesAsync(sessions, cls, ct);
+        await CheckConflictsAsync(sessions, new HashSet<Guid>(), ct);
+        db.ClassSessions.AddRange(sessions);
+        foreach (var session in sessions) Audit(session, "Generated", actor, null, null, now);
         db.ClassSchedules.Add(schedule);
         AuditSchedule(schedule, "Created", actor, null);
         await db.SaveChangesAsync(ct);
         await CommitAsync(tx, ct);
+        foreach (var session in sessions.Where(x => x.Mode == SessionMode.Online)) QueueMeet(session);
         return schedule;
     }
+
+    private ClassSession[] UpcomingSessions(ClassSchedule schedule, Class cls, DateTime now) =>
+        Dates(schedule, schedule.EffectiveFrom, schedule.EffectiveTo)
+            .Select(date => Generated(schedule, cls, date, now)).Where(x => x.StartAt > now).ToArray();
 
     public async Task<ClassSchedule> GetScheduleAsync(Guid id, CancellationToken ct) =>
         await db.ClassSchedules.AsNoTracking().SingleOrDefaultAsync(x => x.Id == id, ct)
@@ -141,13 +152,11 @@ public sealed partial class ClassSchedulingService
             ? "Terminal session" : x.StartAt <= Now ? "Already started" : ""))
             .Where(x => x.Reason.Length != 0).ToList();
         var updatable = future.Where(x => x.Status == SessionStatus.Scheduled && x.StartAt > Now).ToArray();
-        var horizon = updatable.Select(x => x.OriginalLocalDate).Where(x => x.HasValue).Select(x => x!.Value).ToArray();
         var beforeSchedule = ScheduleSnapshot(schedule);
         Copy(schedule, input, Now);
         schedule.Version++;
         AuditSchedule(schedule, "Updated", actor, beforeSchedule);
-        var desired = horizon.Length == 0 ? new HashSet<DateOnly>() :
-            Dates(schedule, horizon.Min(), horizon.Max()).ToHashSet();
+        var desired = Dates(schedule, schedule.EffectiveFrom, schedule.EffectiveTo).ToHashSet();
         var candidates = new List<ClassSession>();
         var cancelled = new List<ClassSession>();
         foreach (var session in updatable)
@@ -178,22 +187,19 @@ public sealed partial class ClassSchedulingService
             Audit(session, "ScheduleUpdated", actor, null, old, Now);
             candidates.Add(session);
         }
-        if (horizon.Length > 0)
+        var existingDates = future.Where(x => x.OriginalLocalDate.HasValue)
+            .Select(x => x.OriginalLocalDate!.Value).ToHashSet();
+        foreach (var date in desired.Except(existingDates))
         {
-            var existingDates = future.Where(x => x.OriginalLocalDate.HasValue)
-                .Select(x => x.OriginalLocalDate!.Value).ToHashSet();
-            foreach (var date in desired.Except(existingDates))
-            {
-                var session = Generated(schedule, cls, date, Now);
-                if (session.StartAt <= Now) continue;
-                candidates.Add(session);
-                Audit(session, "Generated", actor, null, null, Now);
-                db.ClassSessions.Add(session);
-            }
+            var session = Generated(schedule, cls, date, Now);
+            if (session.StartAt <= Now) continue;
+            candidates.Add(session);
+            Audit(session, "Generated", actor, null, null, Now);
+            db.ClassSessions.Add(session);
         }
         await LockResourcesAsync(updatable.Concat(candidates), ct);
         foreach (var session in candidates) await ValidateSessionAsync(session, cls, ct);
-        await CheckConflictsAsync(candidates, updatable.Select(x => x.Id).ToHashSet(), ct);
+        await CheckConflictsAsync(candidates, candidates.Concat(cancelled).Select(x => x.Id).ToHashSet(), ct);
         await db.SaveChangesAsync(ct);
         await CommitAsync(tx, ct);
         foreach (var session in candidates.Concat(cancelled)) QueueMeet(session);
